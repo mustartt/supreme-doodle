@@ -1,0 +1,4 @@
+f(x,y) {
+    a = 3 and x;
+    x and y;
+}
