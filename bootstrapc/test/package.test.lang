@@ -1,0 +1,4 @@
+// RUN: echo hello | grep hello
+
+package package_name;
+

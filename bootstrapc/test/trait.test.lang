@@ -1,0 +1,13 @@
+
+public trait public_trait {}
+private trait private_trait {}
+
+trait base_trait {}
+trait inherited_trait : base_trait {} 
+
+trait A {}
+trait B : A {}
+trait C : A {}
+trait D : B, C {}
+
+trait generic_trait<> {}
