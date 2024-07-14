@@ -17,6 +17,11 @@ static cl::opt<std::string> OutputFilename("o",
                                            cl::Optional, cl::cat(ToolCategory));
 static cl::opt<bool> Verbose("v", cl::desc("Enable verbose mode"),
                              cl::init(false), cl::cat(ToolCategory));
+static cl::opt<std::string> ProductionRule("rule",
+                                           cl::desc("Specify production rule"),
+                                           cl::value_desc("production rule"),
+                                           cl::init("program"),
+                                           cl::cat(ToolCategory));
 
 int main(int argc, const char *argv[]) {
   InitLLVM X(argc, argv);
@@ -51,7 +56,7 @@ int main(int argc, const char *argv[]) {
     Output = &OutputFile;
   }
 
-  parse(*Input, *Output);
+  parse(*Input, *Output, ProductionRule);
 
   return 0;
 }

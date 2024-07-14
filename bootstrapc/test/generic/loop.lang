@@ -1,0 +1,19 @@
+package generic
+
+for let i = 0; i < 10: i++ {}
+for cond {}
+
+if cond {}
+if let v = 10; v < 20 {}
+
+if a {
+} else {
+}
+
+if a {
+} else if b {
+} else {
+}
+
+
+

@@ -2,22 +2,80 @@ parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
 program
-    : stat EOF
-    | def EOF
+    : package import_stmt* 
+        (trait_decl)* EOF
     ;
 
-stat: ID EQ expr SEMI
-    | expr SEMI
+package
+    : PACKAGE IDENTIFIER SEMI
     ;
 
-def : ID LPAREN ID (COMMA ID)* RPAREN LCURLY stat* RCURLY ;
-
-expr: ID
-    | INT
-    | func
-    | NOT expr
-    | expr AND expr
-    | expr OR expr
+import_stmt
+    : IMPORT import_path (AS IDENTIFIER)? SEMI
+    ;
+import_path
+    : IDENTIFIER (DOT IDENTIFIER)*
     ;
 
-func : ID LPAREN expr (COMMA expr)* RPAREN ;
+qualified_identifier
+    : IDENTIFIER (DOT IDENTIFIER)*
+    ;
+
+visibility
+    : PUBLIC
+    | PRIVATE
+    ;
+
+trait_decl
+    : visibility? TRAIT IDENTIFIER 
+        (COLON trait_list)?
+        LCURLY RCURLY
+    ;
+
+trait_list
+    : qualified_identifier (COMMA qualified_identifier)*
+    ;
+
+/* production rule for testing types */
+test_type: type+ EOF ;
+
+type: BOOL_TYPE
+    | CHAR_TYPE
+    | INTEGRAL_TYPE
+    | FLOAT_TYPE
+    | pointer_type
+    | array_type
+    | tuple_type
+    | function_type
+    ;
+
+pointer_type
+    : STAR pointer_attr type
+    ;
+
+pointer_attr
+    : MUT? DYN?
+    ;
+
+array_type
+    : LBRACKET type RBRACKET
+    ;
+
+tuple_type
+    : LPAREN type (COMMA type)* RPAREN
+    ;
+
+function_type
+    : LPAREN parameter_type_list? RPAREN COLON type
+    ;
+
+parameter_type_list
+    : type (COMMA type)*
+    ;
+
+
+
+
+
+
+

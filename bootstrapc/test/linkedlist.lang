@@ -1,0 +1,32 @@
+
+struct node<T> {
+    data: T
+    next: option<node<T> *>
+}
+
+struct linked_list<T> {
+    start: option<node<T> *>
+    end: option<node<T> *>
+    size: i64
+}
+
+enum option<T> {
+    some(T),
+    none 
+}
+
+struct string {
+    size: i64
+    data: option<char *>
+}
+
+func string::size(this: string *) i64 {
+    return this.size
+}
+
+func string::operator_index(this: string *, i64 idx) char {
+    assert(idx < this.size)
+    return match thi
+}
+
+

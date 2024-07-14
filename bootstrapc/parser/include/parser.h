@@ -5,6 +5,6 @@
 #include <istream>
 #include <ostream>
 
-void parse(std::istream&, std::ostream&) noexcept; 
+void parse(std::istream&, std::ostream&, const std::string&) noexcept; 
 
 #endif // TEST_LANG_PARSER_PARSER_H
