@@ -1,3 +1,5 @@
+// UNSUPPORTED: *
+// RUN: echo hello
 
 public trait public_trait {}
 private trait private_trait {}

@@ -13,6 +13,8 @@ void parse(std::istream &in, std::ostream& out, const std::string& rule) {
     tree = parser.program();
   } else if (rule == "type") {
     tree = parser.test_type();
+  } else if (rule == "literal") {
+    tree = parser.test_literal();
   } else {
     out << "INVALID PROUDCTION RULE" << std::endl;
     return;

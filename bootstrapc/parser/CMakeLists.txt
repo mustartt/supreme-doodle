@@ -41,4 +41,7 @@ add_dependencies(parser antlr4_shared)
 target_link_libraries(parser PRIVATE antlr4_shared)
 target_include_directories(parser PUBLIC include)
 
+add_executable(parser-test unittests/main.cpp unittests/test_example.cpp)
+target_link_libraries(parser-test gtest gtest_main)
 
+add_test(NAME parser-test COMMAND parser-test)

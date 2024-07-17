@@ -1,0 +1,3 @@
+[submodule "bootstrapc/third-party/googletest"]
+	path = bootstrapc/third-party/googletest
+	url = https://github.com/google/googletest.git

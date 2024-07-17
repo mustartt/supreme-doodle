@@ -11,6 +11,9 @@ PUBLIC: 'public';
 PRIVATE: 'private';
 MUT: 'mut';
 DYN: 'dyn';
+LET: 'let';
+STRUCT: 'struct';
+FUNC: 'func';
 
 AS: 'as';
 AND : 'and' ;
@@ -33,6 +36,7 @@ RBRACKET : ']';
 
 BOOL_TYPE: 'bool';
 CHAR_TYPE: 'char';
+STRING_TYPE: 'string';
 INTEGRAL_TYPE
     : I8_TYPE
     | I16_TYPE
@@ -59,5 +63,18 @@ FLOAT_TYPE
 fragment F32_TYPE: 'f32';
 fragment F64_TYPE: 'f64';
 
-IDENTIFIER: [a-zA-Z_][a-zA-Z_0-9]* ;
+// literals
+BOOL_LITERAL        : 'true' | 'false';
+CHAR_LITERAL        : '\'' ( ESC_SEQ | ~[\u0027\\] ) '\'';
+FLOAT_LITERAL       : DIGITS ('.' DIGITS)? EXPONENT? | '.' DIGITS EXPONENT?;
+INT_LITERAL         : DIGITS EXPONENT?;
+STRING_LITERAL      : '"' ( ESC_SEQ | ~["\\] )* '"';
+
+fragment DIGITS     : [0-9]+;
+fragment EXPONENT   : [eE] [+\-]? DIGITS;
+fragment ESC_SEQ    : '\\' ( [btnfr"'\\] | UNICODE_ESC );
+fragment UNICODE_ESC: 'u' HEX HEX HEX HEX;
+fragment HEX        : [0-9a-fA-F];
+
+IDENTIFIER: [a-zA-Z_][a-zA-Z_0-9]*;
 

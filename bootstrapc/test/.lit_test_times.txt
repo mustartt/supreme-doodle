@@ -1,0 +1,12 @@
+-1.191854e-03 func.test.lang
+-2.508163e-04 generic/functions.lang
+-2.179146e-04 generic/loop.lang
+-2.722740e-04 generic/vars.lang
+1.547194e-02 imports.test.lang
+-1.020193e-03 linkedlist.lang
+3.240204e-02 package.test.lang
+-2.532005e-04 trait.test.lang
+-3.888845e-03 package.lang
+-3.488064e-04 trait.lang
+-5.026102e-03 func.lang
+-1.003027e-03 imports.lang

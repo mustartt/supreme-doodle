@@ -4,10 +4,13 @@ project(MyProject)
 
 set(CMAKE_CXX_STANDARD 20)
 
+enable_testing()
+add_subdirectory(third-party/googletest)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
 add_subdirectory(parser)
 
 find_package(LLVM REQUIRED CONFIG)
-
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -17,4 +20,7 @@ add_executable(parse-tree main.cpp)
 target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
 target_link_libraries(parse-tree PRIVATE parser)
+
+install(TARGETS parse-tree RUNTIME DESTINATION bin)
+
 

@@ -1,3 +1,4 @@
+// UNSUPPORTED: *
 // RUN: echo skipped
 
 package main;

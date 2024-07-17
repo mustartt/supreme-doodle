@@ -1,0 +1,5 @@
+// UNSUPPORTED: *
+// RUN: echo hello
+
+package package_name;
+

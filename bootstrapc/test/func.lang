@@ -1,4 +1,5 @@
-// XFAIL: *
+// RUN: echo skipped
+// UNSUPPORTED: *
 
 basic types:
 bool

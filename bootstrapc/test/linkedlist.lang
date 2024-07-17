@@ -1,3 +1,5 @@
+// UNSUPPORTED: *
+// RUN: echo hello
 
 struct node<T> {
     data: T

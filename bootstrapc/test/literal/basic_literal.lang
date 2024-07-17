@@ -1,0 +1,3 @@
+// RUN: parse-tree --rule literal %s | FileCheck %s
+
+
