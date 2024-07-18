@@ -1,0 +1,55 @@
+// RUN: %parse-tree --rule literal %s | FileCheck %s
+
+true
+false
+
+// CHECK: bool_literal true
+// CHECK: bool_literal false
+
+'a'
+'\n'
+'\t'
+'\\'
+
+// CHECK: char_literal 'a'
+// CHECK: char_literal '\n'
+// CHECK: char_literal '\t'
+// CHECK: char_literal '\\'
+
+3.14 
+.001 
+0.001
+1e-9 
+.1E+7
+1.27e-09 
+
+// CHECK: num_literal 3.14
+// CHECK: num_literal .001 
+// CHECK: num_literal 0.001 
+// CHECK: num_literal 1e-9 
+// CHECK: num_literal .1E+7 
+// CHECK: num_literal 1.27e-09 
+
+0
+42
+123
+5e+3
+10E9
+7e10
+
+// CHECK: num_literal 0
+// CHECK: num_literal 42
+// CHECK: num_literal 123
+// CHECK: num_literal 5e+3
+// CHECK: num_literal 10E9
+// CHECK: num_literal 7e10
+
+"Hello"
+"Hello World!"
+"Hello \t World!\n"
+
+// CHECK: string_literal "Hello"
+// CHECK: string_literal "Hello World!"
+// CHECK: string_literal "Hello \t World!\n"
+
+
