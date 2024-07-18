@@ -1,9 +1,0 @@
-// UNSUPPORTED: *
-// RUN: echo skipped
-
-package main;
-
-import a;
-import a.b.c;
-import a.b.c as abc;
-

@@ -1,9 +1,0 @@
-package generic
-
-func num(): int {
-    return 10
-}
-
-func add(x: int, y: int): int {
-	return x + y
-}

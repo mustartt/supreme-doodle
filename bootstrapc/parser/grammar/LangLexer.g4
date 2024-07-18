@@ -66,8 +66,7 @@ fragment F64_TYPE: 'f64';
 // literals
 BOOL_LITERAL        : 'true' | 'false';
 CHAR_LITERAL        : '\'' ( ESC_SEQ | ~[\u0027\\] ) '\'';
-FLOAT_LITERAL       : DIGITS ('.' DIGITS)? EXPONENT? | '.' DIGITS EXPONENT?;
-INT_LITERAL         : DIGITS EXPONENT?;
+NUM_LITERAL         : DIGITS ('.' DIGITS)? EXPONENT? | '.' DIGITS EXPONENT?;
 STRING_LITERAL      : '"' ( ESC_SEQ | ~["\\] )* '"';
 
 fragment DIGITS     : [0-9]+;

@@ -119,16 +119,14 @@ test_literal: literal* EOF;
 literal
     : bool_literal
     | char_literal
-    | float_literal
-    | int_literal
+    | num_literal
     | string_literal
     ;
 
-bool_literal: BOOL_LITERAL;
-char_literal: CHAR_LITERAL;
-float_literal: FLOAT_LITERAL;
-int_literal: INT_LITERAL;
-string_literal: STRING_LITERAL;
+bool_literal    : BOOL_LITERAL;
+char_literal    : CHAR_LITERAL;
+num_literal     : NUM_LITERAL;
+string_literal  : STRING_LITERAL;
 
 
 

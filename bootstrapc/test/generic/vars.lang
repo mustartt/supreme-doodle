@@ -1,7 +1,0 @@
-package generic
-
-let x                   // default initialized
-let y = 10              // inferred type
-let z: f64 = 1.23123    // explicit
-
-let a, b = (3, 5)       // tuple destructuring
