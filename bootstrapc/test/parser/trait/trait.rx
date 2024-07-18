@@ -1,0 +1,30 @@
+// RUN: %parse-tree --rule program %s | FileCheck %s
+
+package main
+
+trait A {}
+// CHECK: trait_decl trait A
+
+public trait B {}
+// CHECK: trait_decl
+// CHECK-NEXT: visibility public
+// CHECK-SAME: trait B
+
+trait C : A {}
+// CHECK: trait C
+// CHECK-NEXT: trait_list
+// CHECK-NEXT: qualified_identifier A
+
+trait D : gfx.window {}
+// CHECK: trait D
+// CHECK-NEXT: trait_list
+// CHECK-NEXT: qualified_identifier gfx . window 
+
+trait E : T1, T2 {}
+// CHECK: trait E
+// CHECK-NEXT: trait_list
+// CHECK-NEXT: qualified_identifier T1
+// CHECK-NEXT: qualified_identifier T2
+
+// todo: add trait body and default impl
+
