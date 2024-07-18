@@ -3,15 +3,15 @@ options { tokenVocab=LangLexer; }
 
 program
     : package import_stmt* 
-        (trait_decl)* EOF
+        (trait_decl | struct_decl)* EOF
     ;
 
 package
-    : PACKAGE IDENTIFIER SEMI
+    : PACKAGE IDENTIFIER
     ;
 
 import_stmt
-    : IMPORT import_path (AS IDENTIFIER)? SEMI
+    : IMPORT import_path (AS IDENTIFIER)?
     ;
 import_path
     : IDENTIFIER (DOT IDENTIFIER)*
@@ -37,7 +37,8 @@ trait_list
     ;
 
 struct_decl
-    : STRUCT IDENTIFIER LCURLY struct_field* RCURLY
+    : visibility? STRUCT IDENTIFIER 
+        LCURLY struct_field* RCURLY
     ;
 
 struct_field
@@ -75,7 +76,7 @@ func_param_initializer
     ;
 
 func_body: ;
-expr: ;
+expr: literal;
 
 /* production rule for testing types */
 test_type: type+ EOF ;
@@ -115,7 +116,6 @@ parameter_type_list
     ;
 
 test_literal: literal* EOF;
-
 literal
     : bool_literal
     | char_literal
