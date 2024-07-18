@@ -1,0 +1,28 @@
+// RUN: %parse-tree --rule program %s | FileCheck %s
+
+let a: i32
+
+// CHECK: var_decl let a
+// CHECK-NEXT: type i32
+
+let b = 10
+
+// CHECK: var_decl let b
+// CHECK-NEXT: var_initializer 
+// CHECK: num_literal 10
+
+let c: f64 = 0.0001
+
+// CHECK: var_decl let c
+// CHECK-NEXT: type f64
+// CHECK-NEXT: var_initializer 
+// CHECK: num_literal 0.0001
+
+public let x = 10
+
+// CHECK: var_decl
+// CHECK-NEXT: visibility public
+// CHECK-SAME: let x
+// CHECK-NEXT: var_initializer 
+// CHECK: num_literal 10
+

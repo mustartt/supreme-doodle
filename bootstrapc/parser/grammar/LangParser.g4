@@ -2,8 +2,8 @@ parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
 program
-    : package import_stmt* 
-        (trait_decl | struct_decl)* EOF
+    : package? import_stmt* 
+        (trait_decl | struct_decl | var_decl)* EOF
     ;
 
 package
@@ -50,7 +50,7 @@ struct_field_initializer
     ;
 
 var_decl
-    : LET IDENTIFIER (COLON type)? var_initializer?
+    : visibility? LET IDENTIFIER (COLON type)? var_initializer?
     ;
 
 var_initializer
