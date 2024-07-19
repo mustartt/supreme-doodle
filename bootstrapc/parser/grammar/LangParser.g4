@@ -89,7 +89,14 @@ func_body: LCURLY block RCURLY;
 
 /* statements */
 
-block: (return_stmt | decl_stmt | expr_stmt)* ;
+block: statement* ;
+statement
+    : return_stmt
+    | decl_stmt
+    | expr_stmt
+    | if_stmt
+    | for_stmt
+    ;
 
 decl_stmt: LET IDENTIFIER (COLON type)? initializer?;
 initializer: EQ expr;
@@ -98,10 +105,29 @@ return_stmt: RETURN expr?;
 
 expr_stmt: expr;
 
+if_stmt: IF expr if_body (ELSE if_body)? ;
+if_header: expr;
+if_body
+    : statement
+    | LCURLY block RCURLY
+    ;
+
+for_stmt: FOR for_header for_body;
+for_header
+    : expr
+    | decl_stmt? SEMI expr? SEMI expr? 
+    ;
+
+for_body
+    : statement
+    | LCURLY block RCURLY
+    ;
+
 /* expression */
-expr: MINUS expr
+expr: (MINUS | NOT | REF) expr
     | expr (STAR | DIV) expr 
     | expr (PLUS | MINUS) expr 
+    | expr (LANGLE | RANGLE | LEQ | GEQ | CMP_EQ | NOT_EQ) expr
     | expr EQ expr
     | qualified_identifier
     | literal
