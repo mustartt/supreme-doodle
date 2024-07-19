@@ -3,7 +3,12 @@ options { tokenVocab=LangLexer; }
 
 program
     : package? import_stmt* 
-        (trait_decl | struct_decl | var_decl)* EOF
+        (   
+            trait_decl | 
+            struct_decl | 
+            var_decl | 
+            func_decl
+        )* EOF
     ;
 
 package
@@ -58,9 +63,14 @@ var_initializer
     ;
 
 func_decl
-    : FUNC IDENTIFIER
+    : visibility? FUNC IDENTIFIER
         LPAREN func_param_list? RPAREN 
-        LCURLY func_body RCURLY
+        func_return_type?
+        func_body 
+    ;
+
+func_return_type
+    : COLON type
     ;
 
 func_param_list
@@ -75,7 +85,7 @@ func_param_initializer
     : EQ expr
     ;
 
-func_body: ;
+func_body: LCURLY RCURLY;
 expr: literal;
 
 /* production rule for testing types */
