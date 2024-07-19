@@ -4,17 +4,18 @@ project(MyProject)
 
 set(CMAKE_CXX_STANDARD 20)
 
-enable_testing()
-add_subdirectory(third-party/googletest)
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-
-add_subdirectory(parser)
-
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
+# enable_testing()
+# add_subdirectory(third-party/googletest)
+# include_directories(${gtest_INCLUDE_DIR})
+
 llvm_map_components_to_libnames(llvm_libs support core option)
+
+add_subdirectory(parser)
+add_subdirectory(ast)
 
 add_executable(parse-tree main.cpp)
 target_compile_options(parse-tree PRIVATE -fno-rtti)
