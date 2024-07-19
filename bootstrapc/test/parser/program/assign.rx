@@ -1,0 +1,36 @@
+// RUN: %parse-tree --rule program %s | FileCheck %s
+
+func simple() {
+    let a: mut i32 = 0
+    a = 20
+}
+
+// CHECK: func_decl func simple
+// CHECK: decl_stmt let a
+// CHECK-NEXT: type mut
+// CHECK-NEXT: type i32
+
+// CHECK: expr_stmt
+// CHECK: qualified_identifier a
+
+struct point {
+    x: f32
+    y: f32
+}
+
+func lhs_assign_qualified() {
+    let pt: mut point
+    pt.x = 1.0
+    pt.y = 2.0
+}
+
+// CHECK: func_decl func lhs_assign_qualified
+// CHECK: decl_stmt let pt
+// CHECK: expr_stmt 
+// CHECK: qualified_identifier pt . x
+// CHECK-SAME: =
+// CHECK: num_literal 1.0
+// CHECK: qualified_identifier pt . y
+// CHECK-SAME: =
+// CHECK: num_literal 2.0
+

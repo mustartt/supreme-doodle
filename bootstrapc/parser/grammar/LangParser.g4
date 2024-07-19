@@ -89,21 +89,29 @@ func_body: LCURLY block RCURLY;
 
 /* statements */
 
-block
-    : (return_stmt)*
-    ;
+block: (return_stmt | decl_stmt | expr_stmt)* ;
 
-return_stmt
-    : RETURN expr?
-    ;
+decl_stmt: LET IDENTIFIER (COLON type)? initializer?;
+initializer: EQ expr;
+
+return_stmt: RETURN expr?;
+
+expr_stmt: expr;
 
 /* expression */
-expr: literal;
+expr: MINUS expr
+    | expr (STAR | DIV) expr 
+    | expr (PLUS | MINUS) expr 
+    | expr EQ expr
+    | qualified_identifier
+    | literal
+    ;
 
 /* production rule for testing types */
 test_type: type+ EOF ;
 
-type: BOOL_TYPE
+type: MUT type
+    | BOOL_TYPE
     | CHAR_TYPE
     | INTEGRAL_TYPE
     | FLOAT_TYPE
@@ -115,12 +123,7 @@ type: BOOL_TYPE
     ;
 
 pointer_type
-    : STAR pointer_attr type
-    ;
-
-pointer_attr
-    : MUT? DYN?
-    | DYN? MUT?
+    : STAR DYN? type
     ;
 
 array_type

@@ -1,0 +1,20 @@
+// RUN: %parse-tree --rule program %s | FileCheck %s
+
+func sum(a: i32, b: i32, c: i32): i32 {
+   let t1: i64 = a + b
+   let t2 = tmp + c
+   return t1 + t2
+} 
+
+// CHECK: func_decl func sum
+// CHECK: func_param_decl a
+// CHECK: func_param_decl b
+// CHECK: func_param_decl c
+// CHECK: block
+
+// CHECK: decl_stmt let t1
+// CHECK: type i64
+// CHECK: initializer =
+// CHECK: decl_stmt let t2
+// CHECK: initializer =
+// CHECK: return_stmt return
