@@ -14,6 +14,7 @@ DYN: 'dyn';
 LET: 'let';
 STRUCT: 'struct';
 FUNC: 'func';
+RETURN: 'return';
 
 AS: 'as';
 AND : 'and' ;
@@ -36,7 +37,6 @@ RBRACKET : ']';
 
 BOOL_TYPE: 'bool';
 CHAR_TYPE: 'char';
-STRING_TYPE: 'string';
 INTEGRAL_TYPE
     : I8_TYPE
     | I16_TYPE

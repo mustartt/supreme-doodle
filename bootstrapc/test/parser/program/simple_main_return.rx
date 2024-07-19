@@ -1,0 +1,20 @@
+// RUN: %parse-tree --rule program %s | FileCheck %s
+
+package main
+
+func main(args: [string]): i32 {
+    return 0
+}
+
+// CHECK: package main
+// CHECK: func_decl func main
+// CHECK: func_param_decl args
+// CHECK: array_type
+// CHECK: qualified_identifier string
+// CHECK: func_return_type
+// CHECK: type i32
+// CHECK: func_body
+// CHECK: block
+// CHECK: return_stmt return
+// CHECK: num_literal 0
+

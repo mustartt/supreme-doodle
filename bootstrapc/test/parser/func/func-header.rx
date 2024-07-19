@@ -3,20 +3,20 @@
 
 func a() {}
 // CHECK: func_decl func a
-// CHECK: func_body { }
+// CHECK: func_body
 
 public func b() {}
 // CHECK: func_decl
 // CHECK-NEXT: visibility public
 // CHECK-SAME: func b
-// CHECK: func_body { }
+// CHECK: func_body
 
 func c(x: i32) {}
 // CHECK: func_decl func c
 // CHECK-NEXT: func_param_list
 // CHECK-NEXT: func_param_decl x
 // CHECK-NEXT: type i32
-// CHECK: func_body { }
+// CHECK: func_body
 
 func d(x: i32, y: i32) {}
 // CHECK: func_decl func d
@@ -25,15 +25,17 @@ func d(x: i32, y: i32) {}
 // CHECK-NEXT: type i32
 // CHECK-NEXT: func_param_decl y
 // CHECK-NEXT: type i32
-// CHECK: func_body { }
+// CHECK: func_body
 
-func d(x: i32, y: i32): i32 {}
+func d(x: i32, y: i32 = 10): i32 {}
 // CHECK: func_decl func d
 // CHECK-NEXT: func_param_list
 // CHECK-NEXT: func_param_decl x
 // CHECK-NEXT: type i32
 // CHECK-NEXT: func_param_decl y
 // CHECK-NEXT: type i32
+// CHECK-NEXT: func_param_initializer
+// CHECK: num_literal 10
 // CHECK-NEXT: func_return_type
 // CHECK-NEXT: type i32
-// CHECK: func_body { }
+// CHECK: func_body

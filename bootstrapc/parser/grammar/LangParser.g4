@@ -4,9 +4,9 @@ options { tokenVocab=LangLexer; }
 program
     : package? import_stmt* 
         (   
-            trait_decl | 
+            trait_decl  | 
             struct_decl | 
-            var_decl | 
+            var_decl    | 
             func_decl
         )* EOF
     ;
@@ -85,7 +85,19 @@ func_param_initializer
     : EQ expr
     ;
 
-func_body: LCURLY RCURLY;
+func_body: LCURLY block RCURLY;
+
+/* statements */
+
+block
+    : (return_stmt)*
+    ;
+
+return_stmt
+    : RETURN expr?
+    ;
+
+/* expression */
 expr: literal;
 
 /* production rule for testing types */
@@ -95,6 +107,7 @@ type: BOOL_TYPE
     | CHAR_TYPE
     | INTEGRAL_TYPE
     | FLOAT_TYPE
+    | qualified_identifier
     | pointer_type
     | array_type
     | tuple_type
@@ -107,6 +120,7 @@ pointer_type
 
 pointer_attr
     : MUT? DYN?
+    | DYN? MUT?
     ;
 
 array_type
