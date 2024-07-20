@@ -2,19 +2,24 @@
 #define AST_ASTCONTEXT_H
 
 #include "ast.h"
+#include <deque>
 
 namespace rx::ast {
 
 class ASTContext {
 public:
-  Program *createProgram();
+  Program *createProgram() {
+    ProgramDecls.push_back({});
+    return &ProgramDecls.back();
+  }
+
   PackageDecl *createPackageDecl();
   ImportDecl *createImportDecl();
 
 private:
-  std::vector<Program> ProgramDecls;
-  std::vector<PackageDecl> PackageDecls;
-  std::vector<ImportDecl> ImportDecls;
+  std::deque<Program> ProgramDecls;
+  std::deque<PackageDecl> PackageDecls;
+  std::deque<ImportDecl> ImportDecls;
 };
 
 } // namespace rx::ast

@@ -2,9 +2,11 @@ include_directories(include)
 
 add_library(
     ast STATIC
-    include/ast.h
-    lib/ast.cpp
-    lib/astprinter.cpp
+    include/AST.h
+    lib/AST.cpp
+    include/ASTContext.h
+    include/ASTVisitor.h
+    lib/ASTPrinter.cpp
 )
 target_include_directories(ast PUBLIC include)
 llvm_map_components_to_libnames(llvm_libs support)

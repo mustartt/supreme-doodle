@@ -47,19 +47,11 @@ struct_decl
     ;
 
 struct_field
-    : IDENTIFIER (COLON type)? struct_field_initializer? 
-    ;
-
-struct_field_initializer
-    : EQ expr
+    : visibility? IDENTIFIER (COLON type)? initializer? 
     ;
 
 var_decl
-    : visibility? LET IDENTIFIER (COLON type)? var_initializer?
-    ;
-
-var_initializer
-    : EQ expr
+    : visibility? LET IDENTIFIER (COLON type)? initializer?
     ;
 
 func_decl
@@ -78,11 +70,7 @@ func_param_list
     ;
 
 func_param_decl
-    : IDENTIFIER COLON type func_param_initializer?
-    ;
-
-func_param_initializer
-    : EQ expr
+    : IDENTIFIER COLON type initializer?
     ;
 
 func_body: LCURLY block RCURLY;
@@ -105,7 +93,7 @@ return_stmt: RETURN expr?;
 
 expr_stmt: expr;
 
-if_stmt: IF expr if_body (ELSE if_body)? ;
+if_stmt: IF if_header if_body (ELSE if_body)? ;
 if_header: expr;
 if_body
     : statement

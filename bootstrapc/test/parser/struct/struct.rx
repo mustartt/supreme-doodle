@@ -37,10 +37,10 @@ struct E {
 // CHECK: struct E
 // CHECK-NEXT: struct_field val
 // CHECK-NEXT: type i32
-// CHECK-NEXT: struct_field_initializer = 
+// CHECK-NEXT: initializer = 
 // CHECK: num_literal 10
 // CHECK-NEXT: struct_field other
-// CHECK-NEXT: struct_field_initializer = 
+// CHECK-NEXT: initializer = 
 // CHECK: num_literal 0.1
 
 

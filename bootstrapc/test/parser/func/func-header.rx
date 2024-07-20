@@ -34,7 +34,7 @@ func d(x: i32, y: i32 = 10): i32 {}
 // CHECK-NEXT: type i32
 // CHECK-NEXT: func_param_decl y
 // CHECK-NEXT: type i32
-// CHECK-NEXT: func_param_initializer
+// CHECK-NEXT: initializer
 // CHECK: num_literal 10
 // CHECK-NEXT: func_return_type
 // CHECK-NEXT: type i32
