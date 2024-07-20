@@ -56,6 +56,9 @@ public:
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
+  llvm::ArrayRef<std::string> getPath() const { return Path; }
+  std::optional<std::string> getAlias() const { return Alias; }
+
 private:
   llvm::SmallVector<std::string, 4> Path;
   std::optional<std::string> Alias;
