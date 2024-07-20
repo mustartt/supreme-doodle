@@ -112,9 +112,9 @@ for_body
     ;
 
 /* expression */
-expr: call_expr 
-    | field_expr
-    | index_expr 
+expr: expr RPAREN expr_list RPAREN
+    | expr DOT IDENTIFIER 
+    | expr LBRACKET expr RBRACKET 
     | (MINUS | NOT | REF) expr
     | expr (STAR | DIV) expr 
     | expr (PLUS | MINUS) expr 
@@ -124,9 +124,6 @@ expr: call_expr
     | literal
     ;
 
-call_expr: expr RPAREN expr_list RPAREN;
-field_expr: expr DOT IDENTIFIER;
-index_expr: expr LBRACKET expr RBRACKET;
 expr_list: expr (COMMA expr)*;
 
 /* production rule for testing types */

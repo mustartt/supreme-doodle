@@ -1,6 +1,7 @@
 #ifndef AST_SRCMANAGER_H
 #define AST_SRCMANAGER_H
 
+#include <vector>
 #include <ostream>
 
 class SrcRange {
