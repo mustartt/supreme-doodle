@@ -1,87 +1,78 @@
 #include "AST.h"
+#include "ASTVisitor.h"
+
 #include <iostream>
 
 using namespace rx::ast;
 
-class ConcreteVisitor : public ASTVisitor<ConcreteVisitor> {
+class Visitor : public BaseDeclVisitor,
+                public BaseStmtVisitor,
+                public BaseExprVisitor {
 public:
-  void visitImpl(Program &node) {
-    std::cout << "Visiting Program\n";
-    if (auto Pkg = node.getPackage()) {
-        Pkg->accept(*this);
-    }
-    for (auto Import : node.getImports()) {
-       Import->accept(*this); 
+  virtual void visit(ProgramDecl *node) override {
+    for (auto *Decl : node->getDecls()) {
+      Decl->accept(*this);
     }
   }
-
-  void visitImpl(PackageDecl &node) {
-    std::cout << "Visiting PackageDecl\n";
+  virtual void visit(PackageDecl *node) override {
+     
   }
-
-  void visitImpl(ImportDecl &node) {
-    std::cout << "Visiting ImportDecl\n";
-    // Additional logic for visiting ImportDecl
+  virtual void visit(ImportDecl *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(StructDecl &node) {
-    std::cout << "Visiting StructDecl\n";
-    // Additional logic for visiting StructDecl
+  virtual void visit(StructDecl *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(StructFieldDecl &node) {
-    std::cout << "Visiting StructFieldDecl\n";
-    // Additional logic for visiting StructFieldDecl
+  virtual void visit(StructFieldDecl *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(VarDecl &node) {
-    std::cout << "Visiting VarDecl\n";
-    // Additional logic for visiting VarDecl
+  virtual void visit(VarDecl *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(Expression &node) {
-    std::cout << "Visiting Expression\n";
-    // Additional logic for visiting Expression
+  virtual void visit(FuncDecl *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(ReturnStmt &node) {
-    std::cout << "Visiting ReturnStmt\n";
-    // Additional logic for visiting ReturnStmt
+  virtual void visit(BlockStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(DeclStmt &node) {
-    std::cout << "Visiting DeclStmt\n";
-    // Additional logic for visiting DeclStmt
+  virtual void visit(ReturnStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(ExprStmt &node) {
-    std::cout << "Visiting ExprStmt\n";
-    // Additional logic for visiting ExprStmt
+  virtual void visit(DeclStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(IfStmt &node) {
-    std::cout << "Visiting IfStmt\n";
-    // Additional logic for visiting IfStmt
+  virtual void visit(ExprStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
-
-  void visitImpl(ForStmt &node) {
-    std::cout << "Visiting ForStmt\n";
+  virtual void visit(IfStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
+  }
+  virtual void visit(ForStmt *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
+  }
+  virtual void visit(BinaryExpr *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
+  }
+  virtual void visit(UnaryExpr *node) override {
+    std::cout << "visiting " << __PRETTY_FUNCTION__ << std::endl;
   }
 };
 
 int main() {
-    PackageDecl PD("main");
-    ImportDecl I1("pkg");
-    ImportDecl I2("gfx");
-    llvm::SmallVector<ImportDecl*, 4> Imports;
-    Imports.push_back(&I1);
-    Imports.push_back(&I2);
+  PackageDecl PkgDecl("main");
 
-    Program P(&PD, std::move(Imports));
+  ImportDecl Import1("io");
+  ImportDecl Import2("http");
 
-    ConcreteVisitor V;
+  llvm::SmallVector<Decl *> Decls;
+  Decls.push_back(&PkgDecl);
+  Decls.push_back(&Import1);
+  Decls.push_back(&Import2);
 
-    P.accept(V);
+  ProgramDecl Program(std::move(Decls));
 
-    return 0;
+  Visitor V;
+  V.visit(&Program);
+
+  return 0;
 }

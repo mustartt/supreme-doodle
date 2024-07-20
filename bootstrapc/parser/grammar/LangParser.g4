@@ -112,14 +112,22 @@ for_body
     ;
 
 /* expression */
-expr: (MINUS | NOT | REF) expr
+expr: call_expr 
+    | field_expr
+    | index_expr 
+    | (MINUS | NOT | REF) expr
     | expr (STAR | DIV) expr 
     | expr (PLUS | MINUS) expr 
     | expr (LANGLE | RANGLE | LEQ | GEQ | CMP_EQ | NOT_EQ) expr
     | expr EQ expr
-    | qualified_identifier
+    | IDENTIFIER
     | literal
     ;
+
+call_expr: expr RPAREN expr_list RPAREN;
+field_expr: expr DOT IDENTIFIER;
+index_expr: expr LBRACKET expr RBRACKET;
+expr_list: expr (COMMA expr)*;
 
 /* production rule for testing types */
 test_type: type+ EOF ;
