@@ -3,10 +3,14 @@ include_directories(include)
 add_library(
     ast STATIC
     include/SrcManager.h
+    lib/SrcManager.cpp
     include/AST.h
     lib/AST.cpp
     include/ASTContext.h
+
     include/ASTVisitor.h
+
+    include/ASTPrinter.h
     lib/ASTPrinter.cpp
 )
 target_include_directories(ast PUBLIC include)

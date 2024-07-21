@@ -2,19 +2,18 @@
 #define AST_SRCMANAGER_H
 
 #include <vector>
-#include <ostream>
+#include <llvm/Support/raw_ostream.h>
+
+namespace rx::ast {
 
 class SrcRange {
 public:
+  SrcRange();
   SrcRange(size_t SourceID, int LineStart, int ColStart, int LineEnd,
-           int ColEnd)
-      : SourceID(SourceID), LineStart(LineStart), ColStart(ColStart),
-        LineEnd(LineEnd), ColEnd(ColEnd) {}
+           int ColEnd);
 
-  friend std::ostream &operator<<(std::ostream &os, const SrcRange &loc) {
-    return os << "<" << loc.LineStart << ":" << loc.ColStart << ", "
-              << loc.LineEnd << ":" << loc.ColEnd << ">";
-  }
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const SrcRange &loc);
+  operator std::string() const;
 
   size_t SourceID;
   int LineStart;
@@ -29,4 +28,5 @@ private:
   std::vector<std::string> Sources;
 };
 
+} // namespace rx::ast
 #endif

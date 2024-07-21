@@ -7,7 +7,7 @@ void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void StructDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
-void StructFieldDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+void FieldDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void VarDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void BlockStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }

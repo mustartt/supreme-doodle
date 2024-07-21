@@ -7,7 +7,7 @@ class ProgramDecl;
 class PackageDecl;
 class ImportDecl;
 class StructDecl;
-class StructFieldDecl;
+class FieldDecl;
 class VarDecl;
 class FuncDecl;
 class BlockStmt;
@@ -27,7 +27,7 @@ public:
   virtual void visit(PackageDecl *node) = 0;
   virtual void visit(ImportDecl *node) = 0;
   virtual void visit(StructDecl *node) = 0;
-  virtual void visit(StructFieldDecl *node) = 0;
+  virtual void visit(FieldDecl *node) = 0;
   virtual void visit(VarDecl *node) = 0;
   virtual void visit(FuncDecl *node) = 0;
 };
