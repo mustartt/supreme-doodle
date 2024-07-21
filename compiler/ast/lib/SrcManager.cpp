@@ -5,7 +5,7 @@ namespace rx::ast {
 
 SrcRange::SrcRange() : LineStart(0), ColStart(0), LineEnd(0), ColEnd(0) {}
 
-SrcRange::SrcRange(int LineStart, int ColStart, int LineEnd, int ColEnd)
+SrcRange::SrcRange(size_t LineStart, size_t ColStart, size_t LineEnd, size_t ColEnd)
     : LineStart(LineStart), ColStart(ColStart), LineEnd(LineEnd),
       ColEnd(ColEnd) {}
 

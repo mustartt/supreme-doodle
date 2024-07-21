@@ -1,49 +1,38 @@
 #include "LangLexer.h"
 #include "LangParser.h"
 #include "LangParserBaseVisitor.h"
+#include "SrcManager.h"
 
 using namespace antlr4;
 
-class Visitor : public LangParserBaseVisitor {
-private:
-  void printDepth() const {
-    for (int i = 0; i < depth; ++i) {
-      std::cout << "  ";
-    }
-  }
-
-  struct DepthMarker {
-  public:
-    DepthMarker(Visitor &v) : v(v) { ++v.depth; }
-    ~DepthMarker() { --v.depth; }
-
-    friend class Visitor;
-
-  private:
-    Visitor &v;
-  };
+class LangVisitor : public LangParserBaseVisitor {
+public:
+  LangVisitor(TokenStream &Stream) : Tokens(Stream) {}
 
 public:
   virtual std::any visitProgram(LangParser::ProgramContext *ctx) override {
-    printDepth();
-    std::cout << "Program";
-    DepthMarker _(*this);
-    visitChildren(ctx);
-    return 0;
-  }
-  
-  virtual std::any visitPackage(LangParser::PackageContext *ctx) override {
-    printDepth();
-    std::cout << "Package";
-    DepthMarker _(*this);
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    llvm::outs() << Loc << " " << ctx->package_decl() << "\n";
 
     return 0;
   }
-
 
 private:
-  int depth = 0;
+  rx::ast::SrcRange getRange(misc::Interval Int) {
+    Token *StartToken = Tokens.get(Int.a);
+    Token *StopToken = Tokens.get(Int.b);
+    return {StartToken->getLine(), StartToken->getCharPositionInLine(),
+            StopToken->getLine(),
+            StopToken->getCharPositionInLine() + StopToken->getText().length() -
+                1};
+  }
+
+private:
+  TokenStream &Tokens;
 };
+
+void test() {}
 
 void parse(std::istream &in, std::ostream &out, const std::string &rule) {
   antlr4::ANTLRInputStream input(in);
@@ -65,4 +54,7 @@ void parse(std::istream &in, std::ostream &out, const std::string &rule) {
   }
 
   out << tree->toStringTree(&parser, true) << std::endl;
+
+  LangVisitor V(tokens);
+  V.visit(tree);
 }

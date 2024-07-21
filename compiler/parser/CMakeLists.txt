@@ -39,7 +39,7 @@ add_library(
     ${ANTLR4_SRC_FILES_antlrcpptest_parser}
 )
 add_dependencies(parser antlr4_shared)
-target_link_libraries(parser PRIVATE antlr4_shared)
+target_link_libraries(parser PRIVATE antlr4_shared ast)
 target_include_directories(parser PUBLIC include)
 
 # add_executable(parser-test unittests/main.cpp unittests/test_example.cpp)

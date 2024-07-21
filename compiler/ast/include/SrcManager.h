@@ -8,16 +8,16 @@ namespace rx::ast {
 class SrcRange {
 public:
   SrcRange();
-  SrcRange(int LineStart, int ColStart, int LineEnd, int ColEnd);
+  SrcRange(size_t LineStart, size_t ColStart, size_t LineEnd, size_t ColEnd);
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
                                        const SrcRange &loc);
   operator std::string() const;
 
-  int LineStart;
-  int ColStart;
-  int LineEnd;
-  int ColEnd;
+  size_t LineStart;
+  size_t ColStart;
+  size_t LineEnd;
+  size_t ColEnd;
 };
 
 } // namespace rx::ast

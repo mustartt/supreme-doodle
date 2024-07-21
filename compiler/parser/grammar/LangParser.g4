@@ -2,16 +2,17 @@ parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
 program
-    : package? import_stmt* 
-        (   
-            trait_decl  | 
-            struct_decl | 
-            var_decl    | 
-            func_decl
-        )* EOF
+    : package_decl? import_stmt* global_decl* EOF
     ;
 
-package
+global_decl
+    : trait_decl
+    | struct_decl
+    | var_decl
+    | func_decl
+    ;
+
+package_decl
     : PACKAGE IDENTIFIER
     ;
 
