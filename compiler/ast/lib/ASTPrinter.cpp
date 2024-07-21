@@ -50,7 +50,7 @@ private:
     printTreePrefix();
     if (Depth == 0) {
       Output << message;
-    } else if (IsLast.front()) {
+    } else if (IsLast.back()) {
       Output << "`-" << message;
       DepthFlag[Depth] = false;
     } else {
@@ -90,6 +90,17 @@ void ASTPrinterVisitor::visit(ProgramDecl *node) {
 
   printNodePrefix(Str);
 
+  if (node->getPackage()) {
+    Scope _(*this, node->getDecls().empty() && node->getImports().empty());
+    node->getPackage()->accept(*this);
+  }
+
+  const auto Imports = node->getImports();
+  for (const auto [Idx, Value] : llvm::enumerate(Imports)) {
+    Scope _(*this, Idx == Imports.size() - 1 && node->getDecls().empty());
+    Value->accept(*this);
+  }
+
   const auto Decls = node->getDecls();
   for (const auto [Idx, Value] : llvm::enumerate(Decls)) {
     Scope _(*this, Idx == Decls.size() - 1);
@@ -108,11 +119,11 @@ void ASTPrinterVisitor::visit(PackageDecl *node) {
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(ImportDecl *node) {
+void ASTPrinterVisitor::visit(ImportDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "ImportDecl: ";
-  auto Path = node->getPath();
+  auto Path = Node->getPath();
   assert(Path.size() && "Path cannot be empty");
 
   Os << Path[0];
@@ -120,33 +131,41 @@ void ASTPrinterVisitor::visit(ImportDecl *node) {
     Os << "." << Name;
   }
   Os << " ";
-  if (node->getAlias()) {
-    Os << "alias " << node->getAlias();
+  if (Node->getAlias()) {
+    Os << "alias " << Node->getAlias();
   }
+  Os << " " << Node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(StructDecl *node) {
+void ASTPrinterVisitor::visit(StructDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "StructDecl: " << node->getName();
+  Os << "StructDecl: " << Node->getVisibility() << " " << Node->getName() << " "
+     << Node->Loc;
 
   printNodePrefix(Str);
 
-  for (auto &Field : node->getFields()) {
-    Scope _(*this, Field == node->getFields().back());
+  for (auto Field : Node->getFields()) {
+    Scope _(*this, Field == Node->getFields().back());
     Field->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(FieldDecl *node) {
+void ASTPrinterVisitor::visit(FieldDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "StructFieldDecl: " << node->getName();
+  Os << "FieldDecl: " << Node->getVisibility() << " " << Node->getName() << " "
+     << Node->Loc;
+
+  if (Node->getDefaultValue()) {
+    Scope _(*this, true);
+    Node->getDefaultValue()->accept(*this);
+  }
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
