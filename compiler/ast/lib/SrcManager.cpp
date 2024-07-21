@@ -3,12 +3,11 @@
 
 namespace rx::ast {
 
-SrcRange::SrcRange(): LineStart(0), ColStart(0), LineEnd(0), ColEnd(0) {}
+SrcRange::SrcRange() : LineStart(0), ColStart(0), LineEnd(0), ColEnd(0) {}
 
-SrcRange::SrcRange(size_t SourceID, int LineStart, int ColStart, int LineEnd,
-                   int ColEnd)
-    : SourceID(SourceID), LineStart(LineStart), ColStart(ColStart),
-      LineEnd(LineEnd), ColEnd(ColEnd) {}
+SrcRange::SrcRange(int LineStart, int ColStart, int LineEnd, int ColEnd)
+    : LineStart(LineStart), ColStart(ColStart), LineEnd(LineEnd),
+      ColEnd(ColEnd) {}
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const SrcRange &loc) {
   if (loc.LineStart == 0) {
