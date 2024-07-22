@@ -74,32 +74,26 @@ func_param_decl
     : IDENTIFIER COLON type initializer?
     ;
 
-func_body: LCURLY block RCURLY;
+func_body: block_stmt;
 
 /* statements */
 
-block: statement* ;
+block_stmt: LCURLY statement* RCURLY;
 statement
     : return_stmt
     | decl_stmt
     | expr_stmt
-    | if_stmt
     | for_stmt
+    | block_stmt
     ;
 
-decl_stmt: LET IDENTIFIER (COLON type)? initializer?;
+decl_stmt: var_decl;
 initializer: EQ expr;
 
 return_stmt: RETURN expr?;
 
 expr_stmt: expr;
 
-if_stmt: IF if_header if_body (ELSE if_body)? ;
-if_header: expr;
-if_body
-    : statement
-    | LCURLY block RCURLY
-    ;
 
 for_stmt: FOR for_header for_body;
 for_header
@@ -109,7 +103,7 @@ for_header
 
 for_body
     : statement
-    | LCURLY block RCURLY
+    | block_stmt
     ;
 
 /* expression */
@@ -121,9 +115,14 @@ expr: expr RPAREN expr_list RPAREN
     | expr (PLUS | MINUS) expr 
     | expr (LANGLE | RANGLE | LEQ | GEQ | CMP_EQ | NOT_EQ) expr
     | expr EQ expr
+    | if_expr
     | IDENTIFIER
     | literal
     ;
+
+if_expr: IF if_header if_body (ELSE if_body)? ;
+if_header: expr;
+if_body: statement ;
 
 expr_list: expr (COMMA expr)*;
 

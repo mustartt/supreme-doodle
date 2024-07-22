@@ -16,7 +16,7 @@ class BlockStmt;
 class ReturnStmt;
 class DeclStmt;
 class ExprStmt;
-class IfStmt;
+class IfExpr;
 class ForStmt;
 class BinaryExpr;
 class UnaryExpr;
@@ -43,7 +43,6 @@ public:
   virtual void visit(ReturnStmt *node) = 0;
   virtual void visit(DeclStmt *node) = 0;
   virtual void visit(ExprStmt *node) = 0;
-  virtual void visit(IfStmt *node) = 0;
   virtual void visit(ForStmt *node) = 0;
 };
 
@@ -51,8 +50,10 @@ class BaseExprVisitor {
 public:
   virtual ~BaseExprVisitor() = default;
 
+  virtual void visit(IfExpr *node) = 0;
   virtual void visit(BinaryExpr *node) = 0;
   virtual void visit(UnaryExpr *node) = 0;
+  virtual void visit(BoolLiteral *node) = 0;
 };
 
 } // namespace rx::ast

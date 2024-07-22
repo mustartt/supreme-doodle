@@ -5,6 +5,7 @@
 #include "LangParser.h"
 #include "LangParserBaseVisitor.h"
 #include "SrcManager.h"
+#include "llvm/Support/ErrorHandling.h"
 #include <any>
 
 using namespace antlr4;
@@ -144,8 +145,11 @@ public:
     auto Params = std::any_cast<std::vector<ast::FuncParamDecl *>>(
         visit(ctx->func_param_list()));
 
+    auto Body = dynamic_cast<ast::BlockStmt *>(
+        std::any_cast<ast::Stmt *>(visit(ctx->func_body())));
+
     return dynamic_cast<ast::Decl *>(
-        Context.createFuncDecl(Loc, std::move(Name), Vis, Params));
+        Context.createFuncDecl(Loc, std::move(Name), Vis, Params, Body));
   }
 
   std::any
@@ -174,6 +178,97 @@ public:
     }
 
     return Context.createFuncParamDecl(Loc, std::move(Name), DefaultValue);
+  }
+
+  std::any visitBlock_stmt(LangParser::Block_stmtContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    llvm::SmallVector<ast::Stmt *, 16> Stmts;
+    for (const auto Stmt : ctx->statement()) {
+      Stmts.push_back(std::any_cast<ast::Stmt *>(visit(Stmt)));
+    }
+
+    return dynamic_cast<ast::Stmt *>(Context.createBlockStmt(Loc, Stmts));
+  }
+
+  std::any visitReturn_stmt(LangParser::Return_stmtContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    ast::Expression *Expr = nullptr;
+    if (ctx->expr()) {
+      Expr = std::any_cast<ast::Expression *>(visit(ctx->expr()));
+    }
+
+    return dynamic_cast<ast::Stmt *>(Context.createReturnStmt(Loc, Expr));
+  }
+
+  std::any visitDecl_stmt(LangParser::Decl_stmtContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->var_decl() && "Must have valid VarDecl");
+    auto Decl = std::any_cast<ast::Decl *>(visit(ctx->var_decl()));
+
+    return dynamic_cast<ast::Stmt *>(Context.createDeclStmt(Loc, Decl));
+  }
+
+  std::any visitExpr_stmt(LangParser::Expr_stmtContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->expr() && "Must have valid Expression");
+    auto Expr = std::any_cast<ast::Expression *>(visit(ctx->expr()));
+
+    return dynamic_cast<ast::Stmt *>(Context.createExprStmt(Loc, Expr));
+  }
+
+  ast::BlockStmt *promoteStmtToBlockStmt(ast::Stmt *Stmt) {
+    if (auto Block = dynamic_cast<ast::BlockStmt *>(Stmt)) {
+      return Block;
+    }
+    llvm::SmallVector<ast::Stmt *, 4> Body{Stmt};
+    return Context.createBlockStmt(Stmt->Loc, Body);
+  }
+
+  std::any visitIf_expr(LangParser::If_exprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto IfBody = ctx->if_body();
+    assert(ctx->if_header() && "Must have header");
+    assert(IfBody.size() >= 1 && "Must have body");
+    assert(IfBody.size() <= 2 && "More than 1 else");
+
+    auto Condition = std::any_cast<ast::Expression *>(visit(ctx->if_header()));
+
+    auto BodyBlock =
+        promoteStmtToBlockStmt(std::any_cast<ast::Stmt *>(visit(IfBody[0])));
+    ast::BlockStmt *ElseBlock = nullptr;
+    if (IfBody.size() == 2) {
+      ElseBlock =
+          promoteStmtToBlockStmt(std::any_cast<ast::Stmt *>(visit(IfBody[1])));
+    }
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createIfExpr(Loc, Condition, BodyBlock, ElseBlock));
+  }
+
+  std::any visitBool_literal(LangParser::Bool_literalContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->BOOL_LITERAL());
+    auto RawValue = ctx->BOOL_LITERAL()->getText();
+    if (RawValue == "true") {
+      return dynamic_cast<ast::Expression *>(
+          Context.createBoolLiteral(Loc, true));
+    } else if (RawValue == "false") {
+      return dynamic_cast<ast::Expression *>(
+          Context.createBoolLiteral(Loc, false));
+    }
+    llvm_unreachable("Invalid BoolLiteral");
   }
 
 private:

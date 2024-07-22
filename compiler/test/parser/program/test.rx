@@ -10,4 +10,10 @@ struct awjliajd {
 
 public let global 
 
-public func test(a: int, b: int): int {}
+public func test(a: int, b: int): int {
+    let a = if true 
+        let b
+     else 
+        let c
+    
+}

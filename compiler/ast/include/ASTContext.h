@@ -53,27 +53,25 @@ public:
     return addToContext<FuncParamDecl>(Loc, std::move(Name), DefaultValue);
   }
 
-  BlockStmt *createBlockStmt(SrcRange Loc,
-                             llvm::SmallVectorImpl<Stmt *> &&Stmts) {
-    return addToContext<BlockStmt>(Loc, std::move(Stmts));
+  BlockStmt *createBlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts) {
+    return addToContext<BlockStmt>(Loc, Stmts);
   }
 
   ReturnStmt *createReturnStmt(SrcRange Loc, Expression *Expr = nullptr) {
     return addToContext<ReturnStmt>(Loc, Expr);
   }
 
-  DeclStmt *createDeclStmt(SrcRange Loc, std::string Name,
-                           Expression *Initializer = nullptr) {
-    return addToContext<DeclStmt>(Loc, std::move(Name), Initializer);
+  DeclStmt *createDeclStmt(SrcRange Loc, Decl *D) {
+    return addToContext<DeclStmt>(Loc, D);
   }
 
   ExprStmt *createExprStmt(SrcRange Loc, Expression *Expr) {
     return addToContext<ExprStmt>(Loc, Expr);
   }
 
-  IfStmt *createIfStmt(SrcRange Loc, Expression *Condition, BlockStmt *Body,
+  IfExpr *createIfExpr(SrcRange Loc, Expression *Condition, BlockStmt *Body,
                        BlockStmt *ElseBlock = nullptr) {
-    return addToContext<IfStmt>(Loc, Condition, Body, ElseBlock);
+    return addToContext<IfExpr>(Loc, Condition, Body, ElseBlock);
   }
 
   ForStmt *createForStmt(SrcRange Loc, DeclStmt *PreHeader,
@@ -89,6 +87,10 @@ public:
 
   UnaryExpr *createUnaryExpr(SrcRange Loc, UnaryOp Op, Expression *Expr) {
     return addToContext<UnaryExpr>(Loc, Op, Expr);
+  }
+
+  BoolLiteral* createBoolLiteral(SrcRange Loc, bool Value) {
+    return addToContext<BoolLiteral>(Loc, Value);
   }
 
 private:

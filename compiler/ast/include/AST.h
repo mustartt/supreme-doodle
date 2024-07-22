@@ -182,7 +182,7 @@ public:
   ACCEPT_VISITOR(BaseDeclVisitor);
 
   const llvm::StringRef getName() const { return Name; }
-  Expression* getDefaultValue() const {return DefaultValue; }
+  Expression *getDefaultValue() const { return DefaultValue; }
 
 private:
   std::string Name;
@@ -198,8 +198,8 @@ public:
 
 class BlockStmt : public Stmt {
 public:
-  BlockStmt(SrcRange Loc, llvm::SmallVectorImpl<Stmt *> &&Stmts)
-      : Stmt(Loc), Stmts(std::move(Stmts)) {}
+  BlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts)
+      : Stmt(Loc), Stmts(Stmts) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
@@ -224,17 +224,14 @@ private:
 
 class DeclStmt : public Stmt {
 public:
-  DeclStmt(SrcRange Loc, std::string Name, Expression *Initializer = nullptr)
-      : Stmt(Loc), Name(std::move(Name)), Initializer(Initializer) {}
+  DeclStmt(SrcRange Loc, Decl *Var) : Stmt(Loc), Var(Var) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
-  const llvm::StringRef getName() const { return Name; }
-  Expression *getInitializer() const { return Initializer; }
+  Decl *getDecl() const { return Var; }
 
 private:
-  std::string Name;
-  Expression *Initializer;
+  Decl *Var;
 };
 
 class ExprStmt : public Stmt {
@@ -247,24 +244,6 @@ public:
 
 private:
   Expression *Expr;
-};
-
-class IfStmt : public Stmt {
-public:
-  IfStmt(SrcRange Loc, Expression *Condition, BlockStmt *Body,
-         BlockStmt *ElseBlock = nullptr)
-      : Stmt(Loc), Condition(Condition), Body(Body), ElseBlock(ElseBlock) {}
-
-  ACCEPT_VISITOR(BaseStmtVisitor);
-
-  Expression *getCondition() const { return Condition; }
-  BlockStmt *getBody() const { return Body; }
-  BlockStmt *getElseBlock() const { return ElseBlock; }
-
-private:
-  Expression *Condition;
-  BlockStmt *Body;
-  BlockStmt *ElseBlock;
 };
 
 class ForStmt : public Stmt {
@@ -293,6 +272,42 @@ public:
   Expression(SrcRange Loc) : ASTNode(Loc) {}
 
   virtual void accept(BaseExprVisitor &) = 0;
+};
+
+class IfExpr : public Expression {
+public:
+  IfExpr(SrcRange Loc, Expression *Condition, BlockStmt *Body,
+         BlockStmt *ElseBlock = nullptr)
+      : Expression(Loc), Condition(Condition), Body(Body),
+        ElseBlock(ElseBlock) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  Expression *getCondition() const { return Condition; }
+  BlockStmt *getBody() const { return Body; }
+  BlockStmt *getElseBlock() const { return ElseBlock; }
+
+private:
+  Expression *Condition;
+  BlockStmt *Body;
+  BlockStmt *ElseBlock;
+};
+
+class LiteralExpr : public Expression {
+public:
+  LiteralExpr(SrcRange Loc) : Expression(Loc) {}
+};
+
+class BoolLiteral : public LiteralExpr {
+public:
+  BoolLiteral(SrcRange Loc, bool Value) : LiteralExpr(Loc), Value(Value) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  bool getValue() const { return Value; }
+
+private:
+  bool Value;
 };
 
 enum class BinaryOp {

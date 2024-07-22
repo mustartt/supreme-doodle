@@ -31,10 +31,11 @@ public:
   void visit(ReturnStmt *node) override;
   void visit(DeclStmt *node) override;
   void visit(ExprStmt *node) override;
-  void visit(IfStmt *node) override;
+  void visit(IfExpr *node) override;
   void visit(ForStmt *node) override;
   void visit(BinaryExpr *node) override;
   void visit(UnaryExpr *node) override;
+  void visit(BoolLiteral *node) override;
 
 private:
   void printTreePrefix() {
@@ -135,7 +136,7 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
   if (Node->getAlias()) {
     Os << "alias " << Node->getAlias();
   }
-  Os << " " << Node->Loc;
+  Os << Node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -226,12 +227,12 @@ void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
 void ASTPrinterVisitor::visit(BlockStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "Block";
+  Os << "BlockStmt: " << Node->Loc;
 
   printNodePrefix(Str);
 
-  for (auto &Stmt : Node->getStmts()) {
-    Scope _(*this, Stmt == Node->getStmts().back());
+  for (auto [Idx, Stmt] : llvm::enumerate(Node->getStmts())) {
+    Scope _(*this, Idx == Node->getStmts().size() - 1);
     Stmt->accept(*this);
   }
 
@@ -256,12 +257,14 @@ void ASTPrinterVisitor::visit(ReturnStmt *node) {
 void ASTPrinterVisitor::visit(DeclStmt *node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "DeclStmt";
+  Os << "DeclStmt: " << node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getInitializer()) {
-    node->getInitializer()->accept(*this);
+  assert(node->getDecl());
+  {
+    Scope _(*this, true);
+    node->getDecl()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
@@ -270,31 +273,33 @@ void ASTPrinterVisitor::visit(DeclStmt *node) {
 void ASTPrinterVisitor::visit(ExprStmt *node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ExprStmt";
+  Os << "ExprStmt: " << node->Loc;
 
   printNodePrefix(Str);
-  node->getExpr()->accept(*this);
-
+  {
+    Scope _(*this, true);
+    node->getExpr()->accept(*this);
+  }
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(IfStmt *node) {
+void ASTPrinterVisitor::visit(IfExpr *node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "If";
+  Os << "IfExpr: " << node->Loc;
 
   printNodePrefix(Str);
 
   {
+    assert(node->getCondition());
     Scope _(*this, false);
     node->getCondition()->accept(*this);
   }
-
   {
+    assert(node->getBody());
     Scope _(*this, !node->getElseBlock());
-    node->getElseBlock()->accept(*this);
+    node->getBody()->accept(*this);
   }
-
   if (node->getElseBlock()) {
     Scope _(*this, true);
     node->getElseBlock()->accept(*this);
@@ -362,6 +367,21 @@ void ASTPrinterVisitor::visit(UnaryExpr *node) {
     Scope _(*this, true);
     node->getExpr()->accept(*this);
   }
+
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(BoolLiteral *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "BoolLiteral: ";
+  if (node->getValue())
+    Os << "true";
+  else
+    Os << "false";
+  Os << " " << node->Loc;
+
+  printNodePrefix(Str);
 
   DepthFlag[Depth] = true;
 }
