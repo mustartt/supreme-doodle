@@ -1,6 +1,7 @@
 #ifndef AST_VISITOR_H
 #define AST_VISITOR_H
 
+#include "AST.h"
 namespace rx::ast {
 
 class ProgramDecl;
@@ -10,6 +11,7 @@ class StructDecl;
 class FieldDecl;
 class VarDecl;
 class FuncDecl;
+class FuncParamDecl;
 class BlockStmt;
 class ReturnStmt;
 class DeclStmt;
@@ -30,6 +32,7 @@ public:
   virtual void visit(FieldDecl *node) = 0;
   virtual void visit(VarDecl *node) = 0;
   virtual void visit(FuncDecl *node) = 0;
+  virtual void visit(FuncParamDecl *node) = 0;
 };
 
 class BaseStmtVisitor {

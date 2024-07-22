@@ -7,3 +7,7 @@ import abc as ABC
 struct awjliajd {
     f1: int
 }
+
+public let global 
+
+public func test(a: int, b: int): int {}

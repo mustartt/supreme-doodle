@@ -115,6 +115,67 @@ public:
     return Context.createFieldDecl(Loc, std::move(Name), Vis, DefaultValue);
   }
 
+  std::any visitVar_decl(LangParser::Var_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Vis = ctx->visibility()
+                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
+                   : ast::Visibility::Private;
+    std::string Name = ctx->IDENTIFIER()->getText();
+
+    ast::Expression *DefaultValue = nullptr;
+    if (ctx->initializer()) {
+      auto Result = visit(ctx->initializer());
+      DefaultValue = std::any_cast<ast::Expression *>(Result);
+    }
+
+    return dynamic_cast<ast::Decl *>(
+        Context.createVarDecl(Loc, std::move(Name), Vis, DefaultValue));
+  }
+
+  std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Vis = ctx->visibility()
+                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
+                   : ast::Visibility::Private;
+    std::string Name = ctx->IDENTIFIER()->getText();
+
+    auto Params = std::any_cast<std::vector<ast::FuncParamDecl *>>(
+        visit(ctx->func_param_list()));
+
+    return dynamic_cast<ast::Decl *>(
+        Context.createFuncDecl(Loc, std::move(Name), Vis, Params));
+  }
+
+  std::any
+  visitFunc_param_list(LangParser::Func_param_listContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    std::vector<ast::FuncParamDecl *> Params;
+    for (const auto Param : ctx->func_param_decl()) {
+      auto Result = visit(Param);
+      Params.push_back(std::any_cast<ast::FuncParamDecl *>(Result));
+    }
+
+    return Params;
+  }
+
+  std::any
+  visitFunc_param_decl(LangParser::Func_param_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+    std::string Name = ctx->IDENTIFIER()->getText();
+
+    ast::Expression *DefaultValue = nullptr;
+    if (ctx->initializer()) {
+      auto Result = visit(ctx->initializer());
+      DefaultValue = std::any_cast<ast::Expression *>(Result);
+    }
+
+    return Context.createFuncParamDecl(Loc, std::move(Name), DefaultValue);
+  }
+
 private:
   rx::ast::SrcRange getRange(misc::Interval Int) {
     Token *StartToken = Tokens.get(Int.a);

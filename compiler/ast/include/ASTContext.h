@@ -48,6 +48,11 @@ public:
     return addToContext<FuncDecl>(Loc, std::move(Name), Vis, Params, Body);
   }
 
+  FuncParamDecl *createFuncParamDecl(SrcRange Loc, std::string Name,
+                                     Expression *DefaultValue) {
+    return addToContext<FuncParamDecl>(Loc, std::move(Name), DefaultValue);
+  }
+
   BlockStmt *createBlockStmt(SrcRange Loc,
                              llvm::SmallVectorImpl<Stmt *> &&Stmts) {
     return addToContext<BlockStmt>(Loc, std::move(Stmts));

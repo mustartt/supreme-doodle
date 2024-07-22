@@ -156,7 +156,7 @@ class BlockStmt;
 class FuncDecl : public Decl {
 public:
   FuncDecl(SrcRange Loc, std::string Name, Visibility Vis,
-           llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body = nullptr)
+           llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
       : Decl(Loc), Name(std::move(Name)), Vis(Vis), Params(Params), Body(Body) {
   }
 
@@ -172,6 +172,21 @@ private:
   std::string Name;
   llvm::SmallVector<FuncParamDecl *, 8> Params;
   BlockStmt *Body;
+};
+
+class FuncParamDecl : public Decl {
+public:
+  FuncParamDecl(SrcRange Loc, std::string Name, Expression *DefaultValue)
+      : Decl(Loc), Name(std::move(Name)), DefaultValue(DefaultValue) {}
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
+
+  const llvm::StringRef getName() const { return Name; }
+  Expression* getDefaultValue() const {return DefaultValue; }
+
+private:
+  std::string Name;
+  Expression *DefaultValue;
 };
 
 class Stmt : public ASTNode {

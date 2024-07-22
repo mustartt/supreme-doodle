@@ -10,6 +10,7 @@ void StructDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FieldDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void VarDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+void FuncParamDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void BlockStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void ReturnStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void DeclStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
