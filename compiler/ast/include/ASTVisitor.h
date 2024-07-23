@@ -59,6 +59,9 @@ public:
   virtual void visit(AssignExpr *node) = 0;
   virtual void visit(IdentifierExpr *node) = 0;
   virtual void visit(BoolLiteral *node) = 0;
+  virtual void visit(CharLiteral *node) = 0;
+  virtual void visit(NumLiteral *node) = 0;
+  virtual void visit(StringLiteral *node) = 0;
 };
 
 } // namespace rx::ast

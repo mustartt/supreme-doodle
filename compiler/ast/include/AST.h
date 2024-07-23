@@ -2,6 +2,7 @@
 #define AST_NODE_H
 
 #include "SrcManager.h"
+#include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/SmallVector.h"
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/StringRef.h>
@@ -276,13 +277,13 @@ public:
 
 class CallExpr : public Expression {
 public:
-  CallExpr(SrcRange Loc, Expression* Callee, llvm::ArrayRef<Expression*> Args) 
-    : Expression(Loc), Callee(Callee), Args(Args.begin(), Args.end()) {}
+  CallExpr(SrcRange Loc, Expression *Callee, llvm::ArrayRef<Expression *> Args)
+      : Expression(Loc), Callee(Callee), Args(Args.begin(), Args.end()) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
-  Expression* getCallee() const { return Callee; }
-  llvm::ArrayRef<Expression*> getArgs() const { return Args; }
+  Expression *getCallee() const { return Callee; }
+  llvm::ArrayRef<Expression *> getArgs() const { return Args; }
 
 private:
   Expression *Callee;
@@ -291,12 +292,12 @@ private:
 
 class AccessExpr : public Expression {
 public:
-  AccessExpr(SrcRange Loc, Expression* Expr, std::string Accessor) 
-    : Expression(Loc), Expr(Expr), Accessor(std::move(Accessor)) {}
+  AccessExpr(SrcRange Loc, Expression *Expr, std::string Accessor)
+      : Expression(Loc), Expr(Expr), Accessor(std::move(Accessor)) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
-  Expression* getExpr() const { return Expr; }
+  Expression *getExpr() const { return Expr; }
   llvm::StringRef getAccessor() const { return Accessor; }
 
 private:
@@ -306,13 +307,13 @@ private:
 
 class IndexExpr : public Expression {
 public:
-  IndexExpr(SrcRange Loc, Expression* Expr, Expression* Idx) 
-    : Expression(Loc), Expr(Expr), Idx(Idx) {}
+  IndexExpr(SrcRange Loc, Expression *Expr, Expression *Idx)
+      : Expression(Loc), Expr(Expr), Idx(Idx) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
-  Expression* getExpr() const { return Expr; }
-  Expression* getIdx() const { return Idx; }
+  Expression *getExpr() const { return Expr; }
+  Expression *getIdx() const { return Idx; }
 
 private:
   Expression *Expr;
@@ -321,13 +322,13 @@ private:
 
 class AssignExpr : public Expression {
 public:
-  AssignExpr(SrcRange Loc, Expression* LHS, Expression* RHS) 
-    : Expression(Loc), LHS(LHS), RHS(RHS) {}
+  AssignExpr(SrcRange Loc, Expression *LHS, Expression *RHS)
+      : Expression(Loc), LHS(LHS), RHS(RHS) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
-  Expression* getLHS() const { return LHS; }
-  Expression* getRHS() const { return RHS; }
+  Expression *getLHS() const { return LHS; }
+  Expression *getRHS() const { return RHS; }
 
 private:
   Expression *LHS;
@@ -336,8 +337,8 @@ private:
 
 class IdentifierExpr : public Expression {
 public:
-  IdentifierExpr(SrcRange Loc, std::string Symbol) 
-    : Expression(Loc), Symbol(std::move(Symbol)) {}
+  IdentifierExpr(SrcRange Loc, std::string Symbol)
+      : Expression(Loc), Symbol(std::move(Symbol)) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
@@ -381,6 +382,45 @@ public:
 
 private:
   bool Value;
+};
+
+class CharLiteral : public LiteralExpr {
+public:
+  CharLiteral(SrcRange Loc, char Value) : LiteralExpr(Loc), Value(Value) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  char getValue() const { return Value; }
+
+private:
+  char Value;
+};
+
+class NumLiteral : public LiteralExpr {
+public:
+  NumLiteral(SrcRange Loc, llvm::APFloat Value)
+      : LiteralExpr(Loc), Value(Value) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  llvm::APFloat getValue() const { return Value; }
+  bool isInteger() const {return Value.isInteger(); }
+
+private:
+  llvm::APFloat Value;
+};
+
+class StringLiteral : public LiteralExpr {
+public:
+  StringLiteral(SrcRange Loc, std::string Value)
+      : LiteralExpr(Loc), Value(std::move(Value)) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  llvm::StringRef getValue() const { return Value; }
+
+private:
+  std::string Value;
 };
 
 enum class BinaryOp {

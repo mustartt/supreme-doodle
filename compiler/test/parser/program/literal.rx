@@ -1,0 +1,5 @@
+let a = true
+let b = 'x'
+let c = 123
+let d = 1.213E-3
+let e = "awjawdlij"

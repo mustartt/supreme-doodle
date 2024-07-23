@@ -41,6 +41,9 @@ public:
   void visit(AssignExpr *node) override;
   void visit(IdentifierExpr *node) override; 
   void visit(BoolLiteral *node) override;
+  void visit(CharLiteral *node) override;
+  void visit(NumLiteral *node) override;
+  void visit(StringLiteral *node) override;
 
 private:
   void printTreePrefix() {
@@ -474,6 +477,41 @@ void ASTPrinterVisitor::visit(BoolLiteral *node) {
   printNodePrefix(Str);
 
   DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(CharLiteral *node) {
+    std::string str;
+    llvm::raw_string_ostream os(str);
+    os << "CharLiteral: '" << node->getValue() << "' " << node->Loc;
+
+    printNodePrefix(str);
+    DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(NumLiteral *node) {
+    std::string str;
+    llvm::raw_string_ostream os(str);
+    os << "NumLiteral: ";
+    node->getValue().print(os); 
+    str.pop_back();
+    if (node->isInteger()) {
+      os << " integer";
+    } else {
+      os << " float";
+    }
+    os << " " << node->Loc;
+
+    printNodePrefix(str);
+    DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(StringLiteral *node) {
+    std::string str;
+    llvm::raw_string_ostream os(str);
+    os << "StringLiteral: \"" << node->getValue() << "\" " << node->Loc;
+
+    printNodePrefix(str);
+    DepthFlag[Depth] = true;
 }
 
 void ASTPrinter::print(llvm::raw_ostream &Output, ASTNode *root) const {

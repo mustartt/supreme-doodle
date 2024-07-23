@@ -115,6 +115,18 @@ public:
     return addToContext<BoolLiteral>(Loc, Value);
   }
 
+  CharLiteral *createCharLiteral(SrcRange Loc, char Value) {
+    return addToContext<CharLiteral>(Loc, Value);
+  }
+
+  NumLiteral *createNumLiteral(SrcRange Loc, llvm::APFloat Value) {
+    return addToContext<NumLiteral>(Loc, Value);
+  }
+
+  StringLiteral *createStringLiteral(SrcRange Loc, std::string Value) {
+    return addToContext<StringLiteral>(Loc, std::move(Value));
+  }
+
 private:
   template <class T, class... Args> T *addToContext(Args &&...Params) {
     auto Node = std::make_unique<T>(std::forward<Args>(Params)...);

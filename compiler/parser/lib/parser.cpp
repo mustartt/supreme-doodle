@@ -411,6 +411,46 @@ public:
     llvm_unreachable("Invalid BoolLiteral");
   }
 
+  std::any visitChar_literal(LangParser::Char_literalContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->CHAR_LITERAL());
+    auto RawValue = ctx->CHAR_LITERAL()->getText();
+    assert(
+        RawValue.size() == 3 &&
+        "Char literal should be a single character enclosed in single quotes");
+
+    char Value = RawValue[1]; // Extract the character
+    return dynamic_cast<ast::Expression *>(
+        Context.createCharLiteral(Loc, Value));
+  }
+
+  std::any visitNum_literal(LangParser::Num_literalContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->NUM_LITERAL());
+    auto RawValue = ctx->NUM_LITERAL()->getText();
+
+    llvm::APFloat Value(llvm::APFloat::IEEEquad(), RawValue);
+    return dynamic_cast<ast::Expression *>(
+        Context.createNumLiteral(Loc, Value));
+  }
+
+  std::any
+  visitString_literal(LangParser::String_literalContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->STRING_LITERAL());
+    auto RawValue = ctx->STRING_LITERAL()->getText();
+    std::string Value = RawValue.substr(1, RawValue.size() - 2);
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createStringLiteral(Loc, std::move(Value)));
+  }
+
 private:
   rx::ast::SrcRange getRange(misc::Interval Int) {
     Token *StartToken = Tokens.get(Int.a);
