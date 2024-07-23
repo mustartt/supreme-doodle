@@ -23,6 +23,13 @@ static cl::opt<std::string> ProductionRule("rule",
                                            cl::init("program"),
                                            cl::cat(ToolCategory));
 
+static cl::opt<bool> ProduceAST("ast",
+                                cl::desc("Emit AST instead of parse tree"),
+                                cl::Optional, cl::cat(ToolCategory));
+static cl::opt<bool> ProduceBoth("both",
+                                 cl::desc("Emit both AST and Parse Tree"),
+                                 cl::Optional, cl::cat(ToolCategory));
+
 int main(int argc, const char *argv[]) {
   InitLLVM X(argc, argv);
 
@@ -31,8 +38,8 @@ int main(int argc, const char *argv[]) {
 
   std::ifstream InputFile;
   std::ofstream OutputFile;
-  std::istream* Input = &std::cin;
-  std::ostream* Output = &std::cout;
+  std::istream *Input = &std::cin;
+  std::ostream *Output = &std::cout;
 
   if (!InputFilename.empty()) {
     InputFile.open(InputFilename);
@@ -56,7 +63,7 @@ int main(int argc, const char *argv[]) {
     Output = &OutputFile;
   }
 
-  parse(*Input, *Output, ProductionRule);
+  parse(*Input, *Output, ProductionRule, !ProduceAST.empty());
 
   return 0;
 }

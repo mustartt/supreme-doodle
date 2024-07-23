@@ -33,16 +33,12 @@ include_directories(
 
 add_library(
     parser STATIC
-    lib/parser.cpp 
     include/parser.h
+    lib/parser.cpp 
     ${ANTLR4_SRC_FILES_antlrcpptest_lexer} 
     ${ANTLR4_SRC_FILES_antlrcpptest_parser}
 )
 add_dependencies(parser antlr4_shared)
 target_link_libraries(parser PRIVATE antlr4_shared ast)
 target_include_directories(parser PUBLIC include)
-
-# add_executable(parser-test unittests/main.cpp unittests/test_example.cpp)
-# target_link_libraries(parser-test PRIVATE parser GTest::gtest_main)
-# add_test(NAME parser-test COMMAND parser-test)
 

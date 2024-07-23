@@ -465,9 +465,33 @@ private:
   rx::ast::ASTContext &Context;
 };
 
-void test() {}
+class OStreamWrapper : public llvm::raw_ostream {
+private:
+    std::ostream &OS;
+    size_t currentPos = 0;
 
-void parse(std::istream &in, std::ostream &out, const std::string &rule) {
+    void write_impl(const char *Ptr, size_t Size) override {
+        OS.write(Ptr, Size);
+        currentPos += Size;
+    }
+
+    uint64_t current_pos() const override {
+        return currentPos;
+    }
+
+public:
+    OStreamWrapper(std::ostream &os) : OS(os) {}
+    ~OStreamWrapper() override {
+        flush();
+    }
+    void flush() {
+        OS.flush();
+    }
+};
+
+
+void parse(std::istream &in, std::ostream &out, const std::string &rule,
+           bool outputAst) {
   antlr4::ANTLRInputStream input(in);
   antlr4::LangLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
@@ -486,12 +510,13 @@ void parse(std::istream &in, std::ostream &out, const std::string &rule) {
     return;
   }
 
-  out << tree->toStringTree(&parser, true) << std::endl;
-
-  ast::ASTContext Context;
-  LangVisitor V(tokens, Context);
-  auto Root = std::any_cast<ast::ProgramDecl *>(V.visit(tree));
-
-  ast::ASTPrinter Printer;
-  Printer.print(llvm::outs(), Root);
+  if (!outputAst) {
+    out << tree->toStringTree(&parser, true) << std::endl;
+  } else {
+    ast::ASTContext Context;
+    LangVisitor V(tokens, Context);
+    auto Root = std::any_cast<ast::ProgramDecl *>(V.visit(tree));
+    ast::ASTPrinter Printer;
+    Printer.print(llvm::outs(), Root);
+  }
 }
