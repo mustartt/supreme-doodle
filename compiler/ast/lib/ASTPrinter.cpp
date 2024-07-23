@@ -35,6 +35,11 @@ public:
   void visit(ForStmt *node) override;
   void visit(BinaryExpr *node) override;
   void visit(UnaryExpr *node) override;
+  void visit(CallExpr *node) override;
+  void visit(AccessExpr *node) override;
+  void visit(IndexExpr *node) override;
+  void visit(AssignExpr *node) override;
+  void visit(IdentifierExpr *node) override; 
   void visit(BoolLiteral *node) override;
 
 private:
@@ -368,6 +373,91 @@ void ASTPrinterVisitor::visit(UnaryExpr *node) {
     node->getExpr()->accept(*this);
   }
 
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(CallExpr *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "CallExpr: " << node->Loc;
+
+  printNodePrefix(Str);
+
+  if (node->getCallee()) {
+    Scope _(*this, node->getArgs().empty());
+    node->getCallee()->accept(*this);
+  }
+
+  for (const auto [Idx, Arg] : llvm::enumerate(node->getArgs())) {
+    Scope _(*this, Idx == node->getArgs().size() - 1);
+    Arg->accept(*this);
+  }
+
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(AccessExpr *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "AccessExpr: " << node->getAccessor() << " " << node->Loc;
+
+  printNodePrefix(Str);
+
+  if (node->getExpr()) {
+    Scope _(*this, true);
+    node->getExpr()->accept(*this);
+  }
+
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(IndexExpr *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "IndexExpr: " << node->Loc;
+
+  printNodePrefix(Str);
+
+  if (node->getExpr()) {
+    Scope _(*this, false);
+    node->getExpr()->accept(*this);
+  }
+
+  if (node->getIdx()) {
+    Scope _(*this, true);
+    node->getIdx()->accept(*this);
+  }
+
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(AssignExpr *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "AssignExpr: " << node->Loc;
+
+  printNodePrefix(Str);
+
+  {
+    assert(node->getLHS() && "Missing LHS");
+    Scope _(*this, false);
+    node->getLHS()->accept(*this);
+  }
+  {
+    assert(node->getLHS() && "Missing RHS");
+    Scope _(*this, true);
+    node->getRHS()->accept(*this);
+  }
+
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(IdentifierExpr *node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "IdentifierExpr: " << node->getSymbol() << " " << node->Loc;
+
+  printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
 

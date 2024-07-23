@@ -16,4 +16,9 @@ public func test(a: int, b: int): int {
      else 
         let c
     
+    add(a, b)
+
+    io.print(a)
+
+    arr[b]
 }

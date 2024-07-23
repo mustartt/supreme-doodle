@@ -107,24 +107,32 @@ for_body
     ;
 
 /* expression */
-expr: expr RPAREN expr_list RPAREN
-    | expr DOT IDENTIFIER 
-    | expr LBRACKET expr RBRACKET 
-    | (MINUS | NOT | REF) expr
-    | expr (STAR | DIV) expr 
-    | expr (PLUS | MINUS) expr 
-    | expr (LANGLE | RANGLE | LEQ | GEQ | CMP_EQ | NOT_EQ) expr
-    | expr EQ expr
-    | if_expr
-    | IDENTIFIER
-    | literal
+expr: expr DOT IDENTIFIER           #accessExpr 
+    | expr LBRACKET expr RBRACKET   #indexExpr
+    | expr LPAREN arguments? RPAREN #callExpr
+    | op=(MINUS | NOT | REF) expr   #unaryExpr
+    | expr op=(STAR | DIV) expr     #binaryExpr 
+    | expr op=(PLUS | MINUS) expr   #binaryExpr    
+    | expr op=(
+            LANGLE | 
+            RANGLE | 
+            LEQ | 
+            GEQ | 
+            CMP_EQ | 
+            NOT_EQ
+        ) expr                      #binaryExpr
+    | expr EQ expr                  #assignExpr
+    | if_expr                       #ifExpr
+    | identifier                    #identifierExpr
+    | literal                       #literalExpr
     ;
 
+identifier: IDENTIFIER;
 if_expr: IF if_header if_body (ELSE if_body)? ;
 if_header: expr;
 if_body: statement ;
 
-expr_list: expr (COMMA expr)*;
+arguments: expr (COMMA expr)*;
 
 /* production rule for testing types */
 test_type: type+ EOF ;

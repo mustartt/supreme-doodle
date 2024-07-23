@@ -274,6 +274,79 @@ public:
   virtual void accept(BaseExprVisitor &) = 0;
 };
 
+class CallExpr : public Expression {
+public:
+  CallExpr(SrcRange Loc, Expression* Callee, llvm::ArrayRef<Expression*> Args) 
+    : Expression(Loc), Callee(Callee), Args(Args.begin(), Args.end()) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  Expression* getCallee() const { return Callee; }
+  llvm::ArrayRef<Expression*> getArgs() const { return Args; }
+
+private:
+  Expression *Callee;
+  llvm::SmallVector<Expression *> Args;
+};
+
+class AccessExpr : public Expression {
+public:
+  AccessExpr(SrcRange Loc, Expression* Expr, std::string Accessor) 
+    : Expression(Loc), Expr(Expr), Accessor(std::move(Accessor)) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  Expression* getExpr() const { return Expr; }
+  llvm::StringRef getAccessor() const { return Accessor; }
+
+private:
+  Expression *Expr;
+  std::string Accessor;
+};
+
+class IndexExpr : public Expression {
+public:
+  IndexExpr(SrcRange Loc, Expression* Expr, Expression* Idx) 
+    : Expression(Loc), Expr(Expr), Idx(Idx) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  Expression* getExpr() const { return Expr; }
+  Expression* getIdx() const { return Idx; }
+
+private:
+  Expression *Expr;
+  Expression *Idx;
+};
+
+class AssignExpr : public Expression {
+public:
+  AssignExpr(SrcRange Loc, Expression* LHS, Expression* RHS) 
+    : Expression(Loc), LHS(LHS), RHS(RHS) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  Expression* getLHS() const { return LHS; }
+  Expression* getRHS() const { return RHS; }
+
+private:
+  Expression *LHS;
+  Expression *RHS;
+};
+
+class IdentifierExpr : public Expression {
+public:
+  IdentifierExpr(SrcRange Loc, std::string Symbol) 
+    : Expression(Loc), Symbol(std::move(Symbol)) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  llvm::StringRef getSymbol() const { return Symbol; }
+
+private:
+  std::string Symbol;
+};
+
 class IfExpr : public Expression {
 public:
   IfExpr(SrcRange Loc, Expression *Condition, BlockStmt *Body,

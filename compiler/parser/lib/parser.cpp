@@ -142,27 +142,18 @@ public:
                    : ast::Visibility::Private;
     std::string Name = ctx->IDENTIFIER()->getText();
 
-    auto Params = std::any_cast<std::vector<ast::FuncParamDecl *>>(
-        visit(ctx->func_param_list()));
+    llvm::SmallVector<ast::FuncParamDecl *, 4> Params;
+    if (auto ParamList = ctx->func_param_list()) {
+      for (const auto Param : ParamList->func_param_decl()) {
+        Params.push_back(std::any_cast<ast::FuncParamDecl *>(visit(Param)));
+      }
+    }
 
     auto Body = dynamic_cast<ast::BlockStmt *>(
         std::any_cast<ast::Stmt *>(visit(ctx->func_body())));
 
     return dynamic_cast<ast::Decl *>(
         Context.createFuncDecl(Loc, std::move(Name), Vis, Params, Body));
-  }
-
-  std::any
-  visitFunc_param_list(LangParser::Func_param_listContext *ctx) override {
-    assert(ctx && "Invalid Node");
-
-    std::vector<ast::FuncParamDecl *> Params;
-    for (const auto Param : ctx->func_param_decl()) {
-      auto Result = visit(Param);
-      Params.push_back(std::any_cast<ast::FuncParamDecl *>(Result));
-    }
-
-    return Params;
   }
 
   std::any
@@ -253,6 +244,155 @@ public:
 
     return dynamic_cast<ast::Expression *>(
         Context.createIfExpr(Loc, Condition, BodyBlock, ElseBlock));
+  }
+
+  std::any
+  visitIdentifierExpr(LangParser::IdentifierExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->identifier() && ctx->identifier()->IDENTIFIER());
+    auto Symbol = ctx->identifier()->IDENTIFIER()->getText();
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createIdentifierExpr(Loc, std::move(Symbol)));
+  }
+
+  std::any visitAssignExpr(LangParser::AssignExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto Values = ctx->expr();
+    assert(Values.size() == 2 && "Wrong operands");
+
+    auto LHS = std::any_cast<ast::Expression *>(visit(Values[0]));
+    auto RHS = std::any_cast<ast::Expression *>(visit(Values[1]));
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createAssignExpr(Loc, LHS, RHS));
+  }
+
+  std::any visitBinaryExpr(LangParser::BinaryExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->op && "Invalid OP");
+    auto TokenType = ctx->op->getType();
+
+    ast::BinaryOp BinOp;
+    switch (TokenType) {
+    case LangParser::STAR:
+      BinOp = ast::BinaryOp::Mult;
+      break;
+    case LangParser::DIV:
+      BinOp = ast::BinaryOp::Div;
+      break;
+    case LangParser::PLUS:
+      BinOp = ast::BinaryOp::Add;
+      break;
+    case LangParser::MINUS:
+      BinOp = ast::BinaryOp::Sub;
+      break;
+    case LangParser::LANGLE:
+      BinOp = ast::BinaryOp::Less;
+      break;
+    case LangParser::RANGLE:
+      BinOp = ast::BinaryOp::Greater;
+      break;
+    case LangParser::LEQ:
+      BinOp = ast::BinaryOp::LessThanEqual;
+      break;
+    case LangParser::GEQ:
+      BinOp = ast::BinaryOp::GreaterThanEqual;
+      break;
+    case LangParser::CMP_EQ:
+      BinOp = ast::BinaryOp::CmpEqual;
+      break;
+    case LangParser::NOT_EQ:
+      BinOp = ast::BinaryOp::CmpNotEqual;
+      break;
+    default:
+      llvm_unreachable("Unknown BinOP");
+    }
+
+    auto Values = ctx->expr();
+    assert(Values.size() == 2 && "Wrong operands");
+
+    auto LHS = std::any_cast<ast::Expression *>(visit(Values[0]));
+    auto RHS = std::any_cast<ast::Expression *>(visit(Values[1]));
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createBinaryExpr(Loc, BinOp, LHS, RHS));
+  }
+
+  std::any visitUnaryExpr(LangParser::UnaryExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    assert(ctx->op && "Invalid OP");
+    auto TokenType = ctx->op->getType();
+
+    ast::UnaryOp UnOp;
+    switch (TokenType) {
+    case LangParser::MINUS:
+      UnOp = ast::UnaryOp::Negative;
+      break;
+    case LangParser::NOT:
+      UnOp = ast::UnaryOp::Not;
+      break;
+    case LangParser::REF:
+      UnOp = ast::UnaryOp::Ref;
+      break;
+    default:
+      llvm_unreachable("Unknown UnOp");
+    }
+
+    auto Value = ctx->expr();
+    assert(Value && "Wrong operand");
+
+    auto Expr = std::any_cast<ast::Expression *>(visit(Value));
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createUnaryExpr(Loc, UnOp, Expr));
+  }
+
+  std::any visitCallExpr(LangParser::CallExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto Callee = std::any_cast<ast::Expression *>(visit(ctx->expr()));
+
+    std::vector<ast::Expression *> Args;
+    if (ctx->arguments()) {
+      for (auto ArgCtx : ctx->arguments()->expr()) {
+        Args.push_back(std::any_cast<ast::Expression *>(visit(ArgCtx)));
+      }
+    }
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createCallExpr(Loc, Callee, Args));
+  }
+
+  std::any visitAccessExpr(LangParser::AccessExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto Expr = std::any_cast<ast::Expression *>(visit(ctx->expr()));
+    auto Accessor = ctx->IDENTIFIER()->getText();
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createAccessExpr(Loc, Expr, Accessor));
+  }
+
+  std::any visitIndexExpr(LangParser::IndexExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto Expr = std::any_cast<ast::Expression *>(visit(ctx->expr(0)));
+    auto Idx = std::any_cast<ast::Expression *>(visit(ctx->expr(1)));
+
+    return dynamic_cast<ast::Expression *>(
+        Context.createIndexExpr(Loc, Expr, Idx));
   }
 
   std::any visitBool_literal(LangParser::Bool_literalContext *ctx) override {

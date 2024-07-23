@@ -89,7 +89,29 @@ public:
     return addToContext<UnaryExpr>(Loc, Op, Expr);
   }
 
-  BoolLiteral* createBoolLiteral(SrcRange Loc, bool Value) {
+  CallExpr *createCallExpr(SrcRange Loc, Expression *Callee,
+                           llvm::ArrayRef<Expression *> Args) {
+    return addToContext<CallExpr>(Loc, Callee, Args);
+  }
+
+  AccessExpr *createAccessExpr(SrcRange Loc, Expression *Expr,
+                               std::string Accessor) {
+    return addToContext<AccessExpr>(Loc, Expr, std::move(Accessor));
+  }
+
+  IndexExpr *createIndexExpr(SrcRange Loc, Expression *Expr, Expression *Idx) {
+    return addToContext<IndexExpr>(Loc, Expr, Idx);
+  }
+
+  AssignExpr *createAssignExpr(SrcRange Loc, Expression *LHS, Expression *RHS) {
+    return addToContext<AssignExpr>(Loc, LHS, RHS);
+  }
+
+  IdentifierExpr *createIdentifierExpr(SrcRange Loc, std::string Symbol) {
+    return addToContext<IdentifierExpr>(Loc, std::move(Symbol));
+  }
+
+  BoolLiteral *createBoolLiteral(SrcRange Loc, bool Value) {
     return addToContext<BoolLiteral>(Loc, Value);
   }
 

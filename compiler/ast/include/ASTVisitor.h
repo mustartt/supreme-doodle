@@ -53,6 +53,11 @@ public:
   virtual void visit(IfExpr *node) = 0;
   virtual void visit(BinaryExpr *node) = 0;
   virtual void visit(UnaryExpr *node) = 0;
+  virtual void visit(CallExpr *node) = 0;
+  virtual void visit(AccessExpr *node) = 0;
+  virtual void visit(IndexExpr *node) = 0;
+  virtual void visit(AssignExpr *node) = 0;
+  virtual void visit(IdentifierExpr *node) = 0;
   virtual void visit(BoolLiteral *node) = 0;
 };
 

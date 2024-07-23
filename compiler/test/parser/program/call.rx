@@ -1,0 +1,5 @@
+func test() {
+    io.print(a)
+    arr[idx]()
+    test()
+}
