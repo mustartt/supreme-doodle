@@ -42,6 +42,7 @@ int main(int argc, const char *argv[]) {
           << "\n";
       return 1;
     }
+    Buffer = std::move(*FileOrErr);
   } else {
     auto FileOrErr = llvm::MemoryBuffer::getFile(InputFilename);
     if (std::error_code EC = FileOrErr.getError()) {
