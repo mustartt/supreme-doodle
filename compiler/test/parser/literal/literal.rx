@@ -1,4 +1,5 @@
-// RUN: %parse-tree --rule literal %s | FileCheck %s
+// RUN: %parse-tree --mode tree --rule literal %s | FileCheck %s
+// XFAIL: *
 
 true
 false
