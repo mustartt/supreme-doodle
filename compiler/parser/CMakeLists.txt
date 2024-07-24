@@ -4,7 +4,7 @@ find_package(antlr4-runtime REQUIRED)
 find_package(antlr4-generator REQUIRED)
 
 antlr4_generate(
-    antlrcpptest_lexer
+    rx_lexer
     ${CMAKE_CURRENT_SOURCE_DIR}/grammar/LangLexer.g4
     LEXER
     FALSE
@@ -13,32 +13,29 @@ antlr4_generate(
 )
 
 antlr4_generate(
-    antlrcpptest_parser
+    rx_parser
     ${CMAKE_CURRENT_SOURCE_DIR}/grammar/LangParser.g4
     PARSER
     FALSE
     TRUE
     "antlr4"
-    "${ANTLR4_TOKEN_FILES_antlrcpptest_lexer}"
-    "${ANTLR4_TOKEN_DIRECTORY_antlrcpptest_lexer}"
-)
-
-include_directories(
-    ${PROJECT_BINARY_DIR} 
-    ${ANTLR4_INCLUDE_DIR} 
-    ${ANTLR4_INCLUDE_DIR_antlrcpptest_lexer} 
-    ${ANTLR4_INCLUDE_DIR_antlrcpptest_parser}
-    include
+    "${ANTLR4_TOKEN_FILES_rx_lexer}"
+    "${ANTLR4_TOKEN_DIRECTORY_rx_lexer}"
 )
 
 add_library(
     parser STATIC
-    include/parser.h
+    include/parser/parser.h
     lib/parser.cpp 
-    ${ANTLR4_SRC_FILES_antlrcpptest_lexer} 
-    ${ANTLR4_SRC_FILES_antlrcpptest_parser}
+    ${ANTLR4_SRC_FILES_rx_lexer} 
+    ${ANTLR4_SRC_FILES_rx_parser}
 )
 add_dependencies(parser antlr4_shared)
 target_link_libraries(parser PRIVATE antlr4_shared ast)
 target_include_directories(parser PUBLIC include)
+target_include_directories(parser PRIVATE 
+    ${ANTLR4_INCLUDE_DIR} 
+    ${ANTLR4_INCLUDE_DIR_rx_lexer} 
+    ${ANTLR4_INCLUDE_DIR_rx_parser}
+)
 

@@ -1,5 +1,24 @@
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
 func test() {
+// CHECK: test
+
     io.print(a)
+
+// CHECK identifier io
+// CHECK: . print
+// CHECK: identifier a
+
     arr[idx]()
+    
+// CHECK: identifier arr
+// CHECK: [
+// CHECK: identifier idx
+// CHECK: ( )
+
     test()
+
+// CHECK: identifier test
+// CHECK: ( )
+
 }

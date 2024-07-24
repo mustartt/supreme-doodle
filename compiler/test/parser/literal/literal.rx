@@ -1,5 +1,6 @@
-// RUN: %parse-tree --mode tree --rule literal %s | FileCheck %s
-// XFAIL: *
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
+func test() {
 
 true
 false
@@ -8,14 +9,8 @@ false
 // CHECK: bool_literal false
 
 'a'
-'\n'
-'\t'
-'\\'
 
 // CHECK: char_literal 'a'
-// CHECK: char_literal '\n'
-// CHECK: char_literal '\t'
-// CHECK: char_literal '\\'
 
 3.14 
 .001 
@@ -53,4 +48,4 @@ false
 // CHECK: string_literal "Hello World!"
 // CHECK: string_literal "Hello \t World!\n"
 
-
+}

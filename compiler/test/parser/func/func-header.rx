@@ -1,4 +1,4 @@
-// RUN: %parse-tree --rule program %s | FileCheck %s
+// RUN: %parse-tree --mode tree %s | FileCheck %s
 
 
 func a() {}

@@ -1,4 +1,4 @@
-// RUN: %parse-tree --rule program %s | FileCheck %s
+// RUN: %parse-tree --mode tree %s | FileCheck %s
 
 func simple() {
     let a: mut i32 = 0
@@ -6,7 +6,8 @@ func simple() {
 }
 
 // CHECK: func_decl func simple
-// CHECK: decl_stmt let a
+// CHECK: decl_stmt
+// CHECK: var_decl let a
 // CHECK-NEXT: type mut
 // CHECK-NEXT: type i32
 
@@ -27,12 +28,15 @@ func lhs_assign_qualified() {
 }
 
 // CHECK: func_decl func lhs_assign_qualified
-// CHECK: decl_stmt let pt
+// CHECK: decl_stmt
+// CHECK: var_decl let pt
 // CHECK: expr_stmt 
-// CHECK: (expr pt) . x
+// CHECK: identifier pt
+// CHECK-SAME: . x
 // CHECK-SAME: =
 // CHECK: num_literal 1.0
-// CHECK: (expr pt) . y
+// CHECK: identifier pt
+// CHECK-SAME: . y
 // CHECK-SAME: =
 // CHECK: num_literal 2.0
 

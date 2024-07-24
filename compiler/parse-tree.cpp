@@ -1,69 +1,105 @@
+#include "ast/include/ASTContext.h"
+#include "parser/parser.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/InitLLVM.h"
-#include <fstream>
-#include <iostream>
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Support/WithColor.h"
+#include <llvm/Support/ErrorHandling.h>
 
-#include "parser.h"
-
-using namespace llvm;
-
-static cl::OptionCategory ToolCategory("parser-cli options");
-static cl::opt<std::string> InputFilename(cl::Positional,
-                                          cl::desc("<input file>"),
-                                          cl::Optional, cl::cat(ToolCategory));
-static cl::opt<std::string> OutputFilename("o",
-                                           cl::desc("Specify output filename"),
-                                           cl::value_desc("filename"),
-                                           cl::Optional, cl::cat(ToolCategory));
-static cl::opt<bool> Verbose("v", cl::desc("Enable verbose mode"),
-                             cl::init(false), cl::cat(ToolCategory));
-static cl::opt<std::string> ProductionRule("rule",
-                                           cl::desc("Specify production rule"),
-                                           cl::value_desc("production rule"),
-                                           cl::init("program"),
-                                           cl::cat(ToolCategory));
-
-static cl::opt<bool> ProduceAST("ast",
-                                cl::desc("Emit AST instead of parse tree"),
-                                cl::Optional, cl::cat(ToolCategory));
-static cl::opt<bool> ProduceBoth("both",
-                                 cl::desc("Emit both AST and Parse Tree"),
-                                 cl::Optional, cl::cat(ToolCategory));
+static llvm::cl::OptionCategory ToolCategory("parser-cli options");
+static llvm::cl::opt<std::string> InputFilename(llvm::cl::Positional,
+                                                llvm::cl::desc("<input file>"),
+                                                llvm::cl::Optional,
+                                                llvm::cl::cat(ToolCategory));
+static llvm::cl::opt<std::string>
+    OutputFilename("o", llvm::cl::desc("Specify output filename"),
+                   llvm::cl::value_desc("filename"), llvm::cl::Optional,
+                   llvm::cl::cat(ToolCategory));
+static llvm::cl::opt<bool> Verbose("v", llvm::cl::desc("Enable verbose mode"),
+                                   llvm::cl::init(false),
+                                   llvm::cl::cat(ToolCategory));
+static llvm::cl::opt<std::string>
+    ProductionMode("mode", llvm::cl::desc("Specify which mode to run"),
+                   llvm::cl::value_desc("ast | tree"), llvm::cl::Optional,
+                   llvm::cl::init("ast"), llvm::cl::cat(ToolCategory));
 
 int main(int argc, const char *argv[]) {
-  InitLLVM X(argc, argv);
+  llvm::InitLLVM X(argc, argv);
 
-  cl::HideUnrelatedOptions(ToolCategory);
-  cl::ParseCommandLineOptions(argc, argv, "parser-cli command line options");
+  llvm::cl::HideUnrelatedOptions(ToolCategory);
+  llvm::cl::ParseCommandLineOptions(argc, argv,
+                                    "parse-tree command line options");
 
-  std::ifstream InputFile;
-  std::ofstream OutputFile;
-  std::istream *Input = &std::cin;
-  std::ostream *Output = &std::cout;
-
-  if (!InputFilename.empty()) {
-    InputFile.open(InputFilename);
-    if (InputFile.fail()) {
-      std::error_code ec(errno, std::generic_category());
-      errs() << "Error opening input file: " << InputFilename << " - "
-             << ec.message() << "\n";
+  // Read input file
+  std::unique_ptr<llvm::MemoryBuffer> Buffer;
+  if (InputFilename.empty()) {
+    auto FileOrErr = llvm::MemoryBuffer::getSTDIN();
+    if (std::error_code EC = FileOrErr.getError()) {
+      llvm::WithColor::error(llvm::errs(), "parse-tree")
+          << "Error reading from stdin: " << EC.value() << " " << EC.message()
+          << "\n";
       return 1;
     }
-    Input = &InputFile;
-  }
-
-  if (!OutputFilename.empty()) {
-    OutputFile.open(OutputFilename);
-    if (OutputFile.fail()) {
-      std::error_code ec(errno, std::generic_category());
-      errs() << "Error opening output file: " << OutputFilename << " - "
-             << ec.message() << "\n";
+  } else {
+    auto FileOrErr = llvm::MemoryBuffer::getFile(InputFilename);
+    if (std::error_code EC = FileOrErr.getError()) {
+      llvm::WithColor::error(llvm::errs(), "parse-tree")
+          << "Error opening input file: " << InputFilename << " - "
+          << EC.message() << "\n";
       return 1;
     }
-    Output = &OutputFile;
+    Buffer = std::move(*FileOrErr);
   }
 
-  parse(*Input, *Output, ProductionRule, !ProduceAST.empty());
+  // Open output file
+  std::unique_ptr<llvm::ToolOutputFile> Out;
+  if (OutputFilename.empty()) {
+    std::error_code EC;
+    Out =
+        std::make_unique<llvm::ToolOutputFile>("-", EC, llvm::sys::fs::OF_None);
+  } else {
+    std::error_code EC;
+    Out = std::make_unique<llvm::ToolOutputFile>(OutputFilename, EC,
+                                                 llvm::sys::fs::OF_None);
+    if (EC) {
+      llvm::WithColor::error(llvm::errs(), "parse-tree")
+          << "Error opening output file: " << OutputFilename << " - "
+          << EC.message() << "\n";
+      return 1;
+    }
+  }
+
+  rx::ast::ASTContext Context;
+  rx::parser::Parser TheParser(Context);
+
+  TheParser.parse(*Buffer);
+
+  if (ProductionMode == "tree") {
+    TheParser.printParseTree(Out->os());
+  } else if (ProductionMode == "ast") {
+    TheParser.printAST(Out->os());
+  } else {
+    llvm::WithColor::error(llvm::errs(), "parse-tree")
+        << "Invalid mode: " << ProductionMode << "\n";
+  }
+
+  Out->keep();
+
+  if (Verbose) {
+    llvm::errs() << "Parsing completed successfully.\n";
+    auto Errors = TheParser.getErrors();
+    if (!Errors.empty()) {
+      llvm::errs() << "Encountered " << Errors.size() << " errors:\n";
+      for (const auto &Error : Errors) {
+        // llvm::errs() << Error << "\n";
+      }
+    } else {
+      llvm::errs() << "No errors encountered.\n";
+    }
+  }
 
   return 0;
 }
+

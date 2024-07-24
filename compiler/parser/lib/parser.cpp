@@ -1,12 +1,16 @@
+#include "parser/parser.h"
+
 #include "AST.h"
 #include "ASTContext.h"
 #include "ASTPrinter.h"
+#include "CommonTokenStream.h"
 #include "LangLexer.h"
 #include "LangParser.h"
 #include "LangParserBaseVisitor.h"
 #include "SrcManager.h"
-#include "llvm/Support/ErrorHandling.h"
-#include <any>
+#include "llvm/Support/MemoryBufferRef.h"
+#include "llvm/Support/raw_ostream.h"
+#include <memory>
 
 using namespace antlr4;
 using namespace rx;
@@ -467,56 +471,64 @@ private:
 
 class OStreamWrapper : public llvm::raw_ostream {
 private:
-    std::ostream &OS;
-    size_t currentPos = 0;
+  std::ostream &OS;
+  size_t currentPos = 0;
 
-    void write_impl(const char *Ptr, size_t Size) override {
-        OS.write(Ptr, Size);
-        currentPos += Size;
-    }
+  void write_impl(const char *Ptr, size_t Size) override {
+    OS.write(Ptr, Size);
+    currentPos += Size;
+  }
 
-    uint64_t current_pos() const override {
-        return currentPos;
-    }
+  uint64_t current_pos() const override { return currentPos; }
 
 public:
-    OStreamWrapper(std::ostream &os) : OS(os) {}
-    ~OStreamWrapper() override {
-        flush();
-    }
-    void flush() {
-        OS.flush();
-    }
+  OStreamWrapper(std::ostream &os) : OS(os) {}
+  ~OStreamWrapper() override { flush(); }
+  void flush() { OS.flush(); }
 };
 
+namespace rx::parser {
 
-void parse(std::istream &in, std::ostream &out, const std::string &rule,
-           bool outputAst) {
-  antlr4::ANTLRInputStream input(in);
-  antlr4::LangLexer lexer(&input);
-  antlr4::CommonTokenStream tokens(&lexer);
+class ParserImpl {
+public:
+  ParserImpl(llvm::MemoryBufferRef Content)
+      : Input(Content.getBuffer()), RXLexer(&Input), Tokens(&RXLexer),
+        RXParser(&Tokens) {}
 
-  antlr4::LangParser parser(&tokens);
-  antlr4::tree::ParseTree *tree;
+  antlr4::ANTLRInputStream Input;
+  antlr4::LangLexer RXLexer;
+  antlr4::CommonTokenStream Tokens;
+  antlr4::LangParser RXParser;
+};
 
-  if (rule == "program") {
-    tree = parser.program();
-  } else if (rule == "type") {
-    tree = parser.test_type();
-  } else if (rule == "literal") {
-    tree = parser.test_literal();
-  } else {
-    out << "INVALID PROUDCTION RULE" << std::endl;
-    return;
-  }
-
-  if (!outputAst) {
-    out << tree->toStringTree(&parser, true) << std::endl;
-  } else {
-    ast::ASTContext Context;
-    LangVisitor V(tokens, Context);
-    auto Root = std::any_cast<ast::ProgramDecl *>(V.visit(tree));
-    ast::ASTPrinter Printer;
-    Printer.print(llvm::outs(), Root);
-  }
+Parser::~Parser() {
+  if (Impl)
+    delete Impl;
 }
+
+ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content) {
+  assert(!Impl && "Has existing state");
+  Impl = new ParserImpl(Content);
+
+  ParseTreeRoot = Impl->RXParser.program();
+
+  LangVisitor V(Impl->Tokens, Context);
+  std::any VisitResult = V.visit(ParseTreeRoot);
+  Root = std::any_cast<ast::ProgramDecl *>(VisitResult);
+
+  return Root;
+};
+
+void Parser::printAST(llvm::raw_ostream &Output) const {
+  assert(Root && "AST Root not initializer");
+  ast::ASTPrinter Printer;
+  Printer.print(Output, Root);
+}
+
+void Parser::printParseTree(llvm::raw_ostream &Output) const {
+  assert(ParseTreeRoot && "Parse Tree Root not initializer");
+  assert(Impl && "Invalid State");
+  Output << ParseTreeRoot->toStringTree(&Impl->RXParser, true) << "\n";
+}
+
+} // namespace rx::parser

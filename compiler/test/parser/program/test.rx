@@ -1,3 +1,6 @@
+// RUN: echo 'skipped'
+// UNSUPPORTED: all
+
 package main
 
 import a

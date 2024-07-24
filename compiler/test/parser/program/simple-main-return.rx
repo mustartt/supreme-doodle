@@ -1,4 +1,4 @@
-// RUN: %parse-tree --rule program %s | FileCheck %s
+// RUN: %parse-tree --mode tree %s | FileCheck %s
 
 package main
 
@@ -14,7 +14,7 @@ func main(args: [string]): i32 {
 // CHECK: func_return_type
 // CHECK: type i32
 // CHECK: func_body
-// CHECK: block
+// CHECK: block_stmt
 // CHECK: return_stmt return
 // CHECK: num_literal 0
 
