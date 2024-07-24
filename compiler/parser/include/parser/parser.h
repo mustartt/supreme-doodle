@@ -6,6 +6,8 @@
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "SrcManager.h"
+
 namespace antlr4::tree {
 class ParseTree;
 }
@@ -17,9 +19,22 @@ class ASTNode;
 
 namespace rx::parser {
 
-class ParserError {};
+class ParserError {
+public:
+  ParserError(ast::SrcRange Loc, std::string Message)
+      : Loc(Loc), Message(std::move(Message)) {}
+
+  ast::SrcRange getLocation() const { return Loc; }
+  llvm::StringRef getMessage() const { return Message; }
+  void printError(llvm::raw_ostream&, llvm::MemoryBufferRef) const;
+
+private:
+  ast::SrcRange Loc;
+  std::string Message;
+};
 
 class ParserImpl;
+class ParserErrorListener;
 class Parser {
 public:
   Parser(ast::ASTContext &Context) : Context(Context) {}
@@ -31,6 +46,8 @@ public:
   void printParseTree(llvm::raw_ostream &) const;
 
   llvm::ArrayRef<ParserError> getErrors() const { return Errors; }
+
+  friend class ParserErrorListener;
 
 private:
   ast::ASTContext &Context;

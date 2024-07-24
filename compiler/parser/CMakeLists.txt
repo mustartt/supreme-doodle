@@ -27,11 +27,17 @@ add_library(
     parser STATIC
     include/parser/parser.h
     lib/parser.cpp 
+    lib/ParserError.cpp
+    lib/ParserErrorListener.h
+    lib/ParseTreeVisitor.h
     ${ANTLR4_SRC_FILES_rx_lexer} 
     ${ANTLR4_SRC_FILES_rx_parser}
 )
 add_dependencies(parser antlr4_shared)
-target_link_libraries(parser PRIVATE antlr4_shared ast)
+
+target_link_libraries(parser PUBLIC ast)
+target_link_libraries(parser PRIVATE antlr4_shared)
+
 target_include_directories(parser PUBLIC include)
 target_include_directories(parser PRIVATE 
     ${ANTLR4_INCLUDE_DIR} 

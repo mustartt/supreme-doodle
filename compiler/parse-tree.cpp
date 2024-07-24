@@ -7,6 +7,7 @@
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/WithColor.h"
 #include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/raw_ostream.h>
 
 static llvm::cl::OptionCategory ToolCategory("parser-cli options");
 static llvm::cl::opt<std::string> InputFilename(llvm::cl::Positional,
@@ -86,21 +87,19 @@ int main(int argc, const char *argv[]) {
         << "Invalid mode: " << ProductionMode << "\n";
   }
 
+  auto ParseErrors = TheParser.getErrors();
+  if (!ParseErrors.empty()) {
+    llvm::errs() << "Encountered Parse Errors: \n";
+    for (const auto Err : ParseErrors) {
+      Err.printError(llvm::errs(), *Buffer);
+    }
+  }
+
   Out->keep();
 
   if (Verbose) {
     llvm::errs() << "Parsing completed successfully.\n";
-    auto Errors = TheParser.getErrors();
-    if (!Errors.empty()) {
-      llvm::errs() << "Encountered " << Errors.size() << " errors:\n";
-      for (const auto &Error : Errors) {
-        // llvm::errs() << Error << "\n";
-      }
-    } else {
-      llvm::errs() << "No errors encountered.\n";
-    }
   }
 
   return 0;
 }
-

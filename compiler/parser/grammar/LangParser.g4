@@ -78,7 +78,7 @@ func_body: block_stmt;
 
 /* statements */
 
-block_stmt: LCURLY statement* RCURLY;
+block_stmt: LCURLY (statement SEMI?)* RCURLY;
 statement
     : return_stmt
     | decl_stmt
