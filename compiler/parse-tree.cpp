@@ -1,5 +1,5 @@
+#include "Parser/Parser.h"
 #include "ast/include/ASTContext.h"
-#include "parser/parser.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/InitLLVM.h"
@@ -90,7 +90,7 @@ int main(int argc, const char *argv[]) {
   auto ParseErrors = TheParser.getErrors();
   if (!ParseErrors.empty()) {
     llvm::errs() << "Encountered Parse Errors: \n";
-    for (const auto Err : ParseErrors) {
+    for (const auto &Err : ParseErrors) {
       Err.printError(llvm::errs(), *Buffer);
     }
   }

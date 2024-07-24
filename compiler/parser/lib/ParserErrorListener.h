@@ -4,7 +4,7 @@
 #include "BaseErrorListener.h"
 #include "SrcManager.h"
 #include "Token.h"
-#include "parser/parser.h"
+#include "Parser/Parser.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace rx::parser {

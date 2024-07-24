@@ -25,8 +25,8 @@ antlr4_generate(
 
 add_library(
     parser STATIC
-    include/parser/parser.h
-    lib/parser.cpp 
+    include/Parser/Parser.h
+    lib/Parser.cpp 
     lib/ParserError.cpp
     lib/ParserErrorListener.h
     lib/ParseTreeVisitor.h

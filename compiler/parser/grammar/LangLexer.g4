@@ -31,6 +31,7 @@ DOT : '.' ;
 SEMI : ';' ;
 COLON : ':' ;
 STAR : '*' ;
+MOD: '%';
 DIV: '/';
 GEQ: '>=';
 LEQ: '<=';

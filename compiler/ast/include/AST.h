@@ -99,7 +99,7 @@ class StructDecl : public Decl {
 public:
   StructDecl(SrcRange Loc, std::string Name, Visibility Vis,
              llvm::ArrayRef<FieldDecl *> Fields)
-      : Decl(Loc), Name(std::move(Name)), Vis(Vis), Fields(Fields) {}
+      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Fields(Fields) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -119,7 +119,7 @@ class FieldDecl : public Decl {
 public:
   FieldDecl(SrcRange Loc, std::string Name, Visibility Vis,
             Expression *DefaultValue = nullptr)
-      : Decl(Loc), Name(std::move(Name)), Vis(Vis), DefaultValue(DefaultValue) {
+      : Decl(Loc), Vis(Vis), Name(std::move(Name)), DefaultValue(DefaultValue) {
   }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
@@ -138,7 +138,7 @@ class VarDecl : public Decl {
 public:
   VarDecl(SrcRange Loc, std::string Name, Visibility Vis,
           Expression *Initializer = nullptr)
-      : Decl(Loc), Name(std::move(Name)), Vis(Vis), Initializer(Initializer) {}
+      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Initializer(Initializer) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -158,7 +158,7 @@ class FuncDecl : public Decl {
 public:
   FuncDecl(SrcRange Loc, std::string Name, Visibility Vis,
            llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
-      : Decl(Loc), Name(std::move(Name)), Vis(Vis), Params(Params), Body(Body) {
+      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Params(Params), Body(Body) {
   }
 
   ACCEPT_VISITOR(BaseDeclVisitor);

@@ -4,6 +4,11 @@ project(MyProject)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fno-omit-frame-pointer")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -fno-omit-frame-pointer")
+
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})

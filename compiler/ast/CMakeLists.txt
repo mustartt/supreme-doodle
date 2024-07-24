@@ -18,6 +18,3 @@ llvm_map_components_to_libnames(llvm_libs support)
 
 target_link_libraries(ast PRIVATE ${llvm_libs})
 
-add_executable(ast-playground main.cpp)
-target_link_libraries(ast-playground PRIVATE ast)
-

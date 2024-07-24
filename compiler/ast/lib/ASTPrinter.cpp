@@ -12,7 +12,7 @@ class ASTPrinterVisitor final : public BaseDeclVisitor,
                                 public BaseExprVisitor {
 public:
   ASTPrinterVisitor(llvm::raw_ostream &Output)
-      : Output(Output), Depth(0), DepthFlag(32, true) {
+      : Depth(0), Output(Output), DepthFlag(32, true) {
     IsLast.push_back(false);
   }
 
