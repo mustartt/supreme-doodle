@@ -22,6 +22,27 @@ public:
   SrcRange Loc;
 };
 
+class Type : public ASTNode {
+public:
+  Type(SrcRange Loc) : ASTNode(Loc) {}
+};
+
+class ConcreteType : public Type {};
+
+class BasicType : public ConcreteType {};
+
+class UnitType : public BasicType {};
+class IntegerType : public BasicType {};
+class FloatType : public BasicType {};
+
+class MutableType : public ConcreteType {};
+
+class IdentifierType : public ConcreteType {};
+class PointerType : public ConcreteType {};
+class ArrayType : public ConcreteType {};
+class FunctionType : public ConcreteType {};
+class StructType : public ConcreteType {};
+
 class Decl : public ASTNode {
 public:
   Decl(SrcRange Loc) : ASTNode(Loc) {}
@@ -404,7 +425,7 @@ public:
   ACCEPT_VISITOR(BaseExprVisitor);
 
   llvm::APFloat getValue() const { return Value; }
-  bool isInteger() const {return Value.isInteger(); }
+  bool isInteger() const { return Value.isInteger(); }
 
 private:
   llvm::APFloat Value;

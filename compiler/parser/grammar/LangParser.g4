@@ -2,13 +2,13 @@ parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
 program
-    : package_decl? import_stmt* global_decl* EOF
+    : package_decl? import_stmt* (global_decl SEMI?)* EOF
     ;
 
 global_decl
     : trait_decl
     | struct_decl
-    | var_decl
+    | var_decl 
     | func_decl
     ;
 
@@ -145,8 +145,8 @@ type: MUT type
     | qualified_identifier
     | pointer_type
     | array_type
-    | tuple_type
     | function_type
+    | struct_type
     ;
 
 pointer_type
@@ -157,17 +157,16 @@ array_type
     : LBRACKET type RBRACKET
     ;
 
-tuple_type
-    : LPAREN type (COMMA type)* RPAREN
-    ;
-
 function_type
-    : LPAREN parameter_type_list? RPAREN COLON type
+    : FUNC LPAREN parameter_type_list? RPAREN type
     ;
 
 parameter_type_list
     : type (COMMA type)*
     ;
+
+struct_type: LCURLY struct_field_type (COMMA struct_field_type)* RCURLY;
+struct_field_type: IDENTIFIER COLON type;
 
 test_literal: literal* EOF;
 literal

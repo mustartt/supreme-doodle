@@ -27,7 +27,7 @@ target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
 target_link_libraries(parse-tree PRIVATE parser)
 
-add_custom_target(check-parse-tree
+add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 
         -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> 
         lit ${CMAKE_CURRENT_SOURCE_DIR}/test -vs

@@ -42,6 +42,8 @@ ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content) {
 
   ParseTreeRoot = Impl->RXParser.program();
 
+  // llvm::errs() << ParseTreeRoot->toStringTree(&Impl->RXParser, true) << "\n";
+
   Impl->RXLexer.removeErrorListeners();
   Impl->RXParser.removeErrorListeners();
 

@@ -1,0 +1,67 @@
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
+let a: bool;
+
+// CHECK: let a
+// CHECK: type bool
+
+let b: char;
+
+// CHECK: let b
+// CHECK: type char
+
+let c: i32;
+
+// CHECK: let c
+// CHECK: type i32
+
+let d: f32;
+
+// CHECK: let d
+// CHECK: type f32
+
+let e: point;
+
+// CHECK: let e
+// CHECK: qualified_identifier point
+
+let f: io.file;
+
+// CHECK: let f
+// CHECK: qualified_identifier io . file
+
+let g: * T;
+
+// CHECK: let g
+// CHECK: pointer_type
+// CHECK: qualified_identifier T
+
+let h: *dyn T;
+
+// CHECK: let h
+// CHECK: pointer_type * dyn
+// CHECK: qualified_identifier T
+
+let i: [i32];
+
+// CHECK: let i
+// CHECK: array_type 
+// CHECK: type i32
+
+let j: func (i32) f64;
+
+// CHECK: let j
+// CHECK: function_type 
+// CHECK: parameter_type_list
+// CHECK: type i32
+// CHECK: type f64
+
+let k: { x: f32, y: f32 }
+
+// CHECK: let k
+// CHECK: struct_type
+// CHECK: struct_field_type
+// CHECK: type f32
+// CHECK: struct_field_type
+// CHECK: type f32
+

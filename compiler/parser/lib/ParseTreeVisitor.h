@@ -34,8 +34,7 @@ public:
     llvm::SmallVector<ast::Decl *, 8> Decls;
 
     for (const auto Decl : ctx->global_decl()) {
-      auto Result = visit(Decl);
-      Decls.push_back(std::any_cast<ast::Decl *>(Result));
+      Decls.push_back(std::any_cast<ast::Decl *>(visit(Decl)));
     }
 
     return Context.createProgramDecl(Loc, Package, Imports, Decls);
@@ -116,6 +115,7 @@ public:
 
   std::any visitVar_decl(LangParser::Var_declContext *ctx) override {
     assert(ctx && "Invalid Node");
+
     auto Loc = getRange(ctx->getSourceInterval());
     auto Vis = ctx->visibility()
                    ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))

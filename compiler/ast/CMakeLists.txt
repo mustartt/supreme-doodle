@@ -7,9 +7,7 @@ add_library(
     include/AST.h
     lib/AST.cpp
     include/ASTContext.h
-
     include/ASTVisitor.h
-
     include/ASTPrinter.h
     lib/ASTPrinter.cpp
 )
