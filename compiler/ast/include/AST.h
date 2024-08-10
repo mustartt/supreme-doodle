@@ -492,6 +492,16 @@ private:
   Expression *Expr;
 };
 
+class Type : public ASTNode {};
+
+class BasicType : public Type {};
+
+class BoolType: public BasicType {};
+class CharType: public BasicType {};
+class IntType: public BasicType {};
+class FloatType: public BasicType {};
+
+
 } // namespace rx::ast
 
 #endif // AST_NODE_H

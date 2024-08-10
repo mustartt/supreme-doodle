@@ -146,7 +146,7 @@ type: MUT type
     | pointer_type
     | array_type
     | function_type
-    | struct_type
+    | object_type
     ;
 
 pointer_type
@@ -165,8 +165,10 @@ parameter_type_list
     : type (COMMA type)*
     ;
 
-struct_type: LCURLY struct_field_type (COMMA struct_field_type)* RCURLY;
-struct_field_type: IDENTIFIER COLON type;
+object_type
+    : LCURLY object_field (COMMA object_field)* RCURLY
+    ;
+object_field: IDENTIFIER COLON type ;
 
 test_literal: literal* EOF;
 literal
