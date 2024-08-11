@@ -10,37 +10,50 @@ define void @gc.safepoint_poll() {
     ret void
 }
 
-define i32 @add(i32 addrspace(1)* %a, i32 addrspace(1)* %b) gc "statepoint-example" {
+%struct = type { i32 addrspace(1)*, i32 addrspace(1)* }
+
+define void @print(%struct* %p) gc "statepoint-example" {
 entry:
-    %1 = load i32, i32 addrspace(1)* %a
-    %2 = load i32, i32 addrspace(1)* %b
-    %3 = add i32 %1, %2
-    ret i32 %3
+    %1 = getelementptr %struct, %struct* %p, i32 0, i32 0
+    %2 = load i32 addrspace(1)*, i32 addrspace(1)** %1
+    %3 = bitcast i32 addrspace(1)* %2 to i8 addrspace(1)*
+
+    %4 = getelementptr %struct, %struct* %p, i32 0, i32 1
+    %5 = load i32 addrspace(1)*, i32 addrspace(1)** %4
+    %6 = bitcast i32 addrspace(1)* %5 to i8 addrspace(1)*
+
+    call void @runtime_inspect_ptr(i8 addrspace(1)* %3)
+    call void @runtime_inspect_ptr(i8 addrspace(1)* %6)
+
+    ret void
 }
 
-define void @other(i32 addrspace(1)* %ptr) gc "statepoint-example" {
+define void @do_nothing() gc "statepoint-example" {
 entry:
-    %1 = bitcast i32 addrspace(1)* %ptr to i8 addrspace(1)*
-    call void @runtime_inspect_ptr(i8 addrspace(1)* %1)
     ret void
 }
 
 define i32 @test() gc "statepoint-example" {
 entry:
-    %1 = call i8 addrspace(1)* @runtime_allocate(i64 4)
-    %2 = bitcast i8 addrspace(1)* %1 to i32 addrspace(1)*
+    %1 = alloca %struct
 
-    %3 = call i8 addrspace(1)* @runtime_allocate(i64 4)
-    %4 = bitcast i8 addrspace(1)* %3 to i32 addrspace(1)*
+    %2 = call i8 addrspace(1)* @runtime_allocate(i64 4)
+    %3 = bitcast i8 addrspace(1)* %2 to i32 addrspace(1)*
+    store i32 1, i32 addrspace(1)* %3
+    %4 = getelementptr %struct, %struct* %1, i32 0, i32 0
+    store i32 addrspace(1)* %3, i32 addrspace(1)** %4
 
-    store i32 123, i32 addrspace(1)* %2
-    store i32 456, i32 addrspace(1)* %4
+    %5 = call i8 addrspace(1)* @runtime_allocate(i64 4)
+    %6 = bitcast i8 addrspace(1)* %5 to i32 addrspace(1)*
+    store i32 2, i32 addrspace(1)* %6
+    %7 = getelementptr %struct, %struct* %1, i32 0, i32 1
+    store i32 addrspace(1)* %6, i32 addrspace(1)** %7
 
-    %5 = call i32 @add(i32 addrspace(1)* %2, i32 addrspace(1)* %4)
+    call void @do_nothing()
 
-    call void @other(i32 addrspace(1)* %4)
+    call void @print(%struct* %1)
 
-    ret i32 %5 
+    ret i32 0
 }
 
 define i32 @program_entry() gc "statepoint-example" {
@@ -48,3 +61,4 @@ entry:
     %1 = call i32 @test()
     ret i32 %1
 }
+

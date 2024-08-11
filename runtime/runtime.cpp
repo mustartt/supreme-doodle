@@ -70,7 +70,7 @@ void runtime_gc_poll() {
     }
   } while (unw_step(&cursor) > 0);
 
-  std::cerr << "--------------------------------" << std::endl;
+  std::cerr << "--------------------------------" << std::endl << std::endl;
 }
 
 void runtime_inspect_ptr(void *ptr) noexcept {
