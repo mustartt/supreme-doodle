@@ -5,6 +5,7 @@
 #include <iostream>
 #include <libunwind.h>
 #include <new>
+#include <unordered_set>
 
 extern "C" {
 
@@ -12,16 +13,39 @@ extern uint8_t _LLVM_StackMaps[];
 extern int program_entry();
 statepoint_table_t *table = nullptr;
 
-void *runtime_allocate(size_t size) noexcept {
-  auto ptr = operator new(size, std::nothrow);
-  assert(ptr && "Runtime: panic failed to allocate");
-  std::cerr << "Runtime: allocate " << ptr << " " << size << std::endl;
-  return ptr;
+enum class object_gc_state { White = 0, Gray = 1, Black = 2 };
+
+struct __attribute__((packed, aligned(8))) object_metadata {
+  uint32_t object_size;
+  object_gc_state state;
+};
+
+std::unordered_set<object_metadata *> gc_white_set;
+std::deque<void *> gc_gray_worklist;
+
+void *runtime_allocate(uint32_t size) noexcept {
+  static_assert(sizeof(object_metadata) == 8);
+
+  void *base_ptr = operator new(sizeof(object_gc_state) + size, std::nothrow);
+  assert(base_ptr && "Runtime: panic failed to allocate");
+
+  object_metadata *metadata_ptr = new (base_ptr) object_metadata{
+      .object_size = size,
+      .state = object_gc_state::White,
+  };
+  gc_white_set.insert(metadata_ptr);
+  void *obj = reinterpret_cast<char *>(base_ptr) + sizeof(object_gc_state);
+
+  std::cerr << "Runtime: allocate " << obj << " " << size << std::endl;
+  return obj;
 }
 
 void runtime_deallocate(void *ptr) noexcept {
+  static_assert(sizeof(object_metadata) == 8);
+
   std::cerr << "Runtime: deallocate " << ptr << std::endl;
-  operator delete(ptr, std::nothrow);
+  operator delete(reinterpret_cast<char *>(ptr) - sizeof(object_gc_state),
+                  std::nothrow);
 }
 
 void runtime_gc_poll() {
@@ -63,8 +87,8 @@ void runtime_gc_poll() {
         pointer_slot_t ptr_slot = frame_info->slots[slot];
         char *pointer_addr = stack_pointer + ptr_slot.offset;
 
-        std::cerr << "        Live Root " << static_cast<void *>(pointer_addr) << " offset "
-                  << ptr_slot.offset << ": "
+        std::cerr << "        Live Root " << static_cast<void *>(pointer_addr)
+                  << " offset " << ptr_slot.offset << ": "
                   << *(reinterpret_cast<void **>(pointer_addr)) << std::endl;
       }
     }
