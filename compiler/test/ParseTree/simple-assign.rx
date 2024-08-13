@@ -16,10 +16,7 @@ func simple() {
 // CHECK: =
 // CHECK: num_literal 20
 
-struct point {
-    x: f32
-    y: f32
-}
+type point = { x: f32, y: f32 }
 
 func lhs_assign_qualified() {
     let pt: mut point
@@ -39,4 +36,3 @@ func lhs_assign_qualified() {
 // CHECK-SAME: . y
 // CHECK-SAME: =
 // CHECK: num_literal 2.0
-

@@ -1,7 +1,4 @@
 // RUN: %parse-tree --mode tree %s | FileCheck %s
-// XFAIL: *
-
-package main
 
 trait A {}
 // CHECK: trait_decl trait A
@@ -27,5 +24,4 @@ trait E : T1, T2 {}
 // CHECK-NEXT: qualified_identifier T1
 // CHECK-NEXT: qualified_identifier T2
 
-// todo: add trait body and default impl
 

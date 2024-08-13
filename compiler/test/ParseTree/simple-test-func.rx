@@ -1,8 +1,8 @@
 // RUN: %parse-tree --mode tree %s | FileCheck %s
 
-func sum(a: i32, b: i32, c: i32): i32 {
+func sum(a: i32, b: i32, c: i32) i32 {
    let t1: i64 = a + b
-   let t2 = tmp + c
+   let t2: i64 = b + c
    return t1 + t2
 } 
 
@@ -18,3 +18,4 @@ func sum(a: i32, b: i32, c: i32): i32 {
 // CHECK: var_decl let t2
 // CHECK: initializer =
 // CHECK: return_stmt return
+

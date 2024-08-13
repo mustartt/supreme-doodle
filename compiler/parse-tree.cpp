@@ -76,7 +76,7 @@ int main(int argc, const char *argv[]) {
   rx::ast::ASTContext Context;
   rx::parser::Parser TheParser(Context);
 
-  TheParser.parse(*Buffer);
+  TheParser.parse(*Buffer, ProductionMode == "tree");
 
   if (ProductionMode == "tree") {
     TheParser.printParseTree(Out->os());

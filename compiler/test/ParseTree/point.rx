@@ -1,0 +1,24 @@
+// RUN: %parse-tree --mode tree %s 2>&1 | FileCheck %s
+
+public type Point = {
+    x: i32,
+    y: i32
+}
+
+// CHECK: type_decl
+// CHECK-NEXT: visibility public
+// CHECK-SAME: type Point =
+// CHECK: object_type
+// CHECK: object_field_type x
+// CHECK: type i32
+// CHECK: object_field_type y
+// CHECK: type i32
+
+impl Point {
+    public func swap(self: *Point) {}
+}
+
+// CHECK: impl_decl
+// CHECK: qualified_identifier Point
+// CHECK: (visibility public) func swap 
+

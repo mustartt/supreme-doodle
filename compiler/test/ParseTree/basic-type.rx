@@ -59,9 +59,9 @@ let j: func (i32) f64;
 let k: { x: f32, y: f32 }
 
 // CHECK: let k
-// CHECK: struct_type
-// CHECK: struct_field_type
+// CHECK: object_type
+// CHECK: object_field
 // CHECK: type f32
-// CHECK: struct_field_type
+// CHECK: object_field
 // CHECK: type f32
 

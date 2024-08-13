@@ -6,6 +6,9 @@ BLOCK_COMMENT : '/*' .*? '*/' -> skip;
 
 PACKAGE: 'package';
 IMPORT: 'import';
+TYPE: 'type';
+IMPL: 'impl';
+
 TRAIT: 'trait';
 PUBLIC: 'public';
 PRIVATE: 'private';

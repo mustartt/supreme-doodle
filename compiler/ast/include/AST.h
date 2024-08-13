@@ -22,27 +22,6 @@ public:
   SrcRange Loc;
 };
 
-class Type : public ASTNode {
-public:
-  Type(SrcRange Loc) : ASTNode(Loc) {}
-};
-
-class ConcreteType : public Type {};
-
-class BasicType : public ConcreteType {};
-
-class UnitType : public BasicType {};
-class IntegerType : public BasicType {};
-class FloatType : public BasicType {};
-
-class MutableType : public ConcreteType {};
-
-class IdentifierType : public ConcreteType {};
-class PointerType : public ConcreteType {};
-class ArrayType : public ConcreteType {};
-class FunctionType : public ConcreteType {};
-class StructType : public ConcreteType {};
-
 class Decl : public ASTNode {
 public:
   Decl(SrcRange Loc) : ASTNode(Loc) {}
@@ -491,16 +470,6 @@ private:
   UnaryOp Op;
   Expression *Expr;
 };
-
-class Type : public ASTNode {};
-
-class BasicType : public Type {};
-
-class BoolType: public BasicType {};
-class CharType: public BasicType {};
-class IntType: public BasicType {};
-class FloatType: public BasicType {};
-
 
 } // namespace rx::ast
 

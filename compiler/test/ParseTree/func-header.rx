@@ -1,6 +1,5 @@
 // RUN: %parse-tree --mode tree %s | FileCheck %s
 
-
 func a() {}
 // CHECK: func_decl func a
 // CHECK: func_body
@@ -27,7 +26,7 @@ func d(x: i32, y: i32) {}
 // CHECK-NEXT: type i32
 // CHECK: func_body
 
-func d(x: i32, y: i32 = 10): i32 {}
+func d(x: i32, y: i32 = 10) i32 {}
 // CHECK: func_decl func d
 // CHECK-NEXT: func_param_list
 // CHECK-NEXT: func_param_decl x
@@ -39,3 +38,4 @@ func d(x: i32, y: i32 = 10): i32 {}
 // CHECK-NEXT: func_return_type
 // CHECK-NEXT: type i32
 // CHECK: func_body
+

@@ -24,6 +24,7 @@ public:
     P.Errors.emplace_back(Loc, std::move(Err));
   }
 
+  /*
   void reportAmbiguity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa,
                        size_t startIndex, size_t stopIndex, bool exact,
                        const antlrcpp::BitSet &ambigAlts,
@@ -36,6 +37,7 @@ public:
 
     P.Errors.emplace_back(ast::SrcRange(), std::move(Str));
   }
+  */
 
   /*
   void

@@ -1,0 +1,26 @@
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
+type Integer = i32
+
+// CHECK: type_decl type Integer
+// CHECK: type i32
+
+public trait Printable {
+    func print()
+}
+
+// CHECK: trait_decl
+// CHECK: (visibility public) trait Printable
+// CHECK: func_decl func print
+
+impl Printable for Integer {
+    func print(self: Integer) {
+    } 
+}
+
+// CHECK: impl_decl
+// CHECK: qualified_identifier Printable
+// CHECK-SAME: for
+// CHECK: qualified_identifier Integer
+// CHECK: func_decl func print
+

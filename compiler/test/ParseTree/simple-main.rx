@@ -1,8 +1,8 @@
-// RUN: %parse-tree --mode tree %s | FileCheck %s
+// RUN: %parse-tree --mode tree %s 2>&1 | FileCheck %s
 
 package main
 
-func main(args: [string]): i32 {
+func main(args: [string]) i32 {
     return 0
 }
 

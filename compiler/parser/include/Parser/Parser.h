@@ -40,7 +40,7 @@ public:
   Parser(ast::ASTContext &Context) : Context(Context) {}
   ~Parser();
 
-  ast::ASTNode *parse(llvm::MemoryBufferRef Content);
+  ast::ASTNode *parse(llvm::MemoryBufferRef Content, bool SkipAST = false);
 
   void printAST(llvm::raw_ostream &) const;
   void printParseTree(llvm::raw_ostream &) const;

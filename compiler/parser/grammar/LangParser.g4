@@ -1,41 +1,44 @@
 parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
-program
-    : package_decl? import_stmt* (global_decl SEMI?)* EOF
+program: package_decl? import_stmt* (global_decl SEMI?)* EOF
+    ;
+
+qualified_identifier: IDENTIFIER (DOT IDENTIFIER)*
+    ;
+
+visibility: PUBLIC | PRIVATE
+    ;
+
+package_decl: PACKAGE IDENTIFIER
+    ;
+
+import_stmt: IMPORT import_path (AS IDENTIFIER)?
+    ;
+import_path: IDENTIFIER (DOT IDENTIFIER)*
     ;
 
 global_decl
-    : trait_decl
-    | struct_decl
+    : type_decl
+    | impl_decl
+    | trait_decl 
     | var_decl 
     | func_decl
     ;
 
-package_decl
-    : PACKAGE IDENTIFIER
+impl_decl: 
+    IMPL qualified_identifier 
+        (FOR qualified_identifier)? 
+    LCURLY func_decl* RCURLY
     ;
 
-import_stmt
-    : IMPORT import_path (AS IDENTIFIER)?
-    ;
-import_path
-    : IDENTIFIER (DOT IDENTIFIER)*
-    ;
-
-qualified_identifier
-    : IDENTIFIER (DOT IDENTIFIER)*
-    ;
-
-visibility
-    : PUBLIC
-    | PRIVATE
+type_decl: visibility? TYPE IDENTIFIER EQ type 
     ;
 
 trait_decl
     : visibility? TRAIT IDENTIFIER 
         (COLON trait_list)?
-        LCURLY RCURLY
+        LCURLY func_decl* RCURLY
     ;
 
 trait_list
@@ -59,22 +62,12 @@ func_decl
     : visibility? FUNC IDENTIFIER
         LPAREN func_param_list? RPAREN 
         func_return_type?
-        func_body 
+        func_body? 
     ;
-
-func_return_type
-    : COLON type
-    ;
-
-func_param_list
-    : func_param_decl (COMMA func_param_decl)*
-    ;
-
-func_param_decl
-    : IDENTIFIER COLON type initializer?
-    ;
-
-func_body: block_stmt;
+func_return_type: type ;
+func_param_list: func_param_decl (COMMA func_param_decl)* ;
+func_param_decl: IDENTIFIER COLON type initializer? ;
+func_body: block_stmt ;
 
 /* statements */
 
@@ -165,10 +158,10 @@ parameter_type_list
     : type (COMMA type)*
     ;
 
-object_type
-    : LCURLY object_field (COMMA object_field)* RCURLY
+object_type: LCURLY object_field_type (COMMA object_field_type)* RCURLY
     ;
-object_field: IDENTIFIER COLON type ;
+object_field_type: IDENTIFIER COLON type 
+    ;
 
 test_literal: literal* EOF;
 literal

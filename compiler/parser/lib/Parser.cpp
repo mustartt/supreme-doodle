@@ -29,7 +29,7 @@ Parser::~Parser() {
     delete Impl;
 }
 
-ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content) {
+ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content, bool SkipAST) {
   assert(!Impl && "Has existing state");
   Impl = new ParserImpl(Content);
 
@@ -42,15 +42,14 @@ ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content) {
 
   ParseTreeRoot = Impl->RXParser.program();
 
-  // llvm::errs() << ParseTreeRoot->toStringTree(&Impl->RXParser, true) << "\n";
-
   Impl->RXLexer.removeErrorListeners();
   Impl->RXParser.removeErrorListeners();
 
-  LangVisitor V(Impl->Tokens, Context);
-  std::any VisitResult = V.visit(ParseTreeRoot);
-  Root = std::any_cast<ast::ProgramDecl *>(VisitResult);
-
+  if (!SkipAST) {
+    LangVisitor V(Impl->Tokens, Context);
+    std::any VisitResult = V.visit(ParseTreeRoot);
+    Root = std::any_cast<ast::ProgramDecl *>(VisitResult);
+  }
   return Root;
 };
 
