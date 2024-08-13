@@ -1,0 +1,31 @@
+// type alias
+type int = i32
+
+func add(a: int, b: int) int {
+    return a + b
+}
+
+add(0, 1) // literal have type i32 
+
+type point = { x: f32, y: f32 }
+
+func swap1(pt: point) point { // pass and return by value
+
+    // explicit object construction 
+    // the returned value has type { x: f32, y: f32} so this is allowed 
+    return {
+        x: pt.y,
+        y: pt.x
+    } 
+}
+
+impl point {
+    func create(x: f32, y: f32) point {
+        return { x: x, y: y } 
+    }
+}
+
+
+
+
+
