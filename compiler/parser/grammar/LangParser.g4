@@ -45,15 +45,6 @@ trait_list
     : qualified_identifier (COMMA qualified_identifier)*
     ;
 
-struct_decl
-    : visibility? STRUCT IDENTIFIER 
-        LCURLY struct_field* RCURLY
-    ;
-
-struct_field
-    : visibility? IDENTIFIER (COLON type)? initializer? 
-    ;
-
 var_decl
     : visibility? LET IDENTIFIER (COLON type)? initializer?
     ;

@@ -78,41 +78,6 @@ public:
     return ast::Visibility::Private;
   }
 
-  std::any visitStruct_decl(LangParser::Struct_declContext *ctx) override {
-    assert(ctx && "Invalid Node");
-    auto Loc = getRange(ctx->getSourceInterval());
-    auto Vis = ctx->visibility()
-                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
-                   : ast::Visibility::Private;
-    std::string Name = ctx->IDENTIFIER()->getText();
-
-    llvm::SmallVector<ast::FieldDecl *, 4> Fields;
-    for (const auto Field : ctx->struct_field()) {
-      auto Result = visit(Field);
-      Fields.push_back(std::any_cast<ast::FieldDecl *>(Result));
-    }
-
-    return dynamic_cast<ast::Decl *>(
-        Context.createStructDecl(Loc, std::move(Name), Vis, Fields));
-  }
-
-  std::any visitStruct_field(LangParser::Struct_fieldContext *ctx) override {
-    assert(ctx && "Invalid Node");
-    auto Loc = getRange(ctx->getSourceInterval());
-    auto Vis = ctx->visibility()
-                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
-                   : ast::Visibility::Private;
-    std::string Name = ctx->IDENTIFIER()->getText();
-
-    ast::Expression *DefaultValue = nullptr;
-    if (ctx->initializer()) {
-      auto Result = visit(ctx->initializer());
-      DefaultValue = std::any_cast<ast::Expression *>(Result);
-    }
-
-    return Context.createFieldDecl(Loc, std::move(Name), Vis, DefaultValue);
-  }
-
   std::any visitVar_decl(LangParser::Var_declContext *ctx) override {
     assert(ctx && "Invalid Node");
 
