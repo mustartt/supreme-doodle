@@ -21,6 +21,7 @@ llvm_map_components_to_libnames(llvm_libs support core option)
 
 add_subdirectory(ast)
 add_subdirectory(parser)
+add_subdirectory(types)
 
 add_executable(parse-tree parse-tree.cpp)
 target_compile_options(parse-tree PRIVATE -fno-rtti)
