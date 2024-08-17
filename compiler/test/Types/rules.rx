@@ -1,0 +1,42 @@
+import math
+
+// type alias
+
+use int = i32
+use float = f32
+
+let a: i32 = 123
+let b: int = a          // allowed since type has the same underlying type
+                        // you cannot implement methods on them
+
+// new type
+
+type point = {
+    x: f32, 
+    y: f32
+}
+
+// implement an method on a new type
+impl point {
+    func norm(self: point) f32 { 
+        math.sqrt(self.x * self.x + self.y * self.y) 
+    }
+}
+
+type complex = point
+
+impl complex {
+    func norm(self: complex) f32 {
+        point(self).norm() // explicit cast required to access underlying type
+    }
+}
+
+// type casts are allowed if they have the same underlying structural type
+let cn: complex = complex({ x: 10.0, y: 10.0 })
+let pt: point = point(cn) // explicit up cast required
+
+let pt2: point = point({ x: 10.0, y: 10.0 })
+let cn2: complex = complex(point) // explicit down cast required
+
+// you need a cast to convert structural type to nominal type
+

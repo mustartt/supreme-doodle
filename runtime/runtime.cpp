@@ -6,10 +6,11 @@
 #include <libunwind.h>
 #include <new>
 #include <unordered_set>
+#include <deque>
 
 extern "C" {
 
-extern uint8_t _LLVM_StackMaps[];
+extern uint8_t __LLVM_StackMaps[];
 extern int program_entry();
 statepoint_table_t *table = nullptr;
 
@@ -105,7 +106,7 @@ void runtime_inspect_ptr(void *ptr) noexcept {
 int main(int argc, char *argv[]) {
   std::cerr << "Runtime: starting up runtime..." << std::endl;
 
-  table = generate_table(_LLVM_StackMaps, 1.0);
+  table = generate_table(__LLVM_StackMaps, 1.0);
   print_table(stderr, table, true);
 
   std::cerr << "Runtime: entering program entry" << std::endl;

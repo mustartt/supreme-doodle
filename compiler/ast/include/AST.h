@@ -6,6 +6,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/Twine.h>
 
 namespace rx::ast {
 
@@ -20,6 +21,133 @@ public:
   ASTNode(SrcRange Loc) : Loc(Loc) {}
   virtual ~ASTNode() = default;
   SrcRange Loc;
+};
+
+class ASTType : public ASTNode {
+public:
+  ASTType(SrcRange Loc) : ASTNode(Loc) {}
+
+  virtual llvm::Twine getTypeName() const = 0;
+};
+
+class DeclRefType : public ASTType {
+public:
+  DeclRefType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override { return Symbol; }
+
+private:
+  std::string Symbol;
+};
+
+class MutableType : public ASTType {
+public:
+  MutableType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("mut ");
+    Ty.concat(ElementType->getTypeName());
+    return Ty;
+  }
+
+private:
+  ASTType *ElementType;
+};
+
+class PointerType : public ASTType {
+public:
+  PointerType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("*");
+    if (Nullable) {
+      Ty.concat("nullable ");
+    }
+    Ty.concat(ElementType->getTypeName());
+    return Ty;
+  }
+
+private:
+  ASTType *ElementType;
+  bool Nullable;
+};
+
+class ArrayType : public ASTType {
+public:
+  ArrayType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("[");
+    Ty.concat(ElementType->getTypeName());
+    Ty.concat("]");
+    return Ty;
+  }
+
+private:
+  ASTType *ElementType;
+};
+
+class FunctionType : public ASTType {
+public:
+  FunctionType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("func(");
+    for (const auto [Idx, P] : llvm::enumerate(ParamTypes)) {
+      Ty.concat(P->getTypeName());
+      if (Idx + 1 != ParamTypes.size())
+        Ty.concat(",");
+    }
+    if (ReturnType)
+      Ty.concat(ReturnType->getTypeName());
+    return Ty;
+  }
+
+private:
+  llvm::SmallVector<ASTType *, 4> ParamTypes;
+  ASTType *ReturnType;
+};
+
+class ObjectType : public ASTType {
+public:
+  ObjectType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("{");
+    for (const auto &[Idx, Field] : llvm::enumerate(Fields)) {
+      const auto &[Name, FT] = Field;
+      Ty.concat(Name);
+      Ty.concat(":");
+      Ty.concat(FT->getTypeName());
+      if (Idx + 1 != Fields.size())
+        Ty.concat(",");
+    }
+    Ty.concat("}");
+    return Ty;
+  }
+
+private:
+  llvm::SmallVector<std::pair<std::string, ASTType *>> Fields;
+};
+
+class EnumType : public ASTType {
+public:
+  EnumType(SrcRange Loc) : ASTType(Loc) {}
+
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty("enum {");
+    for (const auto &[Idx, Field] : llvm::enumerate(Members)) {
+      const auto &[Name, FT] = Field;
+      Ty.concat(Name);
+      Ty.concat(":");
+      Ty.concat(FT->getTypeName());
+      if (Idx + 1 != Members.size())
+        Ty.concat(",");
+    }
+    Ty.concat("}");
+    return Ty;
+  }
+  llvm::SmallVector<std::pair<std::string, ASTType *>> Members;
 };
 
 class Decl : public ASTNode {
@@ -93,6 +221,13 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
   }
   return Os;
 }
+
+class TypeDecl : public Decl {
+public:
+private:
+  Visibility Vis = Visibility::Private;
+  std::string Name;
+};
 
 class FieldDecl;
 class StructDecl : public Decl {

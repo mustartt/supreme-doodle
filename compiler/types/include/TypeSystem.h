@@ -83,31 +83,26 @@ public:
   TypeContext &operator=(TypeContext &&) noexcept = default;
 
 private:
-  void registerBuiltinTypes() {
-    // bulitin int types
-    NominalTypes["i1"] = Storage.emplace_back(IntType(NativeIntType::i1)).get();
-    NominalTypes["i8"] = Storage.emplace_back(IntType(NativeIntType::i8)).get();
-    NominalTypes["i16"] =
-        Storage.emplace_back(IntType(NativeIntType::i16)).get();
-    NominalTypes["i32"] =
-        Storage.emplace_back(IntType(NativeIntType::i32)).get();
-    NominalTypes["i64"] =
-        Storage.emplace_back(IntType(NativeIntType::i64)).get();
+  void registerBuiltinTypes() {}
 
-    // string type
-    NominalTypes["string"] = Storage.emplace_back(StringType()).get();
-  }
-
-  void registerBuiltinAlias() {
-    NominalTypes["bool"] =
-        Storage.emplace_back(AliasType("bool", NominalTypes["i1"])).get();
-    NominalTypes["char"] =
-        Storage.emplace_back(AliasType("char", NominalTypes["i8"])).get();
-  }
+  void registerBuiltinAlias() {}
 
 private:
   llvm::StringMap<Type *> NominalTypes;
+  llvm::StringMap<Type *> TypeAliases;
   llvm::SmallVector<std::unique_ptr<Type>, 32> Storage;
+};
+
+class TypeEnvironment {
+public:
+  TypeEnvironment(TypeContext &Ctx, TypeEnvironment *Parent = nullptr)
+      : Ctx(Ctx), Parent(Parent) {}
+
+private:
+  TypeContext &Ctx;
+  TypeEnvironment *Parent;
+  llvm::StringMap<Type *> Aliases;
+  llvm::StringMap<Type *> NominalTypes;
 };
 
 } // namespace rx::types

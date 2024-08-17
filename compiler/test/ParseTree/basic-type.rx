@@ -3,22 +3,26 @@
 let a: bool;
 
 // CHECK: let a
-// CHECK: type bool
+// CHECK: type 
+// CHECK: qualified_identifier bool
 
 let b: char;
 
 // CHECK: let b
-// CHECK: type char
+// CHECK: type 
+// CHECK: qualified_identifier char
 
 let c: i32;
 
 // CHECK: let c
-// CHECK: type i32
+// CHECK: type 
+// CHECK: qualified_identifier i32
 
 let d: f32;
 
 // CHECK: let d
-// CHECK: type f32
+// CHECK: type 
+// CHECK: qualified_identifier f32
 
 let e: point;
 
@@ -46,22 +50,25 @@ let i: [i32];
 
 // CHECK: let i
 // CHECK: array_type 
-// CHECK: type i32
+// CHECK: type
+// CHECK: qualified_identifier i32
 
 let j: func (i32) f64;
 
 // CHECK: let j
 // CHECK: function_type 
 // CHECK: parameter_type_list
-// CHECK: type i32
-// CHECK: type f64
+// CHECK: qualified_identifier i32
+// CHECK: qualified_identifier f64
 
 let k: { x: f32, y: f32 }
 
 // CHECK: let k
 // CHECK: object_type
 // CHECK: object_field
-// CHECK: type f32
+// CHECK: type 
+// CHECK: qualified_identifier f32
 // CHECK: object_field
-// CHECK: type f32
+// CHECK: type
+// CHECK: qualified_identifier f32
 

@@ -20,8 +20,8 @@ import_path: IDENTIFIER (DOT IDENTIFIER)*
 
 global_decl
     : type_decl
+    | use_decl
     | impl_decl
-    | trait_decl 
     | var_decl 
     | func_decl
     ;
@@ -35,14 +35,7 @@ impl_decl:
 type_decl: visibility? TYPE IDENTIFIER EQ type 
     ;
 
-trait_decl
-    : visibility? TRAIT IDENTIFIER 
-        (COLON trait_list)?
-        LCURLY func_decl* RCURLY
-    ;
-
-trait_list
-    : qualified_identifier (COMMA qualified_identifier)*
+use_decl: visibility? USE IDENTIFIER EQ type
     ;
 
 var_decl
@@ -107,13 +100,17 @@ expr: expr DOT IDENTIFIER           #accessExpr
         ) expr                      #binaryExpr
     | expr EQ expr                  #assignExpr
     | if_expr                       #ifExpr
+    | object_expr                   #objectExpr
     | identifier                    #identifierExpr
     | literal                       #literalExpr
     ;
 
-identifier: IDENTIFIER;
+object_expr: LCURLY (object_field (COMMA object_field)*)? RCURLY ;
+object_field: IDENTIFIER COLON expr ;
+
+identifier: IDENTIFIER ;
 if_expr: IF if_header if_body (ELSE if_body)? ;
-if_header: expr;
+if_header: expr ;
 if_body: statement ;
 
 arguments: expr (COMMA expr)*;
@@ -122,37 +119,22 @@ arguments: expr (COMMA expr)*;
 test_type: type+ EOF ;
 
 type: MUT type
-    | BOOL_TYPE
-    | CHAR_TYPE
-    | INTEGRAL_TYPE
-    | FLOAT_TYPE
     | qualified_identifier
     | pointer_type
     | array_type
     | function_type
     | object_type
+    | enum_type
     ;
 
-pointer_type
-    : STAR DYN? type
-    ;
-
-array_type
-    : LBRACKET type RBRACKET
-    ;
-
-function_type
-    : FUNC LPAREN parameter_type_list? RPAREN type
-    ;
-
-parameter_type_list
-    : type (COMMA type)*
-    ;
-
-object_type: LCURLY object_field_type (COMMA object_field_type)* RCURLY
-    ;
-object_field_type: IDENTIFIER COLON type 
-    ;
+pointer_type : STAR NULLABLE? type ;
+array_type : LBRACKET type RBRACKET ;
+function_type : FUNC LPAREN parameter_type_list? RPAREN type ;
+parameter_type_list : type (COMMA type)* ;
+object_type: LCURLY object_field_type (COMMA object_field_type)* RCURLY ;
+object_field_type: visibility? IDENTIFIER COLON type ;
+enum_type: ENUM LCURLY enum_member (COMMA enum_member)* RCURLY;
+enum_member: IDENTIFIER (COLON type)?;  
 
 test_literal: literal* EOF;
 literal
