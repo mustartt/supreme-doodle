@@ -193,9 +193,20 @@ private:
 
 class Decl : public ASTNode {
 public:
-  Decl(SrcRange Loc) : ASTNode(Loc) {}
+  Decl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+       ASTType *Type = nullptr)
+      : ASTNode(Loc), Name(std::move(Name)), Type(Type), DeclLoc(DeclLoc) {}
 
   virtual void accept(BaseDeclVisitor &visitor) = 0;
+
+  llvm::StringRef getName() const { return Name; }
+  ASTType *getType() const { return Type; }
+  const SrcRange &getDeclLoc() const { return DeclLoc; }
+
+protected:
+  std::string Name;
+  ASTType *Type;
+  SrcRange DeclLoc;
 };
 
 class PackageDecl;
@@ -268,7 +279,6 @@ public:
 private:
   Visibility Vis = Visibility::Private;
   std::string Name;
-  
 };
 
 class FieldDecl;
@@ -315,7 +325,8 @@ class VarDecl : public Decl {
 public:
   VarDecl(SrcRange Loc, std::string Name, Visibility Vis,
           Expression *Initializer = nullptr)
-      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Initializer(Initializer) {}
+      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Initializer(Initializer),
+        Type(nullptr) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -327,6 +338,7 @@ private:
   Visibility Vis = Visibility::Private;
   std::string Name;
   Expression *Initializer;
+  ASTType *Type;
 };
 
 class FuncParamDecl;

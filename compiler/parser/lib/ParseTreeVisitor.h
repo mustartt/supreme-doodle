@@ -131,6 +131,12 @@ public:
       DefaultValue = std::any_cast<ast::Expression *>(Result);
     }
 
+    if (ctx->type()) {
+      auto Result = visit(ctx->type());
+      auto Ty = std::any_cast<ast::ASTType *>(Result);
+        
+    }
+
     return dynamic_cast<ast::Decl *>(
         Context.createVarDecl(Loc, std::move(Name), Vis, DefaultValue));
   }
