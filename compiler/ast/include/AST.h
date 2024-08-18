@@ -8,7 +8,6 @@
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
-#include <numeric>
 
 namespace rx::ast {
 
@@ -284,6 +283,13 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
 
 class TypeDecl : public Decl {
 public:
+  TypeDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+           ASTType *Type) : Decl(Loc, DeclLoc, std::move(Name), Type) {}
+
+  Visibility getVisibility() const { return Vis; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
+
 private:
   Visibility Vis = Visibility::Private;
 };

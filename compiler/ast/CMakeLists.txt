@@ -12,7 +12,7 @@ add_library(
     lib/ASTPrinter.cpp
 )
 target_include_directories(ast PUBLIC include)
-llvm_map_components_to_libnames(llvm_libs support)
+llvm_map_components_to_libnames(llvm_libs core support)
 
 target_link_libraries(ast PRIVATE ${llvm_libs})
 

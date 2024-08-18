@@ -1,5 +1,4 @@
-// RUN: %parse-tree %s 
-// XFAIL: *
+// RUN: %parse-tree %s | FileCheck %s
 
 type tagged = enum {
     Tag1: {x: int, y: int},
@@ -7,3 +6,11 @@ type tagged = enum {
 }
 
 func test(e: tagged) { }
+
+// CHECK: ProgramDecl
+// CHECK: TypeDecl: Private tagged
+// CHECK-SAME: enum { Tag1: { x: int, y: int }, Tag2: int }
+// CHECK: FuncDecl: Private test
+// CHECK: FuncParamDecl: e
+// CHECK: BlockStmt
+

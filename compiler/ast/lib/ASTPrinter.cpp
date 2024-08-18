@@ -3,6 +3,8 @@
 #include "ASTVisitor.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
+#include <llvm/Support/Format.h>
+#include <llvm/Support/FormatVariadic.h>
 
 namespace rx::ast {
 
@@ -23,6 +25,7 @@ public:
   void visit(PackageDecl *node) override;
   void visit(ImportDecl *node) override;
   void visit(VarDecl *node) override;
+  void visit(TypeDecl *node) override;
   void visit(FuncDecl *node) override;
   void visit(FuncParamDecl *node) override;
   void visit(BlockStmt *node) override;
@@ -167,6 +170,19 @@ void ASTPrinterVisitor::visit(VarDecl *Node) {
     Node->getInitializer()->accept(*this);
   }
 
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(TypeDecl *Node) {
+  assert(Node->getType() && "TypeDecl missing declared type");
+
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+
+  Os << "TypeDecl: " << Node->getVisibility() << " " << Node->getName() << " "
+     << Node->Loc << " " << Node->getType()->getTypeName();
+
+  printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
 

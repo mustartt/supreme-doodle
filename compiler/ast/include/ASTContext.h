@@ -70,6 +70,11 @@ public:
                                  Initializer);
   }
 
+  TypeDecl *createTypeDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+                           Visibility Vis, ASTType *Type) {
+    return addToContext<TypeDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
+  }
+
   FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
                            Visibility Vis,
                            llvm::ArrayRef<FuncParamDecl *> Params,
@@ -78,9 +83,11 @@ public:
                                   Body);
   }
 
-  FuncParamDecl *createFuncParamDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  FuncParamDecl *createFuncParamDecl(SrcRange Loc, SrcRange DeclLoc,
+                                     std::string Name,
                                      Expression *DefaultValue) {
-    return addToContext<FuncParamDecl>(Loc, DeclLoc, std::move(Name), DefaultValue);
+    return addToContext<FuncParamDecl>(Loc, DeclLoc, std::move(Name),
+                                       DefaultValue);
   }
 
   BlockStmt *createBlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts) {

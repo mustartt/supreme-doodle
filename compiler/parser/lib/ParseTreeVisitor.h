@@ -222,6 +222,22 @@ public:
     return Node;
   }
 
+  std::any visitType_decl(LangParser::Type_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Vis = ctx->visibility()
+                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
+                   : ast::Visibility::Private;
+    std::string Name = ctx->IDENTIFIER()->getText();
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
+
+    auto Type = std::any_cast<ast::ASTType *>(visit(ctx->type()));
+
+    return static_cast<ast::Decl *>(
+        Context.createTypeDecl(Loc, DeclLoc, std::move(Name), Vis, Type));
+  }
+
   std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
