@@ -1,0 +1,10 @@
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
+public use alias = i32
+
+// CHECK: use_decl
+// CHECK: visibility public
+// CHECK-SAME: use alias = 
+// CHECK: type
+// CHECK: qualified_identifier i32
+

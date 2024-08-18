@@ -26,6 +26,7 @@ public:
   void visit(ImportDecl *node) override;
   void visit(VarDecl *node) override;
   void visit(TypeDecl *node) override;
+  void visit(UseDecl *node) override;
   void visit(FuncDecl *node) override;
   void visit(FuncParamDecl *node) override;
   void visit(BlockStmt *node) override;
@@ -40,7 +41,7 @@ public:
   void visit(AccessExpr *node) override;
   void visit(IndexExpr *node) override;
   void visit(AssignExpr *node) override;
-  void visit(IdentifierExpr *node) override;
+  void visit(DeclRefExpr *node) override;
   void visit(BoolLiteral *node) override;
   void visit(CharLiteral *node) override;
   void visit(NumLiteral *node) override;
@@ -94,25 +95,25 @@ private:
   ASTPrinterVisitor &Visitor;
 };
 
-void ASTPrinterVisitor::visit(ProgramDecl *node) {
+void ASTPrinterVisitor::visit(ProgramDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ProgramDecl: " << node->Loc;
+  Os << "ProgramDecl: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getPackage()) {
-    Scope _(*this, node->getDecls().empty() && node->getImports().empty());
-    node->getPackage()->accept(*this);
+  if (Node->getPackage()) {
+    Scope _(*this, Node->getDecls().empty() && Node->getImports().empty());
+    Node->getPackage()->accept(*this);
   }
 
-  const auto Imports = node->getImports();
+  const auto Imports = Node->getImports();
   for (const auto [Idx, Value] : llvm::enumerate(Imports)) {
-    Scope _(*this, Idx == Imports.size() - 1 && node->getDecls().empty());
+    Scope _(*this, Idx == Imports.size() - 1 && Node->getDecls().empty());
     Value->accept(*this);
   }
 
-  const auto Decls = node->getDecls();
+  const auto Decls = Node->getDecls();
   for (const auto [Idx, Value] : llvm::enumerate(Decls)) {
     Scope _(*this, Idx == Decls.size() - 1);
     Value->accept(*this);
@@ -124,7 +125,7 @@ void ASTPrinterVisitor::visit(ProgramDecl *node) {
 void ASTPrinterVisitor::visit(PackageDecl *node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "PackageDecl: " << node->getName() << " " << node->Loc;
+  Os << "PackageDecl: " << node << " " << node->getName() << " " << node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -133,7 +134,7 @@ void ASTPrinterVisitor::visit(PackageDecl *node) {
 void ASTPrinterVisitor::visit(ImportDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ImportDecl: ";
+  Os << "ImportDecl: " << Node << " ";
   auto Path = Node->getPath();
   assert(Path.size() && "Path cannot be empty");
 
@@ -154,8 +155,8 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
 void ASTPrinterVisitor::visit(VarDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "VarDecl: " << Node->getVisibility() << " " << Node->getName() << " "
-     << Node->Loc;
+  Os << "VarDecl: " << Node << " " << Node->getVisibility() << " "
+     << Node->getName() << " " << Node->Loc;
   if (Node->getType()) {
     Os << " '";
     Os << Node->getType()->getTypeName();
@@ -179,8 +180,23 @@ void ASTPrinterVisitor::visit(TypeDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
 
-  Os << "TypeDecl: " << Node->getVisibility() << " " << Node->getName() << " "
-     << Node->Loc << " " << Node->getType()->getTypeName();
+  Os << "TypeDecl: " << Node << " " << Node->getVisibility() << " "
+     << Node->getName() << " " << Node->Loc << " "
+     << Node->getType()->getTypeName();
+
+  printNodePrefix(Str);
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(UseDecl *Node) {
+  assert(Node->getType() && "UseDecl missing declared type");
+
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+
+  Os << "UseDecl: " << Node << " " << Node->getVisibility() << " "
+     << Node->getName() << " " << Node->Loc << " "
+     << Node->getType()->getTypeName();
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -189,8 +205,8 @@ void ASTPrinterVisitor::visit(TypeDecl *Node) {
 void ASTPrinterVisitor::visit(FuncDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "FuncDecl: " << Node->getVisibility() << " " << Node->getName() << " "
-     << Node->Loc;
+  Os << "FuncDecl: " << Node << " " << Node->getVisibility() << " "
+     << Node->getName() << " " << Node->Loc;
 
   printNodePrefix(Str);
 
@@ -210,7 +226,7 @@ void ASTPrinterVisitor::visit(FuncDecl *Node) {
 void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "FuncParamDecl: " << Node->getName() << " " << Node->Loc;
+  Os << "FuncParamDecl: " << Node << " " << Node->getName() << " " << Node->Loc;
 
   printNodePrefix(Str);
 
@@ -225,7 +241,7 @@ void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
 void ASTPrinterVisitor::visit(BlockStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BlockStmt: " << Node->Loc;
+  Os << "BlockStmt: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
@@ -237,268 +253,271 @@ void ASTPrinterVisitor::visit(BlockStmt *Node) {
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(ReturnStmt *node) {
+void ASTPrinterVisitor::visit(ReturnStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "Return";
+  Os << "Return: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getExpr()) {
+  if (Node->getExpr()) {
     Scope _(*this, true);
-    node->getExpr()->accept(*this);
+    Node->getExpr()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(DeclStmt *node) {
+void ASTPrinterVisitor::visit(DeclStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "DeclStmt: " << node->Loc;
+  Os << "DeclStmt: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  assert(node->getDecl());
+  assert(Node->getDecl());
   {
     Scope _(*this, true);
-    node->getDecl()->accept(*this);
+    Node->getDecl()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(ExprStmt *node) {
+void ASTPrinterVisitor::visit(ExprStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ExprStmt: " << node->Loc;
+  Os << "ExprStmt: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
   {
     Scope _(*this, true);
-    node->getExpr()->accept(*this);
+    Node->getExpr()->accept(*this);
   }
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(IfExpr *node) {
+void ASTPrinterVisitor::visit(IfExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "IfExpr: " << node->Loc;
+  Os << "IfExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
   {
-    assert(node->getCondition());
+    assert(Node->getCondition());
     Scope _(*this, false);
-    node->getCondition()->accept(*this);
+    Node->getCondition()->accept(*this);
   }
   {
-    assert(node->getBody());
-    Scope _(*this, !node->getElseBlock());
-    node->getBody()->accept(*this);
+    assert(Node->getBody());
+    Scope _(*this, !Node->getElseBlock());
+    Node->getBody()->accept(*this);
   }
-  if (node->getElseBlock()) {
+  if (Node->getElseBlock()) {
     Scope _(*this, true);
-    node->getElseBlock()->accept(*this);
+    Node->getElseBlock()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(ForStmt *node) {
+void ASTPrinterVisitor::visit(ForStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "For";
+  Os << "ForStmt: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getPreHeader()) {
+  if (Node->getPreHeader()) {
     Scope _(*this, false);
-    node->getPreHeader()->accept(*this);
+    Node->getPreHeader()->accept(*this);
   }
 
-  if (node->getCondition()) {
+  if (Node->getCondition()) {
     Scope _(*this, false);
-    node->getCondition()->accept(*this);
+    Node->getCondition()->accept(*this);
   }
 
-  if (node->getPostExpr()) {
+  if (Node->getPostExpr()) {
     Scope _(*this, false);
-    node->getPostExpr()->accept(*this);
+    Node->getPostExpr()->accept(*this);
   }
 
   Scope _(*this, true);
-  node->getBody()->accept(*this);
+  Node->getBody()->accept(*this);
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(BinaryExpr *node) {
+void ASTPrinterVisitor::visit(BinaryExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BinaryExpr: ";
+  Os << "BinaryExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
   {
     Scope _(*this, false);
-    node->getLHS()->accept(*this);
+    Node->getLHS()->accept(*this);
   }
 
   {
     Scope _(*this, true);
-    node->getRHS()->accept(*this);
+    Node->getRHS()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(UnaryExpr *node) {
+void ASTPrinterVisitor::visit(UnaryExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "UnaryExpr: ";
+  Os << "UnaryExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
   {
     Scope _(*this, true);
-    node->getExpr()->accept(*this);
+    Node->getExpr()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(CallExpr *node) {
+void ASTPrinterVisitor::visit(CallExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "CallExpr: " << node->Loc;
+  Os << "CallExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getCallee()) {
-    Scope _(*this, node->getArgs().empty());
-    node->getCallee()->accept(*this);
+  if (Node->getCallee()) {
+    Scope _(*this, Node->getArgs().empty());
+    Node->getCallee()->accept(*this);
   }
 
-  for (const auto [Idx, Arg] : llvm::enumerate(node->getArgs())) {
-    Scope _(*this, Idx == node->getArgs().size() - 1);
+  for (const auto [Idx, Arg] : llvm::enumerate(Node->getArgs())) {
+    Scope _(*this, Idx == Node->getArgs().size() - 1);
     Arg->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(AccessExpr *node) {
+void ASTPrinterVisitor::visit(AccessExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "AccessExpr: " << node->getAccessor() << " " << node->Loc;
+  Os << "AccessExpr: " << Node << " " << Node->getAccessor() << " "
+     << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getExpr()) {
+  if (Node->getExpr()) {
     Scope _(*this, true);
-    node->getExpr()->accept(*this);
+    Node->getExpr()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(IndexExpr *node) {
+void ASTPrinterVisitor::visit(IndexExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "IndexExpr: " << node->Loc;
+  Os << "IndexExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
-  if (node->getExpr()) {
+  if (Node->getExpr()) {
     Scope _(*this, false);
-    node->getExpr()->accept(*this);
+    Node->getExpr()->accept(*this);
   }
 
-  if (node->getIdx()) {
+  if (Node->getIdx()) {
     Scope _(*this, true);
-    node->getIdx()->accept(*this);
+    Node->getIdx()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(AssignExpr *node) {
+void ASTPrinterVisitor::visit(AssignExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "AssignExpr: " << node->Loc;
+  Os << "AssignExpr: " << Node << " " << Node->Loc;
 
   printNodePrefix(Str);
 
   {
-    assert(node->getLHS() && "Missing LHS");
+    assert(Node->getLHS() && "Missing LHS");
     Scope _(*this, false);
-    node->getLHS()->accept(*this);
+    Node->getLHS()->accept(*this);
   }
   {
-    assert(node->getLHS() && "Missing RHS");
+    assert(Node->getLHS() && "Missing RHS");
     Scope _(*this, true);
-    node->getRHS()->accept(*this);
+    Node->getRHS()->accept(*this);
   }
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(IdentifierExpr *node) {
+void ASTPrinterVisitor::visit(DeclRefExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "IdentifierExpr: " << node->getSymbol() << " " << node->Loc;
+  Os << "DeclRefExpr: " << Node << " " << Node->getSymbol() << " " << Node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(BoolLiteral *node) {
+void ASTPrinterVisitor::visit(BoolLiteral *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BoolLiteral: ";
-  if (node->getValue())
+  Os << "BoolLiteral: " << Node << " ";
+  if (Node->getValue())
     Os << "true";
   else
     Os << "false";
-  Os << " " << node->Loc;
+  Os << " " << Node->Loc;
 
   printNodePrefix(Str);
 
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(CharLiteral *node) {
+void ASTPrinterVisitor::visit(CharLiteral *Node) {
   std::string str;
   llvm::raw_string_ostream os(str);
-  os << "CharLiteral: '" << node->getValue() << "' " << node->Loc;
+  os << "CharLiteral: '" << Node << " " << Node->getValue() << "' "
+     << Node->Loc;
 
   printNodePrefix(str);
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(NumLiteral *node) {
+void ASTPrinterVisitor::visit(NumLiteral *Node) {
   std::string str;
   llvm::raw_string_ostream os(str);
-  os << "NumLiteral: ";
-  node->getValue().print(os);
+  os << "NumLiteral: " << Node << " ";
+  Node->getValue().print(os);
   str.pop_back();
-  if (node->isInteger()) {
+  if (Node->isInteger()) {
     os << " integer";
   } else {
     os << " float";
   }
-  os << " " << node->Loc;
+  os << " " << Node->Loc;
 
   printNodePrefix(str);
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(StringLiteral *node) {
+void ASTPrinterVisitor::visit(StringLiteral *Node) {
   std::string str;
   llvm::raw_string_ostream os(str);
-  os << "StringLiteral: \"" << node->getValue() << "\" " << node->Loc;
+  os << "StringLiteral: " << Node << " \"" << Node->getValue() << "\" "
+     << Node->Loc;
 
   printNodePrefix(str);
   DepthFlag[Depth] = true;

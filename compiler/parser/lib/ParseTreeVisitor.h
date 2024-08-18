@@ -238,6 +238,22 @@ public:
         Context.createTypeDecl(Loc, DeclLoc, std::move(Name), Vis, Type));
   }
 
+  std::any visitUse_decl(LangParser::Use_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Vis = ctx->visibility()
+                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
+                   : ast::Visibility::Private;
+    std::string Name = ctx->IDENTIFIER()->getText();
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
+
+    auto Type = std::any_cast<ast::ASTType *>(visit(ctx->type()));
+
+    return static_cast<ast::Decl *>(
+        Context.createUseDecl(Loc, DeclLoc, std::move(Name), Vis, Type));
+  }
+
   std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
@@ -362,7 +378,7 @@ public:
     auto Symbol = ctx->identifier()->IDENTIFIER()->getText();
 
     return dynamic_cast<ast::Expression *>(
-        Context.createIdentifierExpr(Loc, std::move(Symbol)));
+        Context.createDeclRefExpr(Loc, std::move(Symbol)));
   }
 
   std::any visitAssignExpr(LangParser::AssignExprContext *ctx) override {

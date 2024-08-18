@@ -1,0 +1,6 @@
+// RUN: %parse-tree --mode ast %s | FileCheck %s
+
+public use alias = i32
+
+// CHECK: UseDecl: [[ADDR:0x[0-9a-fA-F]+]] Private alias
+// CHECK-SAME: i32

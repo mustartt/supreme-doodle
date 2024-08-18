@@ -15,6 +15,7 @@ void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void TypeDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+void UseDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void VarDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncParamDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
@@ -30,7 +31,7 @@ void CallExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void AccessExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void IndexExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void AssignExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
-void IdentifierExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
+void DeclRefExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void BoolLiteral::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void CharLiteral::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void NumLiteral::accept(BaseExprVisitor &visitor) { visitor.visit(this); }

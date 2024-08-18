@@ -284,7 +284,22 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
 class TypeDecl : public Decl {
 public:
   TypeDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
-           ASTType *Type) : Decl(Loc, DeclLoc, std::move(Name), Type) {}
+           ASTType *Type)
+      : Decl(Loc, DeclLoc, std::move(Name), Type) {}
+
+  Visibility getVisibility() const { return Vis; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
+
+private:
+  Visibility Vis = Visibility::Private;
+};
+
+class UseDecl : public Decl {
+public:
+  UseDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+          ASTType *Type)
+      : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
   Visibility getVisibility() const { return Vis; }
 
@@ -493,10 +508,10 @@ private:
   Expression *RHS;
 };
 
-class IdentifierExpr : public Expression {
+class DeclRefExpr : public Expression {
 public:
-  IdentifierExpr(SrcRange Loc, std::string Symbol)
-      : Expression(Loc), Symbol(std::move(Symbol)) {}
+  DeclRefExpr(SrcRange Loc, std::string Symbol)
+      : Expression(Loc), Symbol(std::move(Symbol)), Ref(nullptr) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
@@ -504,6 +519,7 @@ public:
 
 private:
   std::string Symbol;
+  Decl *Ref;
 };
 
 class IfExpr : public Expression {

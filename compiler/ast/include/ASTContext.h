@@ -75,6 +75,11 @@ public:
     return addToContext<TypeDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
   }
 
+  UseDecl *createUseDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+                         Visibility Vis, ASTType *Type) {
+    return addToContext<UseDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
+  }
+
   FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
                            Visibility Vis,
                            llvm::ArrayRef<FuncParamDecl *> Params,
@@ -144,8 +149,8 @@ public:
     return addToContext<AssignExpr>(Loc, LHS, RHS);
   }
 
-  IdentifierExpr *createIdentifierExpr(SrcRange Loc, std::string Symbol) {
-    return addToContext<IdentifierExpr>(Loc, std::move(Symbol));
+  DeclRefExpr *createDeclRefExpr(SrcRange Loc, std::string Symbol) {
+    return addToContext<DeclRefExpr>(Loc, std::move(Symbol));
   }
 
   BoolLiteral *createBoolLiteral(SrcRange Loc, bool Value) {

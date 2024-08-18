@@ -9,6 +9,7 @@ class PackageDecl;
 class ImportDecl;
 class VarDecl;
 class TypeDecl;
+class UseDecl;
 class FuncDecl;
 class FuncParamDecl;
 class BaseDeclVisitor {
@@ -20,6 +21,7 @@ public:
   virtual void visit(ImportDecl *node) = 0;
   virtual void visit(VarDecl *node) = 0;
   virtual void visit(TypeDecl *node) = 0;
+  virtual void visit(UseDecl *node) = 0;
   virtual void visit(FuncDecl *node) = 0;
   virtual void visit(FuncParamDecl *node) = 0;
 };
@@ -64,7 +66,7 @@ class CallExpr;
 class AccessExpr;
 class IndexExpr;
 class AssignExpr;
-class IdentifierExpr;
+class DeclRefExpr;
 class BoolLiteral;
 class CharLiteral;
 class NumLiteral;
@@ -84,7 +86,7 @@ public:
   virtual void visit(AccessExpr *node) = 0;
   virtual void visit(IndexExpr *node) = 0;
   virtual void visit(AssignExpr *node) = 0;
-  virtual void visit(IdentifierExpr *node) = 0;
+  virtual void visit(DeclRefExpr *node) = 0;
   virtual void visit(BoolLiteral *node) = 0;
   virtual void visit(CharLiteral *node) = 0;
   virtual void visit(NumLiteral *node) = 0;
