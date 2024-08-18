@@ -1,2 +1,9 @@
+let a: i32
+let b: io.file
+let c: mut i32
+let d: *nullable i32
+let e: [i32]
+let f: func(i32,i32)f32 
+let g: { x: i32, y: i32 }
+let h: enum { some: result, none }
 
-let a: int

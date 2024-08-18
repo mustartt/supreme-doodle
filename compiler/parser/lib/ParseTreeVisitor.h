@@ -5,6 +5,8 @@
 #include "LangParserBaseVisitor.h"
 
 #include "ASTContext.h"
+#include "llvm/ADT/SmallVector.h"
+#include <any>
 #include <cassert>
 
 using namespace antlr4;
@@ -18,7 +20,6 @@ public:
 
 public:
   // types
-  std::any visitMutableType(LangParser::MutableTypeContext *ctx) override {}
 
   std::any visitQualified_identifier(
       LangParser::Qualified_identifierContext *ctx) override {
@@ -35,22 +36,97 @@ public:
     assert(ctx && "Invalid Node");
 
     auto Loc = getRange(ctx->getSourceInterval());
-
     auto Result = visit(ctx->qualified_identifier());
     auto Symbols = std::any_cast<std::vector<std::string>>(Result);
 
     return static_cast<ast::ASTType *>(Context.createDeclRefType(Loc, Symbols));
   }
 
-  std::any visitPointerType(LangParser::PointerTypeContext *ctx) override {}
+  std::any visitMutableType(LangParser::MutableTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
 
-  std::any visitArrayType(LangParser::ArrayTypeContext *ctx) override {}
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Result = std::any_cast<ast::ASTType *>(visit(ctx->type()));
 
-  std::any visitFunctionType(LangParser::FunctionTypeContext *ctx) override {}
+    return static_cast<ast::ASTType *>(Context.createMutableType(Loc, Result));
+  }
 
-  std::any visitObjectType(LangParser::ObjectTypeContext *ctx) override {}
+  std::any visitPointerType(LangParser::PointerTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
 
-  std::any visitEnumType(LangParser::EnumTypeContext *ctx) override {}
+    auto *node = ctx->pointer_type();
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Result = std::any_cast<ast::ASTType *>(visit(node->type()));
+
+    return static_cast<ast::ASTType *>(
+        Context.createPointerType(Loc, Result, node->NULLABLE()));
+  }
+
+  std::any visitArrayType(LangParser::ArrayTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto *node = ctx->array_type();
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Result = std::any_cast<ast::ASTType *>(visit(node->type()));
+
+    return static_cast<ast::ASTType *>(Context.createArrayType(Loc, Result));
+  }
+
+  std::any visitFunctionType(LangParser::FunctionTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto *node = ctx->function_type();
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    llvm::SmallVector<ast::ASTType *, 4> ParamTys;
+    if (auto TypeList = node->parameter_type_list()) {
+      for (auto *T : TypeList->type()) {
+        ParamTys.push_back(std::any_cast<ast::ASTType *>(visit(T)));
+      }
+    }
+    auto ReturnType = std::any_cast<ast::ASTType *>(visit(node->type()));
+
+    return static_cast<ast::ASTType *>(
+        Context.createFunctionType(Loc, ParamTys, ReturnType));
+  }
+
+  std::any visitObjectType(LangParser::ObjectTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto *node = ctx->object_type();
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    llvm::SmallVector<ast::ObjectType::Field> Fields;
+    for (auto *FT : node->object_field_type()) {
+      auto FieldName = FT->IDENTIFIER()->getText();
+      auto *FieldType = std::any_cast<ast::ASTType *>(visit(FT->type()));
+      Fields.emplace_back(std::move(FieldName), FieldType);
+    }
+
+    return static_cast<ast::ASTType *>(Context.createObjectType(Loc, Fields));
+  }
+
+  std::any visitEnumType(LangParser::EnumTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto *node = ctx->enum_type();
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    llvm::SmallVector<ast::EnumType::Member> Members;
+    for (auto *M : node->enum_member()) {
+      auto MemberName = M->IDENTIFIER()->getText();
+
+      ast::ASTType *FieldType = nullptr;
+      if (M->type())
+        FieldType = std::any_cast<ast::ASTType *>(visit(M->type()));
+
+      Members.emplace_back(std::move(MemberName), FieldType);
+    }
+
+    return static_cast<ast::ASTType *>(Context.createEnumType(Loc, Members));
+  }
 
   // decls
   std::any visitProgram(LangParser::ProgramContext *ctx) override {
@@ -82,8 +158,10 @@ public:
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
     assert(ctx->IDENTIFIER() && "Missing Package Name");
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
 
-    return Context.createPackageDecl(Loc, ctx->IDENTIFIER()->getText());
+    return Context.createPackageDecl(Loc, DeclLoc,
+                                     ctx->IDENTIFIER()->getText());
   }
 
   std::any visitImport_stmt(LangParser::Import_stmtContext *ctx) override {
@@ -95,7 +173,7 @@ public:
     if (ctx->IDENTIFIER()) {
       Alias = ctx->IDENTIFIER()->getText();
     }
-    return Context.createImportDecl(Loc, Path, Alias);
+    return Context.createImportDecl(Loc, Loc, Path, Alias);
   }
 
   std::any visitImport_path(LangParser::Import_pathContext *ctx) override {
@@ -124,6 +202,7 @@ public:
                    ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
                    : ast::Visibility::Private;
     std::string Name = ctx->IDENTIFIER()->getText();
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
 
     ast::Expression *DefaultValue = nullptr;
     if (ctx->initializer()) {
@@ -131,14 +210,16 @@ public:
       DefaultValue = std::any_cast<ast::Expression *>(Result);
     }
 
+    auto Node = static_cast<ast::Decl *>(Context.createVarDecl(
+        Loc, DeclLoc, std::move(Name), Vis, DefaultValue));
+
     if (ctx->type()) {
       auto Result = visit(ctx->type());
       auto Ty = std::any_cast<ast::ASTType *>(Result);
-        
+      Node->setType(Ty);
     }
 
-    return dynamic_cast<ast::Decl *>(
-        Context.createVarDecl(Loc, std::move(Name), Vis, DefaultValue));
+    return Node;
   }
 
   std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
@@ -148,6 +229,7 @@ public:
                    ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
                    : ast::Visibility::Private;
     std::string Name = ctx->IDENTIFIER()->getText();
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
 
     llvm::SmallVector<ast::FuncParamDecl *, 4> Params;
     if (auto ParamList = ctx->func_param_list()) {
@@ -159,8 +241,8 @@ public:
     auto Body = dynamic_cast<ast::BlockStmt *>(
         std::any_cast<ast::Stmt *>(visit(ctx->func_body())));
 
-    return dynamic_cast<ast::Decl *>(
-        Context.createFuncDecl(Loc, std::move(Name), Vis, Params, Body));
+    return dynamic_cast<ast::Decl *>(Context.createFuncDecl(
+        Loc, DeclLoc, std::move(Name), Vis, Params, Body));
   }
 
   std::any
@@ -168,6 +250,7 @@ public:
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
     std::string Name = ctx->IDENTIFIER()->getText();
+    auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
 
     ast::Expression *DefaultValue = nullptr;
     if (ctx->initializer()) {
@@ -175,7 +258,8 @@ public:
       DefaultValue = std::any_cast<ast::Expression *>(Result);
     }
 
-    return Context.createFuncParamDecl(Loc, std::move(Name), DefaultValue);
+    return Context.createFuncParamDecl(Loc, DeclLoc, std::move(Name),
+                                       DefaultValue);
   }
 
   std::any visitBlock_stmt(LangParser::Block_stmtContext *ctx) override {

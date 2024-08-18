@@ -1,0 +1,6 @@
+package io
+
+public type file = {
+    path: string,
+    runtime_handle: i64 
+}

@@ -8,6 +8,7 @@
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
+#include <numeric>
 
 namespace rx::ast {
 
@@ -29,23 +30,24 @@ class ASTType : public ASTNode {
 public:
   ASTType(SrcRange Loc) : ASTNode(Loc) {}
 
-  virtual llvm::Twine getTypeName() const = 0;
+  virtual std::string getTypeName() const = 0;
 };
 
 class DeclRefType : public ASTType {
 public:
   DeclRefType(SrcRange Loc, llvm::ArrayRef<std::string> Symbol)
-      : ASTType(Loc), Symbol(std::move(Symbol)) {
+      : ASTType(Loc), Symbol(Symbol) {
     assert(Symbol.size() && "Empty Symbol");
   }
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty(Symbol[0]);
-    for (const auto &S : llvm::drop_begin(Symbol)) {
-      Ty.concat(".");
-      Ty.concat(S);
+  std::string getTypeName() const override {
+    std::string Result;
+    for (const auto &[Idx, S] : llvm::enumerate(Symbol)) {
+      Result += S;
+      if (Idx + 1 != Symbol.size())
+        Result += ".";
     }
-    return Ty;
+    return Result;
   }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
@@ -59,10 +61,8 @@ public:
   MutableType(SrcRange Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("mut ");
-    Ty.concat(ElementType->getTypeName());
-    return Ty;
+  std::string getTypeName() const override {
+    return "mut " + ElementType->getTypeName();
   }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
@@ -76,13 +76,12 @@ public:
   PointerType(SrcRange Loc, ASTType *ElementType, bool Nullable)
       : ASTType(Loc), ElementType(ElementType), Nullable(Nullable) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("*");
+  std::string getTypeName() const override {
+    std::string Ty = "*";
     if (Nullable) {
-      Ty.concat("nullable ");
+      Ty += "nullable ";
     }
-    Ty.concat(ElementType->getTypeName());
-    return Ty;
+    return Ty + ElementType->getTypeName();
   }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
@@ -97,10 +96,10 @@ public:
   ArrayType(SrcRange Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("[");
-    Ty.concat(ElementType->getTypeName());
-    Ty.concat("]");
+  std::string getTypeName() const override {
+    std::string Ty("[");
+    Ty += ElementType->getTypeName();
+    Ty += "]";
     return Ty;
   }
 
@@ -116,15 +115,15 @@ public:
                ASTType *ReturnType)
       : ASTType(Loc), ParamTypes(ParamTypes), ReturnType(ReturnType) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("func(");
+  std::string getTypeName() const override {
+    std::string Ty("func(");
     for (const auto [Idx, P] : llvm::enumerate(ParamTypes)) {
-      Ty.concat(P->getTypeName());
+      Ty += P->getTypeName();
       if (Idx + 1 != ParamTypes.size())
-        Ty.concat(",");
+        Ty += ", ";
     }
-    if (ReturnType)
-      Ty.concat(ReturnType->getTypeName());
+    Ty += ") ";
+    Ty += ReturnType->getTypeName();
     return Ty;
   }
 
@@ -143,17 +142,17 @@ public:
   ObjectType(SrcRange Loc, llvm::ArrayRef<Field> Fields)
       : ASTType(Loc), Fields(Fields) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("{");
+  std::string getTypeName() const override {
+    std::string Ty("{ ");
     for (const auto &[Idx, Field] : llvm::enumerate(Fields)) {
       const auto &[Name, FT] = Field;
-      Ty.concat(Name);
-      Ty.concat(":");
-      Ty.concat(FT->getTypeName());
+      Ty += Name;
+      Ty += ": ";
+      Ty += FT->getTypeName();
       if (Idx + 1 != Fields.size())
-        Ty.concat(",");
+        Ty += ", ";
     }
-    Ty.concat("}");
+    Ty += " }";
     return Ty;
   }
 
@@ -171,17 +170,19 @@ public:
   EnumType(SrcRange Loc, llvm::ArrayRef<Member> Members)
       : ASTType(Loc), Members(Members) {}
 
-  llvm::Twine getTypeName() const override {
-    llvm::Twine Ty("enum {");
+  std::string getTypeName() const override {
+    std::string Ty("enum { ");
     for (const auto &[Idx, Field] : llvm::enumerate(Members)) {
       const auto &[Name, FT] = Field;
-      Ty.concat(Name);
-      Ty.concat(":");
-      Ty.concat(FT->getTypeName());
+      Ty += Name;
+      if (FT) {
+        Ty += ": ";
+        Ty += FT->getTypeName();
+      }
       if (Idx + 1 != Members.size())
-        Ty.concat(",");
+        Ty += ", ";
     }
-    Ty.concat("}");
+    Ty += " }";
     return Ty;
   }
 
@@ -201,6 +202,7 @@ public:
 
   llvm::StringRef getName() const { return Name; }
   ASTType *getType() const { return Type; }
+  void setType(ASTType *Ty) { Type = Ty; }
   const SrcRange &getDeclLoc() const { return DeclLoc; }
 
 protected:
@@ -216,8 +218,8 @@ public:
   ProgramDecl(SrcRange Loc, PackageDecl *Package,
               llvm::ArrayRef<ImportDecl *> Imports,
               llvm::ArrayRef<Decl *> Decls)
-      : Decl(Loc), Package(Package), Imports(Imports), Decls(std::move(Decls)) {
-  }
+      : Decl(Loc, Loc, "Program"), Package(Package), Imports(Imports),
+        Decls(std::move(Decls)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -233,22 +235,28 @@ private:
 
 class PackageDecl : public Decl {
 public:
-  PackageDecl(SrcRange Loc, std::string Name)
-      : Decl(Loc), Name(std::move(Name)) {}
+  PackageDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name)
+      : Decl(Loc, DeclLoc, std::move(Name)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
-
-  const std::string &getName() const { return Name; }
-
-private:
-  std::string Name;
 };
+
+static std::string JoinPath(llvm::ArrayRef<std::string> Path) {
+  std::string Result;
+  for (const auto &[Idx, P] : llvm::enumerate(Path)) {
+    Result += P;
+    if (Idx + 1 != Path.size())
+      Result += ".";
+  }
+  return Result;
+}
 
 class ImportDecl : public Decl {
 public:
-  ImportDecl(SrcRange Loc, llvm::ArrayRef<std::string> Path,
+  ImportDecl(SrcRange Loc, SrcRange DeclLoc, llvm::ArrayRef<std::string> Path,
              std::optional<std::string> Alias = std::nullopt)
-      : Decl(Loc), Path(Path), Alias(std::move(Alias)) {}
+      : Decl(Loc, DeclLoc, JoinPath(Path)), Path(Path),
+        Alias(std::move(Alias)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -278,77 +286,34 @@ class TypeDecl : public Decl {
 public:
 private:
   Visibility Vis = Visibility::Private;
-  std::string Name;
-};
-
-class FieldDecl;
-class StructDecl : public Decl {
-public:
-  StructDecl(SrcRange Loc, std::string Name, Visibility Vis,
-             llvm::ArrayRef<FieldDecl *> Fields)
-      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Fields(Fields) {}
-
-  ACCEPT_VISITOR(BaseDeclVisitor);
-
-  const llvm::StringRef getName() const { return Name; }
-  Visibility getVisibility() const { return Vis; }
-  llvm::ArrayRef<FieldDecl *> getFields() const { return Fields; }
-
-private:
-  Visibility Vis = Visibility::Private;
-  std::string Name;
-  llvm::SmallVector<FieldDecl *, 8> Fields;
 };
 
 class Expression;
-
-class FieldDecl : public Decl {
-public:
-  FieldDecl(SrcRange Loc, std::string Name, Visibility Vis,
-            Expression *DefaultValue = nullptr)
-      : Decl(Loc), Vis(Vis), Name(std::move(Name)), DefaultValue(DefaultValue) {
-  }
-
-  ACCEPT_VISITOR(BaseDeclVisitor);
-
-  const llvm::StringRef getName() const { return Name; }
-  Visibility getVisibility() const { return Vis; }
-  Expression *getDefaultValue() const { return DefaultValue; }
-
-private:
-  Visibility Vis = Visibility::Private;
-  std::string Name;
-  Expression *DefaultValue;
-};
-
 class VarDecl : public Decl {
 public:
-  VarDecl(SrcRange Loc, std::string Name, Visibility Vis,
+  VarDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
           Expression *Initializer = nullptr)
-      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Initializer(Initializer),
-        Type(nullptr) {}
+      : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis),
+        Initializer(Initializer) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
-  const llvm::StringRef getName() const { return Name; }
   Visibility getVisibility() const { return Vis; }
   Expression *getInitializer() const { return Initializer; }
 
 private:
   Visibility Vis = Visibility::Private;
-  std::string Name;
   Expression *Initializer;
-  ASTType *Type;
 };
 
 class FuncParamDecl;
 class BlockStmt;
 class FuncDecl : public Decl {
 public:
-  FuncDecl(SrcRange Loc, std::string Name, Visibility Vis,
+  FuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
            llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
-      : Decl(Loc), Vis(Vis), Name(std::move(Name)), Params(Params), Body(Body) {
-  }
+      : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis), Params(Params),
+        Body(Body) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
@@ -359,23 +324,21 @@ public:
 
 private:
   Visibility Vis = Visibility::Private;
-  std::string Name;
   llvm::SmallVector<FuncParamDecl *, 8> Params;
   BlockStmt *Body;
 };
 
 class FuncParamDecl : public Decl {
 public:
-  FuncParamDecl(SrcRange Loc, std::string Name, Expression *DefaultValue)
-      : Decl(Loc), Name(std::move(Name)), DefaultValue(DefaultValue) {}
+  FuncParamDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+                Expression *DefaultValue)
+      : Decl(Loc, DeclLoc, std::move(Name)), DefaultValue(DefaultValue) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
-  const llvm::StringRef getName() const { return Name; }
   Expression *getDefaultValue() const { return DefaultValue; }
 
 private:
-  std::string Name;
   Expression *DefaultValue;
 };
 

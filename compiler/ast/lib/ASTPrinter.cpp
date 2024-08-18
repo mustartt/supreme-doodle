@@ -22,8 +22,6 @@ public:
   void visit(ProgramDecl *node) override;
   void visit(PackageDecl *node) override;
   void visit(ImportDecl *node) override;
-  void visit(StructDecl *node) override;
-  void visit(FieldDecl *node) override;
   void visit(VarDecl *node) override;
   void visit(FuncDecl *node) override;
   void visit(FuncParamDecl *node) override;
@@ -39,7 +37,7 @@ public:
   void visit(AccessExpr *node) override;
   void visit(IndexExpr *node) override;
   void visit(AssignExpr *node) override;
-  void visit(IdentifierExpr *node) override; 
+  void visit(IdentifierExpr *node) override;
   void visit(BoolLiteral *node) override;
   void visit(CharLiteral *node) override;
   void visit(NumLiteral *node) override;
@@ -150,42 +148,18 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(StructDecl *Node) {
-  std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "StructDecl: " << Node->getVisibility() << " " << Node->getName() << " "
-     << Node->Loc;
-
-  printNodePrefix(Str);
-
-  for (auto Field : Node->getFields()) {
-    Scope _(*this, Field == Node->getFields().back());
-    Field->accept(*this);
-  }
-
-  DepthFlag[Depth] = true;
-}
-
-void ASTPrinterVisitor::visit(FieldDecl *Node) {
-  std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "FieldDecl: " << Node->getVisibility() << " " << Node->getName() << " "
-     << Node->Loc;
-
-  if (Node->getDefaultValue()) {
-    Scope _(*this, true);
-    Node->getDefaultValue()->accept(*this);
-  }
-
-  printNodePrefix(Str);
-  DepthFlag[Depth] = true;
-}
-
 void ASTPrinterVisitor::visit(VarDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "VarDecl: " << Node->getVisibility() << " " << Node->getName() << " "
      << Node->Loc;
+  if (Node->getType()) {
+    Os << " '";
+    Os << Node->getType()->getTypeName();
+    Os << "'";
+  } else {
+    Os << " '<unkown>'";
+  }
 
   printNodePrefix(Str);
   if (Node->getInitializer()) {
@@ -480,38 +454,38 @@ void ASTPrinterVisitor::visit(BoolLiteral *node) {
 }
 
 void ASTPrinterVisitor::visit(CharLiteral *node) {
-    std::string str;
-    llvm::raw_string_ostream os(str);
-    os << "CharLiteral: '" << node->getValue() << "' " << node->Loc;
+  std::string str;
+  llvm::raw_string_ostream os(str);
+  os << "CharLiteral: '" << node->getValue() << "' " << node->Loc;
 
-    printNodePrefix(str);
-    DepthFlag[Depth] = true;
+  printNodePrefix(str);
+  DepthFlag[Depth] = true;
 }
 
 void ASTPrinterVisitor::visit(NumLiteral *node) {
-    std::string str;
-    llvm::raw_string_ostream os(str);
-    os << "NumLiteral: ";
-    node->getValue().print(os); 
-    str.pop_back();
-    if (node->isInteger()) {
-      os << " integer";
-    } else {
-      os << " float";
-    }
-    os << " " << node->Loc;
+  std::string str;
+  llvm::raw_string_ostream os(str);
+  os << "NumLiteral: ";
+  node->getValue().print(os);
+  str.pop_back();
+  if (node->isInteger()) {
+    os << " integer";
+  } else {
+    os << " float";
+  }
+  os << " " << node->Loc;
 
-    printNodePrefix(str);
-    DepthFlag[Depth] = true;
+  printNodePrefix(str);
+  DepthFlag[Depth] = true;
 }
 
 void ASTPrinterVisitor::visit(StringLiteral *node) {
-    std::string str;
-    llvm::raw_string_ostream os(str);
-    os << "StringLiteral: \"" << node->getValue() << "\" " << node->Loc;
+  std::string str;
+  llvm::raw_string_ostream os(str);
+  os << "StringLiteral: \"" << node->getValue() << "\" " << node->Loc;
 
-    printNodePrefix(str);
-    DepthFlag[Depth] = true;
+  printNodePrefix(str);
+  DepthFlag[Depth] = true;
 }
 
 void ASTPrinter::print(llvm::raw_ostream &Output, ASTNode *root) const {

@@ -4,7 +4,3 @@ public func println() {}
 public func print(value: i32) {}
 public func println(value: i32) {}
 
-public type file = {
-    path: string,
-    runtime_handle: i64 
-}

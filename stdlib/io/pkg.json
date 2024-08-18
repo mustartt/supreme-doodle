@@ -1,5 +1,7 @@
 {
     "name": "io",
-    "src": "src", 
+    "version": "0.0.1",
+    "description": "IO Implementation for the Standard Library",
+    "src": ".", 
     "dependencies": []
 }

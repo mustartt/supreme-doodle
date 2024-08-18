@@ -6,8 +6,6 @@ namespace rx::ast {
 class ProgramDecl;
 class PackageDecl;
 class ImportDecl;
-class StructDecl;
-class FieldDecl;
 class VarDecl;
 class FuncDecl;
 class FuncParamDecl;
@@ -27,8 +25,6 @@ public:
   virtual void visit(ProgramDecl *node) = 0;
   virtual void visit(PackageDecl *node) = 0;
   virtual void visit(ImportDecl *node) = 0;
-  virtual void visit(StructDecl *node) = 0;
-  virtual void visit(FieldDecl *node) = 0;
   virtual void visit(VarDecl *node) = 0;
   virtual void visit(FuncDecl *node) = 0;
   virtual void visit(FuncParamDecl *node) = 0;

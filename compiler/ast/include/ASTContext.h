@@ -2,6 +2,7 @@
 #define AST_ASTCONTEXT_H
 
 #include "AST.h"
+#include "SrcManager.h"
 
 #include <deque>
 #include <memory>
@@ -11,7 +12,8 @@ namespace rx::ast {
 
 class ASTContext {
 public:
-  DeclRefType *createDeclRefType(SrcRange Loc, llvm::ArrayRef<std::string> Symbols) {
+  DeclRefType *createDeclRefType(SrcRange Loc,
+                                 llvm::ArrayRef<std::string> Symbols) {
     return addToContext<DeclRefType>(Loc, Symbols);
   }
 
@@ -50,40 +52,35 @@ public:
     return addToContext<ProgramDecl>(Loc, Package, Imports, Decls);
   }
 
-  PackageDecl *createPackageDecl(SrcRange Loc, std::string Name) {
-    return addToContext<PackageDecl>(Loc, std::move(Name));
+  PackageDecl *createPackageDecl(SrcRange Loc, SrcRange DeclLoc,
+                                 std::string Name) {
+    return addToContext<PackageDecl>(Loc, DeclLoc, std::move(Name));
   }
 
   ImportDecl *
-  createImportDecl(SrcRange Loc, llvm::ArrayRef<std::string> Path,
+  createImportDecl(SrcRange Loc, SrcRange DeclLoc,
+                   llvm::ArrayRef<std::string> Path,
                    std::optional<std::string> Alias = std::nullopt) {
-    return addToContext<ImportDecl>(Loc, Path, std::move(Alias));
+    return addToContext<ImportDecl>(Loc, DeclLoc, Path, std::move(Alias));
   }
 
-  StructDecl *createStructDecl(SrcRange Loc, std::string Name, Visibility Vis,
-                               llvm::ArrayRef<FieldDecl *> Fields) {
-    return addToContext<StructDecl>(Loc, std::move(Name), Vis, Fields);
+  VarDecl *createVarDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+                         Visibility Vis, Expression *Initializer = nullptr) {
+    return addToContext<VarDecl>(Loc, DeclLoc, std::move(Name), Vis,
+                                 Initializer);
   }
 
-  FieldDecl *createFieldDecl(SrcRange Loc, std::string Name, Visibility Vis,
-                             Expression *DefaultValue = nullptr) {
-    return addToContext<FieldDecl>(Loc, std::move(Name), Vis, DefaultValue);
-  }
-
-  VarDecl *createVarDecl(SrcRange Loc, std::string Name, Visibility Vis,
-                         Expression *Initializer = nullptr) {
-    return addToContext<VarDecl>(Loc, std::move(Name), Vis, Initializer);
-  }
-
-  FuncDecl *createFuncDecl(SrcRange Loc, std::string Name, Visibility Vis,
+  FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+                           Visibility Vis,
                            llvm::ArrayRef<FuncParamDecl *> Params,
                            BlockStmt *Body = nullptr) {
-    return addToContext<FuncDecl>(Loc, std::move(Name), Vis, Params, Body);
+    return addToContext<FuncDecl>(Loc, DeclLoc, std::move(Name), Vis, Params,
+                                  Body);
   }
 
-  FuncParamDecl *createFuncParamDecl(SrcRange Loc, std::string Name,
+  FuncParamDecl *createFuncParamDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
                                      Expression *DefaultValue) {
-    return addToContext<FuncParamDecl>(Loc, std::move(Name), DefaultValue);
+    return addToContext<FuncParamDecl>(Loc, DeclLoc, std::move(Name), DefaultValue);
   }
 
   BlockStmt *createBlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts) {
