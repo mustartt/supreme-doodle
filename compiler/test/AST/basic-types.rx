@@ -1,3 +1,5 @@
+// RUN: 
+
 let a: i32
 let b: io.file
 let c: mut i32

@@ -13,7 +13,8 @@ func sum(a: i32, b: i32, c: i32) i32 {
 // CHECK: block
 
 // CHECK: var_decl let t1
-// CHECK: type i64
+// CHECK: type 
+// CHECK: qualified_identifier i64
 // CHECK: initializer =
 // CHECK: var_decl let t2
 // CHECK: initializer =

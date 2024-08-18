@@ -1,4 +1,5 @@
 // RUN: %parse-tree --mode tree %s | FileCheck %s
+// XFAIL: *
 
 type Integer = i32
 

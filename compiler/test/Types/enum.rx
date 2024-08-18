@@ -1,8 +1,9 @@
+// RUN: %parse-tree %s 
+// XFAIL: *
+
 type tagged = enum {
     Tag1: {x: int, y: int},
     Tag2: int
 }
 
-func test(e: tagged) {
-    
-}
+func test(e: tagged) { }

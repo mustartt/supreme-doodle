@@ -1,3 +1,6 @@
+// RUN: %parse-tree %s 
+// XFAIL: *
+
 // type alias
 type int = i32
 

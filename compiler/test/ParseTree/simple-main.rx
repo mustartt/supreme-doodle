@@ -12,7 +12,8 @@ func main(args: [string]) i32 {
 // CHECK: array_type
 // CHECK: qualified_identifier string
 // CHECK: func_return_type
-// CHECK: type i32
+// CHECK: type
+// CHECK: qualified_identifier i32
 // CHECK: func_body
 // CHECK: block_stmt
 // CHECK: return_stmt return

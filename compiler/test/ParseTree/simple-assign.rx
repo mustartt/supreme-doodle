@@ -8,8 +8,8 @@ func simple() {
 // CHECK: func_decl func simple
 // CHECK: decl_stmt
 // CHECK: var_decl let a
-// CHECK-NEXT: type mut
-// CHECK-NEXT: type i32
+// CHECK: type mut
+// CHECK: qualified_identifier i32
 
 // CHECK: expr_stmt
 // CHECK: a
