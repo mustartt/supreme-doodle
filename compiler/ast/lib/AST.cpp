@@ -3,6 +3,13 @@
 
 namespace rx::ast {
 
+void DeclRefType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void MutableType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void PointerType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void FunctionType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void ObjectType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void EnumType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+
 void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }

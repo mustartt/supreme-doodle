@@ -1,9 +1,11 @@
 #ifndef PARSER_PARSETREEVISITOR_H
 #define PARSER_PARSETREEVISITOR_H
 
+#include "AST.h"
 #include "LangParserBaseVisitor.h"
 
 #include "ASTContext.h"
+#include <cassert>
 
 using namespace antlr4;
 
@@ -15,6 +17,42 @@ public:
       : Tokens(Stream), Context(Context) {}
 
 public:
+  // types
+  std::any visitMutableType(LangParser::MutableTypeContext *ctx) override {}
+
+  std::any visitQualified_identifier(
+      LangParser::Qualified_identifierContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    std::vector<std::string> Components;
+    for (const auto &C : ctx->IDENTIFIER()) {
+      Components.push_back(C->getText());
+    }
+    assert(Components.size() && "Cannot be empty");
+    return Components;
+  }
+
+  std::any visitDeclRefType(LangParser::DeclRefTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto Result = visit(ctx->qualified_identifier());
+    auto Symbols = std::any_cast<std::vector<std::string>>(Result);
+
+    return static_cast<ast::ASTType *>(Context.createDeclRefType(Loc, Symbols));
+  }
+
+  std::any visitPointerType(LangParser::PointerTypeContext *ctx) override {}
+
+  std::any visitArrayType(LangParser::ArrayTypeContext *ctx) override {}
+
+  std::any visitFunctionType(LangParser::FunctionTypeContext *ctx) override {}
+
+  std::any visitObjectType(LangParser::ObjectTypeContext *ctx) override {}
+
+  std::any visitEnumType(LangParser::EnumTypeContext *ctx) override {}
+
+  // decls
   std::any visitProgram(LangParser::ProgramContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());

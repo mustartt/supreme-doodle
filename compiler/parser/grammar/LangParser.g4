@@ -118,13 +118,13 @@ arguments: expr (COMMA expr)*;
 /* production rule for testing types */
 test_type: type+ EOF ;
 
-type: MUT type
-    | qualified_identifier
-    | pointer_type
-    | array_type
-    | function_type
-    | object_type
-    | enum_type
+type: MUT type              #mutableType
+    | qualified_identifier  #declRefType
+    | pointer_type          #pointerType
+    | array_type            #arrayType
+    | function_type         #functionType
+    | object_type           #objectType
+    | enum_type             #enumType
     ;
 
 pointer_type : STAR NULLABLE? type ;

@@ -5,6 +5,7 @@
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/SmallVector.h"
 #include <llvm/ADT/ArrayRef.h>
+#include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
 
@@ -13,6 +14,7 @@ namespace rx::ast {
 class BaseDeclVisitor;
 class BaseStmtVisitor;
 class BaseExprVisitor;
+class BaseTypeVisitor;
 
 #define ACCEPT_VISITOR(TYPE) virtual void accept(TYPE &visitor);
 
@@ -32,17 +34,30 @@ public:
 
 class DeclRefType : public ASTType {
 public:
-  DeclRefType(SrcRange Loc) : ASTType(Loc) {}
+  DeclRefType(SrcRange Loc, llvm::ArrayRef<std::string> Symbol)
+      : ASTType(Loc), Symbol(std::move(Symbol)) {
+    assert(Symbol.size() && "Empty Symbol");
+  }
 
-  llvm::Twine getTypeName() const override { return Symbol; }
+  llvm::Twine getTypeName() const override {
+    llvm::Twine Ty(Symbol[0]);
+    for (const auto &S : llvm::drop_begin(Symbol)) {
+      Ty.concat(".");
+      Ty.concat(S);
+    }
+    return Ty;
+  }
+
+  ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
-  std::string Symbol;
+  llvm::SmallVector<std::string, 4> Symbol;
 };
 
 class MutableType : public ASTType {
 public:
-  MutableType(SrcRange Loc) : ASTType(Loc) {}
+  MutableType(SrcRange Loc, ASTType *ElementType)
+      : ASTType(Loc), ElementType(ElementType) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("mut ");
@@ -50,13 +65,16 @@ public:
     return Ty;
   }
 
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
 private:
   ASTType *ElementType;
 };
 
 class PointerType : public ASTType {
 public:
-  PointerType(SrcRange Loc) : ASTType(Loc) {}
+  PointerType(SrcRange Loc, ASTType *ElementType, bool Nullable)
+      : ASTType(Loc), ElementType(ElementType), Nullable(Nullable) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("*");
@@ -67,6 +85,8 @@ public:
     return Ty;
   }
 
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
 private:
   ASTType *ElementType;
   bool Nullable;
@@ -74,7 +94,8 @@ private:
 
 class ArrayType : public ASTType {
 public:
-  ArrayType(SrcRange Loc) : ASTType(Loc) {}
+  ArrayType(SrcRange Loc, ASTType *ElementType)
+      : ASTType(Loc), ElementType(ElementType) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("[");
@@ -83,13 +104,17 @@ public:
     return Ty;
   }
 
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
 private:
   ASTType *ElementType;
 };
 
 class FunctionType : public ASTType {
 public:
-  FunctionType(SrcRange Loc) : ASTType(Loc) {}
+  FunctionType(SrcRange Loc, llvm::ArrayRef<ASTType *> ParamTypes,
+               ASTType *ReturnType)
+      : ASTType(Loc), ParamTypes(ParamTypes), ReturnType(ReturnType) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("func(");
@@ -103,6 +128,8 @@ public:
     return Ty;
   }
 
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
 private:
   llvm::SmallVector<ASTType *, 4> ParamTypes;
   ASTType *ReturnType;
@@ -110,7 +137,11 @@ private:
 
 class ObjectType : public ASTType {
 public:
-  ObjectType(SrcRange Loc) : ASTType(Loc) {}
+  using Field = std::pair<std::string, ASTType *>;
+
+public:
+  ObjectType(SrcRange Loc, llvm::ArrayRef<Field> Fields)
+      : ASTType(Loc), Fields(Fields) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("{");
@@ -126,13 +157,19 @@ public:
     return Ty;
   }
 
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
 private:
-  llvm::SmallVector<std::pair<std::string, ASTType *>> Fields;
+  llvm::SmallVector<Field> Fields;
 };
 
 class EnumType : public ASTType {
 public:
-  EnumType(SrcRange Loc) : ASTType(Loc) {}
+  using Member = std::pair<std::string, ASTType *>;
+
+public:
+  EnumType(SrcRange Loc, llvm::ArrayRef<Member> Members)
+      : ASTType(Loc), Members(Members) {}
 
   llvm::Twine getTypeName() const override {
     llvm::Twine Ty("enum {");
@@ -147,7 +184,11 @@ public:
     Ty.concat("}");
     return Ty;
   }
-  llvm::SmallVector<std::pair<std::string, ASTType *>> Members;
+
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
+private:
+  llvm::SmallVector<Member> Members;
 };
 
 class Decl : public ASTNode {
@@ -227,6 +268,7 @@ public:
 private:
   Visibility Vis = Visibility::Private;
   std::string Name;
+  
 };
 
 class FieldDecl;

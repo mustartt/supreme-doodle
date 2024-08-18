@@ -11,6 +11,39 @@ namespace rx::ast {
 
 class ASTContext {
 public:
+  DeclRefType *createDeclRefType(SrcRange Loc, llvm::ArrayRef<std::string> Symbols) {
+    return addToContext<DeclRefType>(Loc, Symbols);
+  }
+
+  MutableType *createMutableType(SrcRange Loc, ASTType *ElementType) {
+    return addToContext<MutableType>(Loc, ElementType);
+  }
+
+  PointerType *createPointerType(SrcRange Loc, ASTType *ElementType,
+                                 bool Nullable) {
+    return addToContext<PointerType>(Loc, ElementType, Nullable);
+  }
+
+  ArrayType *createArrayType(SrcRange Loc, ASTType *ElementType) {
+    return addToContext<ArrayType>(Loc, ElementType);
+  }
+
+  FunctionType *createFunctionType(SrcRange Loc,
+                                   llvm::ArrayRef<ASTType *> ParamTypes,
+                                   ASTType *ReturnType) {
+    return addToContext<FunctionType>(Loc, ParamTypes, ReturnType);
+  }
+
+  ObjectType *createObjectType(SrcRange Loc,
+                               llvm::ArrayRef<ObjectType::Field> Fields) {
+    return addToContext<ObjectType>(Loc, Fields);
+  }
+
+  EnumType *createEnumType(SrcRange Loc,
+                           llvm::ArrayRef<EnumType::Member> Members) {
+    return addToContext<EnumType>(Loc, Members);
+  }
+
   ProgramDecl *createProgramDecl(SrcRange Loc, PackageDecl *Package,
                                  llvm::ArrayRef<ImportDecl *> Imports,
                                  llvm::ArrayRef<Decl *> Decls) {

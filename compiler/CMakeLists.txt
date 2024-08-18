@@ -28,6 +28,10 @@ target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
 target_link_libraries(parse-tree PRIVATE parser)
 
+add_executable(driver driver.cpp)
+target_compile_options(driver PRIVATE -fno-rtti)
+target_link_libraries(driver PRIVATE ${llvm_libs})
+
 add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 
         -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> 
