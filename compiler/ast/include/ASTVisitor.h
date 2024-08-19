@@ -10,6 +10,7 @@ class ImportDecl;
 class VarDecl;
 class TypeDecl;
 class UseDecl;
+class ImplDecl;
 class FuncDecl;
 class FuncParamDecl;
 class BaseDeclVisitor {
@@ -22,6 +23,7 @@ public:
   virtual void visit(VarDecl *node) = 0;
   virtual void visit(TypeDecl *node) = 0;
   virtual void visit(UseDecl *node) = 0;
+  virtual void visit(ImplDecl *node) = 0;
   virtual void visit(FuncDecl *node) = 0;
   virtual void visit(FuncParamDecl *node) = 0;
 };

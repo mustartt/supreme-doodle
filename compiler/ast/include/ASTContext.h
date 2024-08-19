@@ -80,6 +80,13 @@ public:
     return addToContext<UseDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
   }
 
+  ImplDecl *createImpleDecl(SrcRange Loc, SrcRange DeclLoc,
+                            llvm::ArrayRef<std::string> TypeName,
+                            Visibility Vis,
+                            llvm::ArrayRef<FuncDecl *> Impls) {
+    return addToContext<ImplDecl>(Loc, DeclLoc, TypeName, Vis, Impls);
+  }
+
   FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
                            Visibility Vis,
                            llvm::ArrayRef<FuncParamDecl *> Params,

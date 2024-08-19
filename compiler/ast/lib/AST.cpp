@@ -10,12 +10,12 @@ void FunctionType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void ArrayType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void ObjectType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void EnumType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
-
 void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void TypeDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void UseDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+void ImplDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void VarDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncParamDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }

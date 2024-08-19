@@ -309,6 +309,24 @@ private:
   Visibility Vis = Visibility::Private;
 };
 
+class FuncDecl;
+class ImplDecl : public Decl {
+public:
+  ImplDecl(SrcRange Loc, SrcRange DeclLoc, llvm::ArrayRef<std::string> TypeName,
+           Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls)
+      : Decl(Loc, DeclLoc, JoinPath(TypeName)), Impls(Impls), Vis(Vis) {}
+
+  Visibility getVisibility() const { return Vis; }
+  llvm::ArrayRef<FuncDecl *> getImpls() const { return Impls; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
+
+private:
+  llvm::SmallVector<std::string, 4> TypeName;
+  llvm::SmallVector<FuncDecl *, 4> Impls;
+  Visibility Vis;
+};
+
 class Expression;
 class VarDecl : public Decl {
 public:

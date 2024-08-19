@@ -27,6 +27,7 @@ public:
   void visit(VarDecl *node) override;
   void visit(TypeDecl *node) override;
   void visit(UseDecl *node) override;
+  void visit(ImplDecl *node) override;
   void visit(FuncDecl *node) override;
   void visit(FuncParamDecl *node) override;
   void visit(BlockStmt *node) override;
@@ -199,6 +200,22 @@ void ASTPrinterVisitor::visit(UseDecl *Node) {
      << Node->getType()->getTypeName();
 
   printNodePrefix(Str);
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(ImplDecl *Node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+
+  Os << "ImplDecl: " << Node << " " << Node->getVisibility() << " "
+     << Node->getName() << " " << Node->Loc;
+  printNodePrefix(Str);
+
+  for (const auto [Idx, Impl] : llvm::enumerate(Node->getImpls())) {
+    Scope _(*this, Idx == Node->getImpls().size() - 1);
+    Impl->accept(*this);
+  }
+
   DepthFlag[Depth] = true;
 }
 

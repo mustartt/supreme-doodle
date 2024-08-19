@@ -254,6 +254,30 @@ public:
         Context.createUseDecl(Loc, DeclLoc, std::move(Name), Vis, Type));
   }
 
+  std::any visitImpl_decl(LangParser::Impl_declContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Vis = ctx->visibility()
+                   ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
+                   : ast::Visibility::Private;
+    auto DeclLoc = getRange(ctx->qualified_identifier()->getSourceInterval());
+    auto TypeName = std::any_cast<std::vector<std::string>>(
+        visit(ctx->qualified_identifier()));
+
+    llvm::SmallVector<ast::FuncDecl *, 4> Impls;
+
+    for (auto *F : ctx->func_decl()) {
+      auto *I = std::any_cast<ast::Decl *>(visit(F));
+      auto *Impl = dynamic_cast<ast::FuncDecl *>(I);
+      assert(Impl && "Impl is not a FuncDecl");
+      Impls.push_back(Impl);
+    }
+
+    return static_cast<ast::Decl *>(
+        Context.createImpleDecl(Loc, DeclLoc, TypeName, Vis, Impls));
+  }
+
   std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());

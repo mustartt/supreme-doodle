@@ -1,0 +1,12 @@
+// RUN: %parse-tree --mode ast %s | FileCheck %s
+
+type id = i64
+
+impl id {
+    func increment(self: id) id {}
+}
+
+// CHECK: TypeDecl: [[ADDR:0x[0-9a-z]+]] Private id
+// CHECK: ImplDecl: [[ADDR:0x[0-9a-z]+]] Private id
+// CHECK: FuncDecl: [[ADDR:0x[0-9a-z]+]] Private increment
+

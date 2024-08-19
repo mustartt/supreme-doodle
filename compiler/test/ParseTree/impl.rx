@@ -1,0 +1,16 @@
+// RUN: %parse-tree --mode tree %s | FileCheck %s
+
+type id = i64
+
+impl id {}
+
+// CHECK: impl_decl impl
+// CHECK: qualified_identifier id
+
+impl id {
+    func increment(self: id) id {}
+}
+
+// CHECK: impl_decl impl
+// CHECK: qualified_identifier id
+// CHECK: func_decl func increment

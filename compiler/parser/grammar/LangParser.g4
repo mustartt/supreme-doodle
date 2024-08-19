@@ -1,22 +1,16 @@
 parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
-program: package_decl? import_stmt* (global_decl SEMI?)* EOF
-    ;
+program: package_decl? import_stmt* (global_decl SEMI?)* EOF ;
 
-qualified_identifier: IDENTIFIER (DOT IDENTIFIER)*
-    ;
+qualified_identifier: IDENTIFIER (DOT IDENTIFIER)* ;
 
-visibility: PUBLIC | PRIVATE
-    ;
+visibility: PUBLIC | PRIVATE ;
 
-package_decl: PACKAGE IDENTIFIER
-    ;
+package_decl: PACKAGE IDENTIFIER ;
 
-import_stmt: IMPORT import_path (AS IDENTIFIER)?
-    ;
-import_path: IDENTIFIER (DOT IDENTIFIER)*
-    ;
+import_stmt: IMPORT import_path (AS IDENTIFIER)? ;
+import_path: IDENTIFIER (DOT IDENTIFIER)* ;
 
 global_decl
     : type_decl
@@ -27,8 +21,7 @@ global_decl
     ;
 
 impl_decl: 
-    IMPL qualified_identifier 
-        (FOR qualified_identifier)? 
+    visibility? IMPL qualified_identifier 
     LCURLY func_decl* RCURLY
     ;
 
