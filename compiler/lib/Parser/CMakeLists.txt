@@ -1,4 +1,4 @@
-set(ANTLR4_JAR_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/antlr/antlr-4.13.1.jar)
+set(ANTLR4_JAR_LOCATION ${PROJECT_SOURCE_DIR}/third-party/antlr/antlr-4.13.1.jar)
 
 find_package(antlr4-runtime REQUIRED)
 find_package(antlr4-generator REQUIRED)
@@ -23,25 +23,23 @@ antlr4_generate(
     "${ANTLR4_TOKEN_DIRECTORY_rx_lexer}"
 )
 
+
 add_library(
     parser STATIC
-    include/Parser/Parser.h
-    lib/Parser.cpp 
-    lib/ParserError.cpp
-    lib/ParserErrorListener.h
-    lib/ParseTreeVisitor.h
     ${ANTLR4_SRC_FILES_rx_lexer} 
     ${ANTLR4_SRC_FILES_rx_parser}
+    ${PROJECT_SOURCE_DIR}/include/rxc/Parser/Parser.h
+    Parser.cpp 
+    ParserError.cpp
+    ParserErrorListener.h
+    ParseTreeVisitor.h
 )
-add_dependencies(parser antlr4_shared)
-
-target_link_libraries(parser PUBLIC ast)
-target_link_libraries(parser PRIVATE antlr4_shared)
-
-target_include_directories(parser PUBLIC include)
 target_include_directories(parser PRIVATE 
     ${ANTLR4_INCLUDE_DIR} 
     ${ANTLR4_INCLUDE_DIR_rx_lexer} 
     ${ANTLR4_INCLUDE_DIR_rx_parser}
 )
+add_dependencies(parser antlr4_shared)
+target_link_libraries(parser PUBLIC ast)
+target_link_libraries(parser PRIVATE antlr4_shared)
 

@@ -1,10 +1,11 @@
-#include "ASTPrinter.h"
-#include "AST.h"
-#include "ASTVisitor.h"
+#include "rxc/AST/AST.h"
+#include "rxc/AST/ASTPrinter.h"
+#include "rxc/AST/ASTVisitor.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <llvm/Support/Format.h>
-#include <llvm/Support/FormatVariadic.h>
+#include "llvm/Support/Format.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace rx::ast {
 

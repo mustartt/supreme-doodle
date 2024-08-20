@@ -2,10 +2,9 @@
 #define PARSER_PARSERERROR_LISTENER
 
 #include "BaseErrorListener.h"
-#include "SrcManager.h"
+#include "rxc/AST/SrcManager.h"
 #include "Token.h"
-#include "Parser/Parser.h"
-#include "llvm/Support/raw_ostream.h"
+#include "rxc/Parser/Parser.h"
 
 namespace rx::parser {
 

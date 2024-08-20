@@ -6,7 +6,7 @@
 #include "llvm/Support/MemoryBufferRef.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "SrcManager.h"
+#include "rxc/AST/SrcManager.h"
 
 namespace antlr4::tree {
 class ParseTree;

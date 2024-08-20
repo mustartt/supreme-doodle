@@ -1,11 +1,11 @@
 #ifndef PARSER_PARSETREEVISITOR_H
 #define PARSER_PARSETREEVISITOR_H
 
-#include "AST.h"
+#include "rxc/AST/AST.h"
+#include "rxc/AST/ASTContext.h"
 #include "LangParserBaseVisitor.h"
-
-#include "ASTContext.h"
 #include "llvm/ADT/SmallVector.h"
+
 #include <any>
 #include <cassert>
 

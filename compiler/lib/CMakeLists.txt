@@ -1,0 +1,5 @@
+add_subdirectory(AST)
+add_subdirectory(Package)
+add_subdirectory(Parser)
+add_subdirectory(Types)
+

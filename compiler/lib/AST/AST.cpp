@@ -1,5 +1,5 @@
-#include "AST.h"
-#include "ASTVisitor.h"
+#include "rxc/AST/AST.h"
+#include "rxc/AST/ASTVisitor.h"
 
 namespace rx::ast {
 

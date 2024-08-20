@@ -1,6 +1,6 @@
-#include "Parser/Parser.h"
+#include "rxc/Parser/Parser.h"
 
-#include "ASTPrinter.h"
+#include "rxc/AST/ASTPrinter.h"
 #include "CommonTokenStream.h"
 #include "LangLexer.h"
 #include "LangParser.h"

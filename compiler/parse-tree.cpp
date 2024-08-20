@@ -1,5 +1,5 @@
-#include "Parser/Parser.h"
-#include "ast/include/ASTContext.h"
+#include "rxc/Parser/Parser.h"
+#include "rxc/AST/ASTContext.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/InitLLVM.h"

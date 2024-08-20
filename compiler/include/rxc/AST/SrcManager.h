@@ -2,6 +2,7 @@
 #define AST_SRCMANAGER_H
 
 #include "llvm/Support/raw_ostream.h"
+#include <llvm/Support/MemoryBufferRef.h>
 
 namespace rx::ast {
 
@@ -18,6 +19,12 @@ public:
   size_t ColStart;
   size_t LineEnd;
   size_t ColEnd;
+};
+
+class SourceManager {
+
+private:
+  llvm::MemoryBufferRef File;
 };
 
 } // namespace rx::ast

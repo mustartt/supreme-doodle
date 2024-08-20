@@ -1,5 +1,13 @@
 # RX Compiler
 
+### Compiler Toolchain
+
+The compiler invocation `rxc` is the compiler driver responsible for invoking 
+the different processes in the tool chain.
+
+```
+rxc: rx-fe -> opt -> llc -> link
+```
 
 ### Package Format
 
