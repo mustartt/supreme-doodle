@@ -1,5 +1,7 @@
+#include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
 #include "rxc/Parser/Parser.h"
+#include "rxc/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/WithColor.h"
@@ -82,11 +84,12 @@ int main(int argc, char *argv[]) {
 
   FileContext F(std::move(*Result));
 
-  parser::Parser P(F.ASTCtx); 
-  P.parse(*F.FileBuf);
+  parser::Parser P(F.ASTCtx);
+  auto *Root = P.parse(*F.FileBuf);
   P.printAST(outs());
 
-  
+  sema::ForwardDeclarePass FDP;
+  FDP.run(static_cast<ast::ProgramDecl *>(Root));
 
   return 0;
 }

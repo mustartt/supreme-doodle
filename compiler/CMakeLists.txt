@@ -22,7 +22,7 @@ target_link_libraries(parse-tree PRIVATE parser)
 
 add_executable(rx-frontend frontend.cpp)
 target_compile_options(rx-frontend PRIVATE -fno-rtti)
-target_link_libraries(rx-frontend PRIVATE ${llvm_libs} parser ast)
+target_link_libraries(rx-frontend PRIVATE ${llvm_libs} parser ast sema)
 
 add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 

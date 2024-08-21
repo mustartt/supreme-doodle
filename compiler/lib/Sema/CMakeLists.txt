@@ -1,0 +1,9 @@
+add_library(
+    sema STATIC
+    ${PROJECT_SOURCE_DIR}/include/rxc/Sema/Sema.h
+    LexicalScope.h
+    ForwardDeclarePass.cpp
+)
+
+llvm_map_components_to_libnames(llvm_libs core support)
+target_link_libraries(sema PRIVATE ${llvm_libs})
