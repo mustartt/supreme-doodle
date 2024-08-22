@@ -1,11 +1,10 @@
-#include "rxc/AST/AST.h"
 #include "rxc/AST/ASTPrinter.h"
+#include "rxc/AST/AST.h"
 #include "rxc/AST/ASTVisitor.h"
 
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/Format.h"
-#include "llvm/Support/FormatVariadic.h"
+#include <cassert>
 
 namespace rx::ast {
 
@@ -101,6 +100,7 @@ void ASTPrinterVisitor::visit(ProgramDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "ProgramDecl: " << Node << " " << Node->Loc;
+  Os << " scope(" << Node->getLexicalScope() << ")";
 
   printNodePrefix(Str);
 
@@ -159,12 +159,11 @@ void ASTPrinterVisitor::visit(VarDecl *Node) {
   llvm::raw_string_ostream Os(Str);
   Os << "VarDecl: " << Node << " " << Node->getVisibility() << " "
      << Node->getName() << " " << Node->Loc;
+
   if (Node->getType()) {
-    Os << " '";
-    Os << Node->getType()->getTypeName();
-    Os << "'";
+    Os << " type(" << Node->getType()->getTypeName() << ")";
   } else {
-    Os << " '<unkown>'";
+    Os << " type(<unkown_type>)";
   }
 
   printNodePrefix(Str);
@@ -183,8 +182,13 @@ void ASTPrinterVisitor::visit(TypeDecl *Node) {
   llvm::raw_string_ostream Os(Str);
 
   Os << "TypeDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc << " "
-     << Node->getType()->getTypeName();
+     << Node->getName() << " " << Node->Loc;
+
+  if (Node->getType()) {
+    Os << " type(" << Node->getType()->getTypeName() << ")";
+  } else {
+    Os << " type(<unkown_type>)";
+  }
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -197,8 +201,13 @@ void ASTPrinterVisitor::visit(UseDecl *Node) {
   llvm::raw_string_ostream Os(Str);
 
   Os << "UseDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc << " "
-     << Node->getType()->getTypeName();
+     << Node->getName() << " " << Node->Loc;
+
+  if (Node->getType()) {
+    Os << " type(" << Node->getType()->getTypeName() << ")";
+  } else {
+    Os << " type(<unkown_type>)";
+  }
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -210,6 +219,15 @@ void ASTPrinterVisitor::visit(ImplDecl *Node) {
 
   Os << "ImplDecl: " << Node << " " << Node->getVisibility() << " "
      << Node->getName() << " " << Node->Loc;
+
+  if (Node->getType()) {
+    Os << " type(" << Node->getType()->getTypeName() << ")";
+  } else {
+    Os << " type(<unkown_type>)";
+  }
+
+  Os << " scope(" << Node->getLexicalScope() << ")";
+
   printNodePrefix(Str);
 
   for (const auto [Idx, Impl] : llvm::enumerate(Node->getImpls())) {
@@ -225,6 +243,14 @@ void ASTPrinterVisitor::visit(FuncDecl *Node) {
   llvm::raw_string_ostream Os(Str);
   Os << "FuncDecl: " << Node << " " << Node->getVisibility() << " "
      << Node->getName() << " " << Node->Loc;
+
+  if (Node->getType()) {
+    Os << " type(" << Node->getType()->getTypeName() << ")";
+  } else {
+    Os << " type(<unkown_type>)";
+  }
+
+  Os << " scope(" << Node->getLexicalScope() << ")";
 
   printNodePrefix(Str);
 
@@ -245,6 +271,12 @@ void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "FuncParamDecl: " << Node << " " << Node->getName() << " " << Node->Loc;
+
+  if (Node->getType()) {
+    Os << " type(" << Node->getType()->getTypeName() << ")";
+  } else {
+    Os << " type(<unkown_type>)";
+  }
 
   printNodePrefix(Str);
 

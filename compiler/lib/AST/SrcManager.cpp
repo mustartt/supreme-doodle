@@ -13,7 +13,7 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const SrcRange &loc) {
   if (loc.LineStart == 0) {
     return Os << "<invalid loc>";
   }
-  return Os << "<" << loc.LineStart << ":" << loc.ColStart << ", "
+  return Os << "<" << loc.LineStart << ":" << loc.ColStart << ","
             << loc.LineEnd << ":" << loc.ColEnd << ">";
 }
 

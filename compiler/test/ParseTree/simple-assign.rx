@@ -9,7 +9,7 @@ func simple() {
 // CHECK: decl_stmt
 // CHECK: var_decl let a
 // CHECK: type mut
-// CHECK: qualified_identifier i32
+// CHECK: identifier i32
 
 // CHECK: expr_stmt
 // CHECK: a

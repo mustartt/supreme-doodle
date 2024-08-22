@@ -6,13 +6,19 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/ErrorHandling.h>
+#include <map>
 
 namespace rx::sema {
 
 class LexicalScope {
 public:
-  LexicalScope() : Parent(nullptr), SymbolTable() {}
-  LexicalScope(LexicalScope *Parent) : Parent(Parent), SymbolTable() {}
+  enum class Kind { Module, Function, Block, Impl };
+
+  LexicalScope() = delete;
+  LexicalScope(Kind Type) : Parent(nullptr), Type(Type), SymbolTable() {}
+  LexicalScope(LexicalScope *Parent, Kind Type)
+      : Parent(Parent), Type(Type), SymbolTable() {}
   ~LexicalScope() = default;
 
   LexicalScope(const LexicalScope &) = delete;
@@ -43,9 +49,25 @@ public:
     return SymbolTable[Symbol];
   }
 
+  static std::string GetKindString(Kind Value) {
+    switch (Value) {
+    case Kind::Module:
+      return "Module";
+    case Kind::Function:
+      return "Function";
+    case Kind::Block:
+      return "Block";
+    case Kind::Impl:
+      return "Impl";
+    default:
+      llvm_unreachable("Invalid Module Kind");
+    }
+  }
+
   void dump() const {
     llvm::outs() << "LexicalScope: " << this << "\n"
                  << "  Parent: " << Parent << "\n"
+                 << "  Kind: " << GetKindString(Type) << "\n"
                  << "  Symbols:\n";
     for (const auto &[Symbol, Values] : SymbolTable) {
       llvm::outs() << "    " << Symbol << ": ";
@@ -58,6 +80,7 @@ public:
 
 private:
   LexicalScope *Parent;
+  Kind Type;
   llvm::StringMap<llvm::SmallVector<ast::Decl *, 4>> SymbolTable;
 };
 } // namespace rx::sema

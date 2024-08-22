@@ -17,6 +17,11 @@ public:
   void run(ast::ProgramDecl *) override;
 };
 
+class ResolveGlobalType : public SemaPass {
+public:
+  void run(ast::ProgramDecl *) override;
+};
+
 } // namespace rx::sema
 
 #endif

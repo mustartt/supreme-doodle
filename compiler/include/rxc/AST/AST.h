@@ -9,6 +9,10 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
 
+namespace rx::sema {
+class LexicalScope;
+}
+
 namespace rx::ast {
 
 class BaseDeclVisitor;
@@ -16,7 +20,7 @@ class BaseStmtVisitor;
 class BaseExprVisitor;
 class BaseTypeVisitor;
 
-#define ACCEPT_VISITOR(TYPE) virtual void accept(TYPE &visitor);
+#define ACCEPT_VISITOR(TYPE) virtual void accept(TYPE &visitor) override;
 
 class ASTNode {
 public:
@@ -25,34 +29,66 @@ public:
   SrcRange Loc;
 };
 
+// Baseclass to represent ast nodes that creates a lexical scope
+class ScopedASTNode {
+public:
+  ScopedASTNode() : Scope(nullptr) {}
+  virtual ~ScopedASTNode() = default;
+
+public:
+  sema::LexicalScope *getLexicalScope() { return Scope; }
+  sema::LexicalScope *getLexicalScope() const { return Scope; }
+
+  void setLexicalScope(sema::LexicalScope *Scope) { this->Scope = Scope; }
+
+private:
+  sema::LexicalScope *Scope;
+};
+
 class ASTType : public ASTNode {
 public:
   ASTType(SrcRange Loc) : ASTNode(Loc) {}
 
+  virtual void accept(BaseTypeVisitor &visitor) = 0;
   virtual std::string getTypeName() const = 0;
 };
 
 class DeclRefType : public ASTType {
 public:
-  DeclRefType(SrcRange Loc, llvm::ArrayRef<std::string> Symbol)
-      : ASTType(Loc), Symbol(Symbol) {
-    assert(Symbol.size() && "Empty Symbol");
+  DeclRefType(SrcRange Loc, std::string Symbol)
+      : ASTType(Loc), Symbol(std::move(Symbol)) {
+    assert(this->Symbol.size() && "Empty Symbol");
+  }
+
+  std::string getTypeName() const override { return Symbol; }
+
+  void setReferencedType(ASTType *Type) { this->Type = Type; }
+
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
+private:
+  std::string Symbol;
+  ASTType *Type;
+};
+
+class AccessType : public ASTType {
+public:
+  AccessType(SrcRange Loc, std::string Symbol, ASTType *ParentType)
+      : ASTType(Loc), Symbol(std::move(Symbol)), ParentType(ParentType) {
+    assert(this->Symbol.size() && "Empty Symbol");
+    assert(this->ParentType && "Must have parent");
   }
 
   std::string getTypeName() const override {
-    std::string Result;
-    for (const auto &[Idx, S] : llvm::enumerate(Symbol)) {
-      Result += S;
-      if (Idx + 1 != Symbol.size())
-        Result += ".";
-    }
-    return Result;
+    assert(ParentType && "Must have parent");
+    return ParentType->getTypeName() + "." + Symbol;
   }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
-  llvm::SmallVector<std::string, 4> Symbol;
+  std::string Symbol;
+  ASTType *ParentType;
 };
 
 class MutableType : public ASTType {
@@ -212,7 +248,7 @@ protected:
 
 class PackageDecl;
 class ImportDecl;
-class ProgramDecl : public Decl {
+class ProgramDecl : public Decl, public ScopedASTNode {
 public:
   ProgramDecl(SrcRange Loc, PackageDecl *Package,
               llvm::ArrayRef<ImportDecl *> Imports,
@@ -310,11 +346,15 @@ private:
 };
 
 class FuncDecl;
-class ImplDecl : public Decl {
+
+class ImplDecl : public Decl, public ScopedASTNode {
 public:
-  ImplDecl(SrcRange Loc, SrcRange DeclLoc, llvm::ArrayRef<std::string> TypeName,
-           Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls)
-      : Decl(Loc, DeclLoc, JoinPath(TypeName)), Impls(Impls), Vis(Vis) {}
+  ImplDecl(SrcRange Loc, SrcRange DeclLoc, ASTType *ImplType, Visibility Vis,
+           llvm::ArrayRef<FuncDecl *> Impls)
+      : Decl(Loc, DeclLoc, ImplType->getTypeName()), ImplType(ImplType),
+        Impls(Impls), Vis(Vis) {
+    assert(ImplType);
+  }
 
   Visibility getVisibility() const { return Vis; }
   llvm::ArrayRef<FuncDecl *> getImpls() const { return Impls; }
@@ -322,11 +362,10 @@ public:
   ACCEPT_VISITOR(BaseDeclVisitor);
 
 private:
-  llvm::SmallVector<std::string, 4> TypeName;
+  ASTType *ImplType;
   llvm::SmallVector<FuncDecl *, 4> Impls;
   Visibility Vis;
 };
-
 class Expression;
 class VarDecl : public Decl {
 public:
@@ -347,7 +386,7 @@ private:
 
 class FuncParamDecl;
 class BlockStmt;
-class FuncDecl : public Decl {
+class FuncDecl : public Decl, public ScopedASTNode {
 public:
   FuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
            llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
@@ -388,7 +427,7 @@ public:
   virtual void accept(BaseStmtVisitor &visitor) = 0;
 };
 
-class BlockStmt : public Stmt {
+class BlockStmt : public Stmt, public ScopedASTNode {
 public:
   BlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts)
       : Stmt(Loc), Stmts(Stmts) {}

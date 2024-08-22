@@ -4,12 +4,14 @@
 namespace rx::ast {
 
 void DeclRefType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+void AccessType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void MutableType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void PointerType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void FunctionType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void ArrayType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void ObjectType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void EnumType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
+
 void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
@@ -19,11 +21,13 @@ void ImplDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void VarDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void FuncParamDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+
 void BlockStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void ReturnStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void DeclStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void ExprStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
 void ForStmt::accept(BaseStmtVisitor &visitor) { visitor.visit(this); }
+
 void IfExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void BinaryExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }
 void UnaryExpr::accept(BaseExprVisitor &visitor) { visitor.visit(this); }

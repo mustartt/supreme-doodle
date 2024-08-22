@@ -1,7 +1,6 @@
 #ifndef AST_VISITOR_H
 #define AST_VISITOR_H
 
-#include "AST.h"
 namespace rx::ast {
 
 class ProgramDecl;
@@ -29,6 +28,7 @@ public:
 };
 
 class DeclRefType;
+class AccessType;
 class MutableType;
 class PointerType;
 class ArrayType;
@@ -40,6 +40,7 @@ public:
   virtual ~BaseTypeVisitor() {}
 
   virtual void visit(DeclRefType *Node) = 0;
+  virtual void visit(AccessType *Node) = 0;
   virtual void visit(MutableType *Node) = 0;
   virtual void visit(PointerType *Node) = 0;
   virtual void visit(ArrayType *Node) = 0;

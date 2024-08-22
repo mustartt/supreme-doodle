@@ -6,5 +6,5 @@ public use alias = i32
 // CHECK: visibility public
 // CHECK-SAME: use alias = 
 // CHECK: type
-// CHECK: qualified_identifier i32
+// CHECK: identifier i32
 

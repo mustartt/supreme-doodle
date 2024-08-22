@@ -34,8 +34,9 @@ private:
   void visit(FuncParamDecl *Node) override;
 
 private:
-  LexicalScope *createNewScope(LexicalScope *Parent = nullptr) {
-    return &ScopeContext.emplace_back();
+  LexicalScope *createNewScope(LexicalScope::Kind Type,
+                               LexicalScope *Parent = nullptr) {
+    return &ScopeContext.emplace_back(Parent, Type);
   }
 
   void dump() const {
@@ -56,7 +57,9 @@ void ForwardDeclarePass::run(ProgramDecl *Program) {
 
 void ForwardDeclarePassImpl::visit(ProgramDecl *Node) {
   assert(Node && "Invalid visited node");
-  CurrentScope.push_back(createNewScope());
+  auto *LS = createNewScope(LexicalScope::Kind::Module);
+  CurrentScope.push_back(LS);
+  Node->setLexicalScope(LS);
 
   for (auto *D : Node->getDecls()) {
     D->accept(*this);
@@ -83,7 +86,9 @@ void ForwardDeclarePassImpl::visit(ImplDecl *Node) {
   assert(CurrentScope.size() && "Scope stack cannot be empty");
 
   auto *LS = CurrentScope.back();
-  CurrentScope.push_back(createNewScope(LS));
+  auto *ImplLS = createNewScope(LexicalScope::Kind::Impl, LS);
+  CurrentScope.push_back(ImplLS);
+  Node->setLexicalScope(ImplLS);
 
   for (auto *I : Node->getImpls()) {
     I->accept(*this);
@@ -103,7 +108,9 @@ void ForwardDeclarePassImpl::visit(FuncDecl *Node) {
   auto *LS = CurrentScope.back();
   LS->insert(Node->getName(), Node);
 
-  CurrentScope.push_back(createNewScope(LS));
+  auto *FuncLS = createNewScope(LexicalScope::Kind::Function, LS);
+  CurrentScope.push_back(FuncLS);
+  Node->setLexicalScope(FuncLS);
 
   for (auto *FP : Node->getParams()) {
     FP->accept(*this);

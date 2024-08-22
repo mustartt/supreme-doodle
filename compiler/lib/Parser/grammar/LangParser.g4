@@ -3,8 +3,6 @@ options { tokenVocab=LangLexer; }
 
 program: package_decl? import_stmt* (global_decl SEMI?)* EOF ;
 
-qualified_identifier: IDENTIFIER (DOT IDENTIFIER)* ;
-
 visibility: PUBLIC | PRIVATE ;
 
 package_decl: PACKAGE IDENTIFIER ;
@@ -21,7 +19,7 @@ global_decl
     ;
 
 impl_decl: 
-    visibility? IMPL qualified_identifier 
+    visibility? IMPL type 
     LCURLY func_decl* RCURLY
     ;
 
@@ -38,10 +36,7 @@ var_decl
 func_decl
     : visibility? FUNC IDENTIFIER
         LPAREN func_param_list? RPAREN 
-        func_return_type?
-        func_body? 
-    ;
-func_return_type: type ;
+        type? func_body? ;
 func_param_list: func_param_decl (COMMA func_param_decl)* ;
 func_param_decl: IDENTIFIER COLON type initializer? ;
 func_body: block_stmt ;
@@ -112,7 +107,8 @@ arguments: expr (COMMA expr)*;
 test_type: type+ EOF ;
 
 type: MUT type              #mutableType
-    | qualified_identifier  #declRefType
+    | type DOT identifier   #accessType
+    | identifier            #declRefType
     | pointer_type          #pointerType
     | array_type            #arrayType
     | function_type         #functionType

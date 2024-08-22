@@ -12,9 +12,13 @@ namespace rx::ast {
 
 class ASTContext {
 public:
-  DeclRefType *createDeclRefType(SrcRange Loc,
-                                 llvm::ArrayRef<std::string> Symbols) {
-    return addToContext<DeclRefType>(Loc, Symbols);
+  DeclRefType *createDeclRefType(SrcRange Loc, std::string Symbol) {
+    return addToContext<DeclRefType>(Loc, std::move(Symbol));
+  }
+
+  AccessType *createAccessType(SrcRange Loc, std::string Symbol,
+                               ASTType *ParentType) {
+    return addToContext<AccessType>(Loc, std::move(Symbol), ParentType);
   }
 
   MutableType *createMutableType(SrcRange Loc, ASTType *ElementType) {
@@ -81,10 +85,9 @@ public:
   }
 
   ImplDecl *createImpleDecl(SrcRange Loc, SrcRange DeclLoc,
-                            llvm::ArrayRef<std::string> TypeName,
-                            Visibility Vis,
-                            llvm::ArrayRef<FuncDecl *> Impls) {
-    return addToContext<ImplDecl>(Loc, DeclLoc, TypeName, Vis, Impls);
+                            ASTType* ImplType,
+                            Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls) {
+    return addToContext<ImplDecl>(Loc, DeclLoc, ImplType, Vis, Impls);
   }
 
   FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,

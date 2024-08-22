@@ -3,4 +3,9 @@
 public use alias = i32
 
 // CHECK: UseDecl: [[ADDR:0x[0-9a-fA-F]+]] Private alias
-// CHECK-SAME: i32
+// CHECK-SAME: type(i32)
+
+public use file = io.file
+
+// CHECK: UseDecl: [[ADDR:0x[0-9a-fA-F]+]] Private file
+// CHECK-SAME: type(io.file)

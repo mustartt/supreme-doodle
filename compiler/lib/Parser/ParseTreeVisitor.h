@@ -1,9 +1,9 @@
 #ifndef PARSER_PARSETREEVISITOR_H
 #define PARSER_PARSETREEVISITOR_H
 
+#include "LangParserBaseVisitor.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
-#include "LangParserBaseVisitor.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <any>
@@ -20,26 +20,26 @@ public:
 
 public:
   // types
-
-  std::any visitQualified_identifier(
-      LangParser::Qualified_identifierContext *ctx) override {
-    assert(ctx && "Invalid Node");
-    std::vector<std::string> Components;
-    for (const auto &C : ctx->IDENTIFIER()) {
-      Components.push_back(C->getText());
-    }
-    assert(Components.size() && "Cannot be empty");
-    return Components;
-  }
-
   std::any visitDeclRefType(LangParser::DeclRefTypeContext *ctx) override {
     assert(ctx && "Invalid Node");
 
     auto Loc = getRange(ctx->getSourceInterval());
-    auto Result = visit(ctx->qualified_identifier());
-    auto Symbols = std::any_cast<std::vector<std::string>>(Result);
+    auto Symbol = ctx->identifier()->getText();
 
-    return static_cast<ast::ASTType *>(Context.createDeclRefType(Loc, Symbols));
+    return static_cast<ast::ASTType *>(
+        Context.createDeclRefType(Loc, std::move(Symbol)));
+  }
+
+  std::any visitAccessType(LangParser::AccessTypeContext *ctx) override {
+    assert(ctx && "Invalid Node");
+
+    auto Loc = getRange(ctx->getSourceInterval());
+    auto Symbol = ctx->identifier()->getText();
+
+    auto *ParentType = std::any_cast<ast::ASTType *>(visit(ctx->type()));
+
+    return static_cast<ast::ASTType *>(
+        Context.createAccessType(Loc, std::move(Symbol), ParentType));
   }
 
   std::any visitMutableType(LangParser::MutableTypeContext *ctx) override {
@@ -261,9 +261,8 @@ public:
     auto Vis = ctx->visibility()
                    ? std::any_cast<ast::Visibility>(visit(ctx->visibility()))
                    : ast::Visibility::Private;
-    auto DeclLoc = getRange(ctx->qualified_identifier()->getSourceInterval());
-    auto TypeName = std::any_cast<std::vector<std::string>>(
-        visit(ctx->qualified_identifier()));
+    auto DeclLoc = getRange(ctx->type()->getSourceInterval());
+    auto *ImplType = std::any_cast<ast::ASTType *>(visit(ctx->type()));
 
     llvm::SmallVector<ast::FuncDecl *, 4> Impls;
 
@@ -274,8 +273,11 @@ public:
       Impls.push_back(Impl);
     }
 
-    return static_cast<ast::Decl *>(
-        Context.createImpleDecl(Loc, DeclLoc, TypeName, Vis, Impls));
+    auto *ImplNode =
+        Context.createImpleDecl(Loc, DeclLoc, ImplType, Vis, Impls);
+    ImplNode->setType(ImplType);
+
+    return static_cast<ast::Decl *>(ImplNode);
   }
 
   std::any visitFunc_decl(LangParser::Func_declContext *ctx) override {
@@ -288,17 +290,37 @@ public:
     auto DeclLoc = getRange(ctx->IDENTIFIER()->getSourceInterval());
 
     llvm::SmallVector<ast::FuncParamDecl *, 4> Params;
+    llvm::SmallVector<ast::ASTType *, 4> ParamTys;
+
     if (auto ParamList = ctx->func_param_list()) {
       for (const auto Param : ParamList->func_param_decl()) {
-        Params.push_back(std::any_cast<ast::FuncParamDecl *>(visit(Param)));
+        auto *PD = std::any_cast<ast::FuncParamDecl *>(visit(Param));
+        Params.push_back(PD);
+        ParamTys.push_back(PD->getType());
       }
     }
 
+    ast::ASTType *RetTy = nullptr;
+    if (ctx->type()) {
+      RetTy = std::any_cast<ast::ASTType *>(visit(ctx->type()));
+    } else {
+      auto ImplicitRetLoc = getRange(ctx->RPAREN()->getSourceInterval());
+      RetTy = Context.createDeclRefType(ImplicitRetLoc, "void");
+    }
+
+    auto StartInt = ctx->FUNC()->getSourceInterval();
+    auto EndInt = ctx->type() ? ctx->type()->getSourceInterval()
+                              : ctx->RPAREN()->getSourceInterval();
+    auto TypeDeclLoc = getRange(StartInt.Union(EndInt));
+    auto *FuncType = Context.createFunctionType(TypeDeclLoc, ParamTys, RetTy);
+
     auto Body = dynamic_cast<ast::BlockStmt *>(
         std::any_cast<ast::Stmt *>(visit(ctx->func_body())));
+    auto *FuncNode = Context.createFuncDecl(Loc, DeclLoc, std::move(Name), Vis,
+                                            Params, Body);
+    FuncNode->setType(FuncType);
 
-    return dynamic_cast<ast::Decl *>(Context.createFuncDecl(
-        Loc, DeclLoc, std::move(Name), Vis, Params, Body));
+    return dynamic_cast<ast::Decl *>(FuncNode);
   }
 
   std::any
@@ -314,8 +336,13 @@ public:
       DefaultValue = std::any_cast<ast::Expression *>(Result);
     }
 
-    return Context.createFuncParamDecl(Loc, DeclLoc, std::move(Name),
-                                       DefaultValue);
+    assert(ctx->type() && "Missing type declaration");
+    auto *Type = std::any_cast<ast::ASTType *>(visit(ctx->type()));
+    auto *Node = Context.createFuncParamDecl(Loc, DeclLoc, std::move(Name),
+                                             DefaultValue);
+    Node->setType(Type);
+
+    return Node;
   }
 
   std::any visitBlock_stmt(LangParser::Block_stmtContext *ctx) override {

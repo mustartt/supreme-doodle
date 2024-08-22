@@ -86,10 +86,17 @@ int main(int argc, char *argv[]) {
 
   parser::Parser P(F.ASTCtx);
   auto *Root = P.parse(*F.FileBuf);
+
+  outs() << "========== Before =========\n";
   P.printAST(outs());
+  outs() << "========== Before =========\n";
 
   sema::ForwardDeclarePass FDP;
   FDP.run(static_cast<ast::ProgramDecl *>(Root));
+
+  outs() << "========== After =========\n";
+  P.printAST(outs());
+  outs() << "========== After =========\n";
 
   return 0;
 }

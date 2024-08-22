@@ -14,11 +14,11 @@ public type Point = {
 
 // CHECK: object_field_type x :
 // CHECK: type
-// CHECK-NEXT: qualified_identifier i32
+// CHECK-NEXT: identifier i32
 
 // CHECK: object_field_type y :
 // CHECK: type
-// CHECK-NEXT: qualified_identifier i32
+// CHECK-NEXT: identifier i32
 
 impl Point {
     public func swap(self: *Point) {}
@@ -26,11 +26,11 @@ impl Point {
 
 // CHECK: global_decl
 // CHECK-NEXT: impl_decl
-// CHECK: qualified_identifier Point
+// CHECK: identifier Point
 // CHECK: func_decl
 // CHECK: visibility public
 // CHECK-SAME: func swap
 // CHECK: func_param_decl self :
 // CHECK: pointer_type *
-// CHECK: qualified_identifier Point
+// CHECK: identifier Point
 
