@@ -84,6 +84,8 @@ public:
     return ParentType->getTypeName() + "." + Symbol;
   }
 
+  ASTType *getParentType() const { return ParentType; }
+
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
@@ -99,6 +101,8 @@ public:
   std::string getTypeName() const override {
     return "mut " + ElementType->getTypeName();
   }
+
+  ASTType *getElementType() const { return ElementType; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
@@ -119,6 +123,8 @@ public:
     return Ty + ElementType->getTypeName();
   }
 
+  ASTType *getElementType() const { return ElementType; }
+
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
@@ -137,6 +143,8 @@ public:
     Ty += "]";
     return Ty;
   }
+
+  ASTType *getElementType() const { return ElementType; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
@@ -161,6 +169,9 @@ public:
     Ty += ReturnType->getTypeName();
     return Ty;
   }
+
+  llvm::ArrayRef<ASTType *> getParamTypes() const { return ParamTypes; }
+  ASTType *getReturnType() const { return ReturnType; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
@@ -191,6 +202,8 @@ public:
     return Ty;
   }
 
+  llvm::ArrayRef<Field> getFields() const { return Fields; }
+
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
@@ -220,6 +233,8 @@ public:
     Ty += " }";
     return Ty;
   }
+
+  llvm::ArrayRef<Member> getMembers() const { return Members; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 

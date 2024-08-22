@@ -64,6 +64,8 @@ void ForwardDeclarePassImpl::visit(ProgramDecl *Node) {
   for (auto *D : Node->getDecls()) {
     D->accept(*this);
   }
+
+  CurrentScope.pop_back();
 }
 
 void ForwardDeclarePassImpl::visit(VarDecl *Node) {
@@ -93,6 +95,8 @@ void ForwardDeclarePassImpl::visit(ImplDecl *Node) {
   for (auto *I : Node->getImpls()) {
     I->accept(*this);
   }
+
+  CurrentScope.pop_back();
 }
 
 void ForwardDeclarePassImpl::visit(UseDecl *Node) {
@@ -115,6 +119,8 @@ void ForwardDeclarePassImpl::visit(FuncDecl *Node) {
   for (auto *FP : Node->getParams()) {
     FP->accept(*this);
   }
+
+  CurrentScope.pop_back();
 }
 
 void ForwardDeclarePassImpl::visit(FuncParamDecl *Node) {

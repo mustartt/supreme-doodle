@@ -43,6 +43,52 @@ private:
   void visit(EnumType *Node) override;
 };
 
+void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
+  assert(Node && "Invalid visited node");
+}
+
+void ResolveGlobalTypePassImpl::visit(AccessType *Node) {
+  assert(Node && "Invalid visited node");
+  Node->getParentType()->accept(*this);
+}
+
+void ResolveGlobalTypePassImpl::visit(MutableType *Node) {
+  assert(Node && "Invalid visited node");
+  Node->getElementType()->accept(*this);
+}
+
+void ResolveGlobalTypePassImpl::visit(PointerType *Node) {
+  assert(Node && "Invalid visited node");
+  Node->getElementType()->accept(*this);
+}
+
+void ResolveGlobalTypePassImpl::visit(ArrayType *Node) {
+  assert(Node && "Invalid visited node");
+  Node->getElementType()->accept(*this);
+}
+
+void ResolveGlobalTypePassImpl::visit(FunctionType *Node) {
+  assert(Node && "Invalid visited node");
+  for (auto *P : Node->getParamTypes()) {
+    P->accept(*this);
+  }
+  Node->getReturnType()->accept(*this);
+}
+
+void ResolveGlobalTypePassImpl::visit(ObjectType *Node) {
+  assert(Node && "Invalid visited node");
+  for (auto &[_, FieldType] : Node->getFields()) {
+    FieldType->accept(*this);
+  }
+}
+
+void ResolveGlobalTypePassImpl::visit(EnumType *Node) {
+  assert(Node && "Invalid visited node");
+  for (auto &[_, MemberType] : Node->getMembers()) {
+    MemberType->accept(*this);
+  }
+}
+
 void ResolveGlobalTypePassImpl::visit(ProgramDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(Node->getLexicalScope() && "Should have Lexical Scope");
