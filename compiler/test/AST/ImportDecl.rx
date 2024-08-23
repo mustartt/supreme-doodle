@@ -1,4 +1,3 @@
 // RUN: 
 
-import "other.rx"
-import io.file
+import "UseDecl.rx"

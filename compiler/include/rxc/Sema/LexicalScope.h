@@ -7,6 +7,7 @@
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace rx::sema {
 
@@ -63,17 +64,17 @@ public:
     }
   }
 
-  void dump() const {
-    llvm::outs() << "LexicalScope: " << this << "\n"
-                 << "  Parent: " << Parent << "\n"
-                 << "  Kind: " << GetKindString(Type) << "\n"
-                 << "  Symbols:\n";
+  void debug(llvm::raw_ostream &OS) const {
+    OS << "LexicalScope: " << this << "\n"
+       << "  Parent: " << Parent << "\n"
+       << "  Kind: " << GetKindString(Type) << "\n"
+       << "  Symbols:\n";
     for (const auto &[Symbol, Values] : SymbolTable) {
-      llvm::outs() << "    " << Symbol << ": ";
+      OS << "    " << Symbol << ": ";
       for (const auto *D : Values) {
-        llvm::outs() << D << " ";
+        OS << D << " ";
       }
-      llvm::outs() << "\n";
+      OS << "\n";
     }
   }
 

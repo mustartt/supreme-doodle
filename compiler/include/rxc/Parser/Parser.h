@@ -14,7 +14,7 @@ class ParseTree;
 
 namespace rx::ast {
 class ASTContext;
-class ASTNode;
+class ProgramDecl;
 } // namespace rx::ast
 
 namespace rx::parser {
@@ -40,7 +40,7 @@ public:
   Parser(ast::ASTContext &Context) : Context(Context) {}
   ~Parser();
 
-  ast::ASTNode *parse(llvm::MemoryBufferRef Content, bool SkipAST = false);
+  ast::ProgramDecl *parse(llvm::MemoryBufferRef Content, bool SkipAST = false);
 
   void printAST(llvm::raw_ostream &) const;
   void printParseTree(llvm::raw_ostream &) const;
@@ -54,7 +54,7 @@ private:
   llvm::SmallVector<ParserError, 16> Errors;
   ParserImpl *Impl = nullptr;
 
-  ast::ASTNode *Root = nullptr;
+  ast::ProgramDecl *Root = nullptr;
   antlr4::tree::ParseTree *ParseTreeRoot = nullptr;
 };
 

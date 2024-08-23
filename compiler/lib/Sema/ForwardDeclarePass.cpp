@@ -39,12 +39,6 @@ private:
     return &ScopeContext.emplace_back(Parent, Type);
   }
 
-  void dump() const {
-    for (const auto &Scope : ScopeContext) {
-      Scope.dump();
-    }
-  }
-
   std::deque<LexicalScope> ScopeContext;
   llvm::SmallVector<LexicalScope *> CurrentScope;
 };
@@ -52,7 +46,6 @@ private:
 void ForwardDeclarePass::run(ProgramDecl *Program) {
   ForwardDeclarePassImpl Impl;
   Impl.visit(Program);
-  Impl.dump();
 }
 
 void ForwardDeclarePassImpl::visit(ProgramDecl *Node) {

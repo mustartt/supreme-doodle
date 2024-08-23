@@ -137,6 +137,16 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "ImportDecl: " << Node << " ";
+  switch (Node->getImportType()) {
+  case ImportDecl::ImportType::File: {
+    Os << "File ";
+    break;
+  }
+  case ImportDecl::ImportType::Module: {
+    Os << "Module ";
+    break;
+  }
+  }
 
   auto Path = Node->getImportPath();
   Os << Path;

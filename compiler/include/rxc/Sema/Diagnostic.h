@@ -10,8 +10,9 @@ class Diagnostic {
 public:
   enum class DiagnosticType { Error, Warning, Note };
 
+    
+
 private:
-  llvm::MemoryBufferRef FileRef;
   ast::SrcRange Loc;
   DiagnosticType Kind;
   std::string Message;

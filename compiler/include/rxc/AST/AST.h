@@ -298,11 +298,13 @@ public:
 public:
   ImportDecl(SrcRange Loc, SrcRange DeclLoc, ImportType Type, std::string Path,
              std::optional<std::string> Alias = std::nullopt)
-      : Decl(Loc, DeclLoc, std::move(Path)), Alias(std::move(Alias)) {}
+      : Decl(Loc, DeclLoc, std::move(Path)), Type(Type),
+        Alias(std::move(Alias)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
   llvm::StringRef getImportPath() const { return Name; }
+  ImportType getImportType() const { return Type; }
   std::optional<std::string> getAlias() const { return Alias; }
 
 private:

@@ -20,7 +20,7 @@ target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
 target_link_libraries(parse-tree PRIVATE parser)
 
-add_executable(rx-frontend frontend.cpp)
+add_executable(rx-frontend rx-frontend.cpp)
 target_compile_options(rx-frontend PRIVATE -fno-rtti)
 target_link_libraries(rx-frontend PRIVATE ${llvm_libs} parser ast sema)
 

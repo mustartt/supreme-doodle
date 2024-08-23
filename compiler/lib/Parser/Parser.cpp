@@ -29,7 +29,7 @@ Parser::~Parser() {
     delete Impl;
 }
 
-ast::ASTNode *Parser::parse(llvm::MemoryBufferRef Content, bool SkipAST) {
+ast::ProgramDecl *Parser::parse(llvm::MemoryBufferRef Content, bool SkipAST) {
   assert(!Impl && "Has existing state");
   Impl = new ParserImpl(Content);
 

@@ -3,6 +3,7 @@
 
 #include "LexicalScope.h"
 #include <deque>
+#include <llvm/Support/raw_ostream.h>
 
 namespace rx::sema {
 
@@ -21,12 +22,10 @@ public:
     return &ScopeStorage.emplace_back(Parent, Type);
   }
 
-  void dump() const {
-    llvm::outs() << "=== Start of LexicalContext Dump ===\n";
+  void debug(llvm::raw_ostream& OS) const {
     for (const auto &Scope : ScopeStorage) {
-      Scope.dump();
+      Scope.debug(OS);
     }
-    llvm::outs() << "=== End of LexicalContext Dump ===\n";
   }
 
 private:
