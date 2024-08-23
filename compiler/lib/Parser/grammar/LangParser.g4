@@ -8,7 +8,7 @@ visibility: PUBLIC | PRIVATE ;
 package_decl: PACKAGE IDENTIFIER ;
 
 import_stmt: IMPORT import_path (AS IDENTIFIER)? ;
-import_path: IDENTIFIER (DOT IDENTIFIER)* ;
+import_path: string_literal | IDENTIFIER (DOT IDENTIFIER)* ;
 
 global_decl
     : type_decl

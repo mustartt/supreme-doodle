@@ -8,6 +8,7 @@
 
 #include <any>
 #include <cassert>
+#include <llvm/ADT/STLExtras.h>
 
 using namespace antlr4;
 
@@ -167,23 +168,33 @@ public:
   std::any visitImport_stmt(LangParser::Import_stmtContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
-    auto Path =
-        std::any_cast<std::vector<std::string>>(visit(ctx->import_path()));
+    auto DeclLoc = getRange(ctx->import_path()->getSourceInterval());
+
+    std::string Path;
+    ast::ImportDecl::ImportType ImportKind;
+    auto *ImportPath = ctx->import_path();
+    if (ImportPath->string_literal()) {
+      auto FilePath = ImportPath->string_literal()->getText();
+      assert(FilePath.size() >= 2 && "Invalid file path");
+      Path = FilePath.substr(1, FilePath.size() - 2);
+      ImportKind = ast::ImportDecl::ImportType::File;
+    } else {
+      auto Components = ImportPath->IDENTIFIER();
+      assert(Components.size() && "Empty path");
+      Path = Components[0]->getText();
+      for (auto *Comp : llvm::drop_begin(Components)) {
+        Path += ".";
+        Path += Comp->getText();
+      }
+      ImportKind = ast::ImportDecl::ImportType::Module;
+    }
+
     std::optional<std::string> Alias;
     if (ctx->IDENTIFIER()) {
       Alias = ctx->IDENTIFIER()->getText();
     }
-    return Context.createImportDecl(Loc, Loc, Path, Alias);
-  }
-
-  std::any visitImport_path(LangParser::Import_pathContext *ctx) override {
-    assert(ctx && "Invalid Node");
-    std::vector<std::string> Path;
-    auto Components = ctx->IDENTIFIER();
-    for (const auto &Component : Components) {
-      Path.push_back(Component->getText());
-    }
-    return Path;
+    return Context.createImportDecl(Loc, DeclLoc, ImportKind, std::move(Path),
+                                    std::move(Alias));
   }
 
   std::any visitVisibility(LangParser::VisibilityContext *ctx) override {

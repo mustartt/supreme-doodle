@@ -291,30 +291,22 @@ public:
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
 
-static std::string JoinPath(llvm::ArrayRef<std::string> Path) {
-  std::string Result;
-  for (const auto &[Idx, P] : llvm::enumerate(Path)) {
-    Result += P;
-    if (Idx + 1 != Path.size())
-      Result += ".";
-  }
-  return Result;
-}
-
 class ImportDecl : public Decl {
 public:
-  ImportDecl(SrcRange Loc, SrcRange DeclLoc, llvm::ArrayRef<std::string> Path,
+  enum class ImportType { File, Module };
+
+public:
+  ImportDecl(SrcRange Loc, SrcRange DeclLoc, ImportType Type, std::string Path,
              std::optional<std::string> Alias = std::nullopt)
-      : Decl(Loc, DeclLoc, JoinPath(Path)), Path(Path),
-        Alias(std::move(Alias)) {}
+      : Decl(Loc, DeclLoc, std::move(Path)), Alias(std::move(Alias)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
-  llvm::ArrayRef<std::string> getPath() const { return Path; }
+  llvm::StringRef getImportPath() const { return Name; }
   std::optional<std::string> getAlias() const { return Alias; }
 
 private:
-  llvm::SmallVector<std::string, 4> Path;
+  ImportType Type;
   std::optional<std::string> Alias;
 };
 

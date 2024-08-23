@@ -1,4 +1,4 @@
-#include "LexicalScope.h"
+#include "rxc/Sema/LexicalScope.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTVisitor.h"
 #include "rxc/Sema/Sema.h"

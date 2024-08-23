@@ -137,18 +137,13 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
   Os << "ImportDecl: " << Node << " ";
-  auto Path = Node->getPath();
-  assert(Path.size() && "Path cannot be empty");
 
-  Os << Path[0];
-  for (auto Name : llvm::drop_begin(Path)) {
-    Os << "." << Name;
-  }
-  Os << " ";
+  auto Path = Node->getImportPath();
+  Os << Path;
   if (Node->getAlias()) {
-    Os << "alias " << Node->getAlias();
+    Os << " alias " << Node->getAlias();
   }
-  Os << Node->Loc;
+  Os << " " << Node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;

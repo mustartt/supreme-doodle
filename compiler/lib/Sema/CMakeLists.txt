@@ -1,7 +1,8 @@
 add_library(
     sema STATIC
     ${PROJECT_SOURCE_DIR}/include/rxc/Sema/Sema.h
-    LexicalScope.h
+    ${PROJECT_SOURCE_DIR}/include/rxc/Sema/LexicalContext.h
+    ${PROJECT_SOURCE_DIR}/include/rxc/Sema/LexicalScope.h
     ForwardDeclarePass.cpp
     ResolveGlobalTypePass.cpp
 )

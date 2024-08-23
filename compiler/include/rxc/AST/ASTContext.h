@@ -62,10 +62,11 @@ public:
   }
 
   ImportDecl *
-  createImportDecl(SrcRange Loc, SrcRange DeclLoc,
-                   llvm::ArrayRef<std::string> Path,
+  createImportDecl(SrcRange Loc, SrcRange DeclLoc, ImportDecl::ImportType Type,
+                   std::string Path,
                    std::optional<std::string> Alias = std::nullopt) {
-    return addToContext<ImportDecl>(Loc, DeclLoc, Path, std::move(Alias));
+    return addToContext<ImportDecl>(Loc, DeclLoc, Type, std::move(Path),
+                                    std::move(Alias));
   }
 
   VarDecl *createVarDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
@@ -84,8 +85,7 @@ public:
     return addToContext<UseDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
   }
 
-  ImplDecl *createImpleDecl(SrcRange Loc, SrcRange DeclLoc,
-                            ASTType* ImplType,
+  ImplDecl *createImpleDecl(SrcRange Loc, SrcRange DeclLoc, ASTType *ImplType,
                             Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls) {
     return addToContext<ImplDecl>(Loc, DeclLoc, ImplType, Vis, Impls);
   }

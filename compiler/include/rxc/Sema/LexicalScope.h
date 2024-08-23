@@ -7,7 +7,6 @@
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/ErrorHandling.h>
-#include <map>
 
 namespace rx::sema {
 

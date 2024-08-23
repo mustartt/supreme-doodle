@@ -1,6 +1,7 @@
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
 #include "rxc/Parser/Parser.h"
+#include "rxc/Sema/LexicalContext.h"
 #include "rxc/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
@@ -33,29 +34,30 @@ std::pair<StringRef, StringRef> SplitPackage(const StringRef Pkg) {
   return std::make_pair(Pkg.substr(0, First), Pkg.substr(First + 1));
 }
 
-struct FileContext {
+class SourceFile {
 public:
-  FileContext(llvm::StringRef Filename, std::unique_ptr<MemoryBuffer> FileBuf)
+  SourceFile(llvm::StringRef Filename, std::unique_ptr<MemoryBuffer> FileBuf)
       : Filename(Filename), FileBuf(std::move(FileBuf)) {}
 
-  FileContext(const FileContext &) = delete;
-  FileContext(FileContext &&) = default;
-  FileContext &operator=(const FileContext &) = delete;
-  FileContext &operator=(FileContext &&) = default;
-  ~FileContext() = default;
+  SourceFile(const SourceFile &) = delete;
+  SourceFile(SourceFile &&) = default;
+  SourceFile &operator=(const SourceFile &) = delete;
+  SourceFile &operator=(SourceFile &&) = default;
+  ~SourceFile() = default;
 
 public:
   std::string Filename;
   ast::ASTContext ASTCtx;
+  sema::LexicalContext LexContext;
   std::unique_ptr<MemoryBuffer> FileBuf;
 };
 
-static ErrorOr<FileContext> OpenFile(llvm::StringRef Filename) {
+static ErrorOr<SourceFile> OpenFile(llvm::StringRef Filename) {
   auto Result = llvm::MemoryBuffer::getFile(Filename);
   if (auto EC = Result.getError()) {
     return EC;
   }
-  return FileContext(Filename, std::move(*Result));
+  return SourceFile(Filename, std::move(*Result));
 }
 
 int main(int argc, char *argv[]) {
@@ -82,7 +84,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  FileContext F(std::move(*Result));
+  SourceFile F(std::move(*Result));
 
   parser::Parser P(F.ASTCtx);
   auto *Root = P.parse(*F.FileBuf);
