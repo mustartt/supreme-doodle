@@ -79,7 +79,8 @@ int main(int argc, const char *argv[]) {
 
   rx::ast::ASTContext Context;
   rx::parser::Parser TheParser(&CDC, Context);
-  rx::SourceFile SF("", std::move(Buffer));
+  rx::SourceFile SF(InputFilename.empty() ? "stdin" : InputFilename.getValue(),
+                    std::move(Buffer));
 
   TheParser.parse(&SF, ProductionMode == "tree");
 

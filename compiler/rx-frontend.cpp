@@ -1,13 +1,7 @@
-#include "rxc/AST/AST.h"
-#include "rxc/AST/ASTContext.h"
-#include "rxc/AST/ASTPrinter.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Frontend/TranslationUnitContext.h"
-#include "rxc/Parser/Parser.h"
-#include "rxc/Sema/LexicalContext.h"
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Path.h"
 #include "llvm/Support/WithColor.h"
 #include <llvm/ADT/DepthFirstIterator.h>
 #include <llvm/ADT/GraphTraits.h>
@@ -21,9 +15,6 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/ToolOutputFile.h>
 #include <llvm/Support/raw_ostream.h>
-#include <map>
-#include <queue>
-#include <utility>
 
 using namespace llvm;
 using namespace rx;
@@ -61,11 +52,12 @@ int main(int argc, char *argv[]) {
   if (auto EC = sys::fs::real_path(InputFile, AbsPath)) {
     llvm::WithColor::error(llvm::errs(), "rx-frontend")
         << InputFile << ": " << EC.message() << "\n";
+    exit(1);
   }
 
   ConsoleDiagnosticConsumer CDC;
   SourceManager SM;
-  TranslationUnitContext TUContext(SM, CDC);
+  TranslationUnitContext TUC(SM, CDC);
 
   auto OpenResult = SM.OpenFile(AbsPath);
   if (auto EC = OpenResult.getError()) {
@@ -73,15 +65,15 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  auto *RootTU = TUContext.setRootFile(*OpenResult);
-  TUContext.traverseFileImports(RootTU);
-  TUContext.debug(llvm::errs());
+  auto *RootTU = TUC.setRootFile(*OpenResult);
+  TUC.traverseFileImports(RootTU);
+  TUC.debug(llvm::errs());
 
-  for (auto *N : llvm::depth_first(&TUContext)) {
+  for (auto *N : llvm::depth_first(&TUC)) {
     llvm::outs() << "DFS: " << N->file()->getFilename() << "\n";
   }
 
-  dumpDotGraphToFile(&TUContext, "TranslationUnitDependenceGraph.dot",
+  dumpDotGraphToFile(&TUC, "TranslationUnitDependenceGraph.dot",
                      "Translation Unit Dependence Graph");
 
   return 0;
