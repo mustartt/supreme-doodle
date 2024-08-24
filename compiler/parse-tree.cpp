@@ -1,5 +1,7 @@
-#include "rxc/Parser/Parser.h"
 #include "rxc/AST/ASTContext.h"
+#include "rxc/Basic/Diagnostic.h"
+#include "rxc/Basic/SourceManager.h"
+#include "rxc/Parser/Parser.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/InitLLVM.h"
@@ -73,10 +75,13 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-  rx::ast::ASTContext Context;
-  rx::parser::Parser TheParser(Context);
+  rx::ConsoleDiagnosticConsumer CDC;
 
-  TheParser.parse(*Buffer, ProductionMode == "tree");
+  rx::ast::ASTContext Context;
+  rx::parser::Parser TheParser(&CDC, Context);
+  rx::SourceFile SF("", std::move(Buffer));
+
+  TheParser.parse(&SF, ProductionMode == "tree");
 
   if (ProductionMode == "tree") {
     TheParser.printParseTree(Out->os());
@@ -85,14 +90,6 @@ int main(int argc, const char *argv[]) {
   } else {
     llvm::WithColor::error(llvm::errs(), "parse-tree")
         << "Invalid mode: " << ProductionMode << "\n";
-  }
-
-  auto ParseErrors = TheParser.getErrors();
-  if (!ParseErrors.empty()) {
-    llvm::errs() << "Encountered Parse Errors: \n";
-    for (const auto &Err : ParseErrors) {
-      Err.printError(llvm::errs(), *Buffer);
-    }
   }
 
   Out->keep();

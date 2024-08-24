@@ -30,8 +30,8 @@ add_library(
     ${ANTLR4_SRC_FILES_rx_parser}
     ${PROJECT_SOURCE_DIR}/include/rxc/Parser/Parser.h
     Parser.cpp 
-    ParserError.cpp
     ParserErrorListener.h
+    ParserErrorListener.cpp
     ParseTreeVisitor.h
 )
 target_include_directories(parser PRIVATE 
@@ -40,6 +40,6 @@ target_include_directories(parser PRIVATE
     ${ANTLR4_INCLUDE_DIR_rx_parser}
 )
 add_dependencies(parser antlr4_shared)
-target_link_libraries(parser PUBLIC ast)
+target_link_libraries(parser PUBLIC Basic ast)
 target_link_libraries(parser PRIVATE antlr4_shared)
 

@@ -1,14 +1,12 @@
 #include "rxc/Parser/Parser.h"
 
-#include "rxc/AST/ASTPrinter.h"
 #include "CommonTokenStream.h"
 #include "LangLexer.h"
 #include "LangParser.h"
-#include "llvm/Support/MemoryBufferRef.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include "ParseTreeVisitor.h"
 #include "ParserErrorListener.h"
+#include "rxc/AST/ASTPrinter.h"
+#include "rxc/Basic/SourceManager.h"
 
 namespace rx::parser {
 
@@ -29,11 +27,11 @@ Parser::~Parser() {
     delete Impl;
 }
 
-ast::ProgramDecl *Parser::parse(llvm::MemoryBufferRef Content, bool SkipAST) {
+ast::ProgramDecl *Parser::parse(SourceFile *File, bool SkipAST) {
   assert(!Impl && "Has existing state");
-  Impl = new ParserImpl(Content);
+  Impl = new ParserImpl(File->getBuffer());
 
-  ParserErrorListener Listener(*this);
+  ParserErrorListener Listener(DiagConsumer, File);
   Impl->RXLexer.removeErrorListeners();
   Impl->RXParser.removeErrorListeners();
 

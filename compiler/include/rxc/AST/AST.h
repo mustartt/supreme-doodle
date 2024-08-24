@@ -1,7 +1,8 @@
 #ifndef AST_NODE_H
 #define AST_NODE_H
 
-#include "SrcManager.h"
+#include "rxc/Basic/SourceManager.h"
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/SmallVector.h"
 #include <llvm/ADT/ArrayRef.h>

@@ -1,0 +1,4 @@
+clangd:
+  Arguments: [
+    "--header-insertion=never"
+  ]

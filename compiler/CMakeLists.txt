@@ -18,11 +18,11 @@ add_subdirectory(lib)
 add_executable(parse-tree parse-tree.cpp)
 target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
-target_link_libraries(parse-tree PRIVATE parser)
+target_link_libraries(parse-tree PRIVATE parser Basic)
 
 add_executable(rx-frontend rx-frontend.cpp)
 target_compile_options(rx-frontend PRIVATE -fno-rtti)
-target_link_libraries(rx-frontend PRIVATE ${llvm_libs} parser ast sema)
+target_link_libraries(rx-frontend PRIVATE ${llvm_libs} Basic parser ast sema Frontend)
 
 add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 

@@ -2,26 +2,23 @@
 #define PARSER_PARSERERROR_LISTENER
 
 #include "BaseErrorListener.h"
-#include "rxc/AST/SrcManager.h"
 #include "Token.h"
-#include "rxc/Parser/Parser.h"
 
-namespace rx::parser {
+namespace rx {
+
+class DiagnosticConsumer;
+class SourceFile;
+
+namespace parser {
 
 class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
-  ParserErrorListener(Parser &P) : P(P) {}
+  ParserErrorListener(DiagnosticConsumer *Consumer, SourceFile *File);
 
   void syntaxError(antlr4::Recognizer *recognizer,
                    antlr4::Token *offendingSymbol, size_t line,
                    size_t charPositionInLine, const std::string &msg,
-                   std::exception_ptr e) override {
-    auto TokenString = offendingSymbol->getText();
-    ast::SrcRange Loc(line, charPositionInLine + 1, line,
-                      charPositionInLine + TokenString.size() + 1);
-    std::string Err = "<syntax> " + msg;
-    P.Errors.emplace_back(Loc, std::move(Err));
-  }
+                   std::exception_ptr e) override;
 
   /*
   void reportAmbiguity(antlr4::Parser *recognizer, const antlr4::dfa::DFA &dfa,
@@ -66,9 +63,10 @@ public:
   */
 
 private:
-  Parser &P;
+  DiagnosticConsumer *Consumer;
+  SourceFile *File;
 };
 
-} // namespace rx::parser
-
+} // namespace parser
+} // namespace rx
 #endif

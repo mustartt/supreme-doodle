@@ -2,7 +2,6 @@
 #define AST_ASTCONTEXT_H
 
 #include "AST.h"
-#include "SrcManager.h"
 
 #include <deque>
 #include <memory>

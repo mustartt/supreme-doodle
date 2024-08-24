@@ -637,7 +637,7 @@ public:
   }
 
 private:
-  rx::ast::SrcRange getRange(misc::Interval Int) {
+  SrcRange getRange(misc::Interval Int) {
     Token *StartToken = Tokens.get(Int.a);
     Token *StopToken = Tokens.get(Int.b);
     return {StartToken->getLine(), StartToken->getCharPositionInLine() + 1,
