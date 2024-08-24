@@ -46,4 +46,8 @@ void TranslationUnit::addImportedFiles(TranslationUnit *File) {
   ImportedFiles.push_back(File);
 }
 
+ast::ProgramDecl *TranslationUnit::getProgramAST() const {
+  assert(ProgramAST && "TranslationUnit has not been parsed yet");
+  return ProgramAST;
+}
 } // namespace rx

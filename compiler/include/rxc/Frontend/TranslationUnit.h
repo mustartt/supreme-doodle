@@ -1,6 +1,7 @@
 #ifndef RXC_FRONTEND_TRANSLATIONUNIT_H
 #define RXC_FRONTEND_TRANSLATIONUNIT_H
 
+#include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Sema/LexicalContext.h"
@@ -27,9 +28,9 @@ public:
   void debug(llvm::raw_ostream &OS);
   SourceFile *file() const { return File; }
   llvm::ArrayRef<TranslationUnit *> getImportedFiles();
-
   llvm::ArrayRef<ast::ImportDecl *> getImports();
   void addImportedFiles(TranslationUnit *File);
+  ast::ProgramDecl *getProgramAST() const;
 
 private:
   SourceFile *File;

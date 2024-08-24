@@ -1,6 +1,7 @@
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Frontend/TranslationUnitContext.h"
+#include "rxc/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/WithColor.h"
 #include <llvm/ADT/DepthFirstIterator.h>
@@ -18,6 +19,8 @@
 
 using namespace llvm;
 using namespace rx;
+using namespace rx::sema;
+using namespace rx::ast;
 
 static llvm::cl::OptionCategory FrontendCategory("rx-frontend options");
 
@@ -67,14 +70,22 @@ int main(int argc, char *argv[]) {
 
   auto *RootTU = TUC.setRootFile(*OpenResult);
   TUC.traverseFileImports(RootTU);
-  TUC.debug(llvm::errs());
-
-  for (auto *N : llvm::depth_first(&TUC)) {
-    llvm::outs() << "DFS: " << N->file()->getFilename() << "\n";
+  if (Debug) {
+    TUC.debug(llvm::errs());
+    for (auto *N : llvm::depth_first(&TUC)) {
+      llvm::outs() << "DFS: " << N->file()->getFilename() << "\n";
+    }
   }
 
-  dumpDotGraphToFile(&TUC, "TranslationUnitDependenceGraph.dot",
-                     "Translation Unit Dependence Graph");
+  SemaPassManager SPM(CDC);
+  SPM.registerPass(ForwardDeclarePass());
+  SPM.registerPass(ResolveGlobalType());
+
+  SPM.run(RootTU->getProgramAST());
+
+  if (Debug)
+    dumpDotGraphToFile(&TUC, "TranslationUnitDependenceGraph.dot",
+                       "Translation Unit Dependence Graph");
 
   return 0;
 }
