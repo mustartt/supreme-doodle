@@ -27,7 +27,6 @@ void TranslationUnit::debug(llvm::raw_ostream &OS) {
     ast::ASTPrinter Printer;
     Printer.print(OS, ProgramAST);
   }
-  LexContext.debug(OS);
   for (auto *TU : ImportedFiles) {
     OS << "Imported: " << TU->file()->getFilename() << "\n";
   }

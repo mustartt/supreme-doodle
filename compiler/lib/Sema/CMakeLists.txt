@@ -5,6 +5,7 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/rxc/Sema/LexicalScope.h
     ForwardDeclarePass.cpp
     ResolveGlobalTypePass.cpp
+    LexicalScope.cpp
 )
 
 llvm_map_components_to_libnames(llvm_libs core support)

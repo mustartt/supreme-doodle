@@ -1,8 +1,11 @@
-#include "rxc/Sema/LexicalScope.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTVisitor.h"
+#include "rxc/Basic/Diagnostic.h"
+#include "rxc/Sema/LexicalContext.h"
+#include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 #include <deque>
+#include <string>
 
 namespace rx::sema {
 
@@ -11,13 +14,14 @@ using namespace llvm;
 
 class ForwardDeclarePassImpl final : public ast::BaseDeclVisitor {
 public:
-  ForwardDeclarePassImpl() = default;
+  ForwardDeclarePassImpl(DiagnosticConsumer &DC, LexicalContext &LC)
+      : DC(DC), LC(LC) {}
   ~ForwardDeclarePassImpl() = default;
 
   ForwardDeclarePassImpl(const ForwardDeclarePassImpl &) = delete;
   ForwardDeclarePassImpl(ForwardDeclarePassImpl &&) = default;
   ForwardDeclarePassImpl &operator=(const ForwardDeclarePassImpl &) = delete;
-  ForwardDeclarePassImpl &operator=(ForwardDeclarePassImpl &&) = default;
+  ForwardDeclarePassImpl &operator=(ForwardDeclarePassImpl &&) = delete;
 
   friend class ForwardDeclarePass;
 
@@ -34,23 +38,21 @@ private:
   void visit(FuncParamDecl *Node) override;
 
 private:
-  LexicalScope *createNewScope(LexicalScope::Kind Type,
-                               LexicalScope *Parent = nullptr) {
-    return &ScopeContext.emplace_back(Parent, Type);
-  }
-
-  std::deque<LexicalScope> ScopeContext;
   llvm::SmallVector<LexicalScope *> CurrentScope;
+  DiagnosticConsumer &DC;
+  LexicalContext &LC;
 };
 
-void ForwardDeclarePass::run(ProgramDecl *Program) {
-  ForwardDeclarePassImpl Impl;
+void ForwardDeclarePass::run(ProgramDecl *Program, DiagnosticConsumer &DC,
+                             LexicalContext &LC) {
+  ForwardDeclarePassImpl Impl(DC, LC);
   Impl.visit(Program);
 }
 
 void ForwardDeclarePassImpl::visit(ProgramDecl *Node) {
   assert(Node && "Invalid visited node");
-  auto *LS = createNewScope(LexicalScope::Kind::Module);
+
+  auto *LS = LC.createNewScope(LexicalScope::Kind::File);
   CurrentScope.push_back(LS);
   Node->setLexicalScope(LS);
 
@@ -65,6 +67,15 @@ void ForwardDeclarePassImpl::visit(VarDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Scope stack cannot be empty");
   auto *LS = CurrentScope.back();
+
+  auto ExistingDecls = LS->getDecls(Node->getName());
+  if (ExistingDecls.size()) {
+    Diagnostic DupErr(Diagnostic::Type::Error,
+                      "redefinition of variable " + Node->getName().str());
+    Diagnostic Prev(Diagnostic::Type::Note, "previously declared at <TODO>");
+    DC.emit(std::move(DupErr));
+    DC.emit(std::move(Prev));
+  }
 
   LS->insert(Node->getName(), Node);
 }
@@ -81,7 +92,7 @@ void ForwardDeclarePassImpl::visit(ImplDecl *Node) {
   assert(CurrentScope.size() && "Scope stack cannot be empty");
 
   auto *LS = CurrentScope.back();
-  auto *ImplLS = createNewScope(LexicalScope::Kind::Impl, LS);
+  auto *ImplLS = LC.createNewScope(LexicalScope::Kind::Impl, LS);
   CurrentScope.push_back(ImplLS);
   Node->setLexicalScope(ImplLS);
 
@@ -105,7 +116,7 @@ void ForwardDeclarePassImpl::visit(FuncDecl *Node) {
   auto *LS = CurrentScope.back();
   LS->insert(Node->getName(), Node);
 
-  auto *FuncLS = createNewScope(LexicalScope::Kind::Function, LS);
+  auto *FuncLS = LC.createNewScope(LexicalScope::Kind::Function, LS);
   CurrentScope.push_back(FuncLS);
   Node->setLexicalScope(FuncLS);
 

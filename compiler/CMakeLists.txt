@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 project(MyProject)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fno-omit-frame-pointer")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -fno-omit-frame-pointer")
+
+add_compile_options(-Wall -fno-omit-frame-pointer -fsanitize=address)
+add_link_options(-Wall -fno-omit-frame-pointer -fsanitize=address)
 
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})

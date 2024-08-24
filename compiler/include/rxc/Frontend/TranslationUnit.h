@@ -4,7 +4,6 @@
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
 #include "rxc/Basic/SourceManager.h"
-#include "rxc/Sema/LexicalContext.h"
 #include "llvm/ADT/GraphTraits.h"
 
 namespace rx {
@@ -36,7 +35,6 @@ private:
   SourceFile *File;
   DiagnosticConsumer *Consumer;
   ast::ASTContext AstContext;
-  sema::LexicalContext LexContext;
   ast::ProgramDecl *ProgramAST;
   llvm::SmallVector<TranslationUnit *> ImportedFiles;
 };

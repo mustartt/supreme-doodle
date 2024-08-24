@@ -3,6 +3,7 @@
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Frontend/TranslationUnitContext.h"
+#include "rxc/Sema/LexicalContext.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
@@ -116,12 +117,39 @@ int main(int argc, char *argv[]) {
                     SrcRange::Builtin(), SrcRange::Builtin(), "string",
                     Visibility::Public,
                     GlobalASTContext.createBuiltinType(NativeType::String)));
+  LexicalContext LC;
 
-  SemaPassManager SPM(CDC);
-  SPM.registerPass(ForwardDeclarePass());
-  SPM.registerPass(ResolveGlobalType());
+  llvm::SmallVector<TranslationUnit *> BestEffortVisitOrder; // reverse topo order of sccs
 
-  SPM.run(RootTU->getProgramAST());
+  for (auto It = llvm::scc_begin(&TUC), End = llvm::scc_end(&TUC); It != End;
+       ++It) {
+    auto SCC = *It;
+    if (SCC.size() == 1) {
+      BestEffortVisitOrder.push_back(SCC[0]);
+      continue;
+    }
+    Diagnostic SccError(Diagnostic::Type::Error, "Found import cycle");
+    CDC.emit(std::move(SccError));
+    for (auto *TU : SCC) {
+      BestEffortVisitOrder.push_back(TU);
+      Diagnostic Note(Diagnostic::Type::Note,
+                      TU->file()->getAbsPath().str() +
+                          " is part of the import cycle");
+      CDC.emit(std::move(Note));
+    }
+  }
+
+  for (auto *TU : BestEffortVisitOrder) {
+    llvm::WithColor::remark()
+        << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
+    /*
+    SemaPassManager SPM(CDC, LC);
+    SPM.registerPass(ForwardDeclarePass());
+    SPM.registerPass(ResolveGlobalType());
+
+    SPM.run(TU->getProgramAST());
+    */
+  }
 
   if (Debug) {
     TUC.debug(errs());

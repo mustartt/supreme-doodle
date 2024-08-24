@@ -11,14 +11,15 @@ using namespace llvm;
 class ResolveGlobalTypePassImpl final : public ast::BaseDeclVisitor,
                                         ast::BaseTypeVisitor {
 public:
-  ResolveGlobalTypePassImpl() = default;
+  ResolveGlobalTypePassImpl(DiagnosticConsumer &DC, LexicalContext &LC)
+      : DC(DC), LC(LC) {}
   ~ResolveGlobalTypePassImpl() = default;
 
   ResolveGlobalTypePassImpl(const ResolveGlobalTypePassImpl &) = delete;
   ResolveGlobalTypePassImpl(ResolveGlobalTypePassImpl &&) = default;
   ResolveGlobalTypePassImpl &
   operator=(const ResolveGlobalTypePassImpl &) = delete;
-  ResolveGlobalTypePassImpl &operator=(ResolveGlobalTypePassImpl &&) = default;
+  ResolveGlobalTypePassImpl &operator=(ResolveGlobalTypePassImpl &&) = delete;
 
 private:
   // visit decls
@@ -42,9 +43,15 @@ private:
   void visit(FunctionType *Node) override;
   void visit(ObjectType *Node) override;
   void visit(EnumType *Node) override;
+
+private:
+  llvm::SmallVector<LexicalScope *> CurrentScope;
+  DiagnosticConsumer &DC;
+  LexicalContext &LC;
 };
 
-void ResolveGlobalType::run(ast::ProgramDecl *) {}
+void ResolveGlobalType::run(ProgramDecl *Program, DiagnosticConsumer &DC,
+                            LexicalContext &LC) {}
 
 void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
   assert(Node && "Invalid visited node");
@@ -52,6 +59,10 @@ void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
 
 void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   assert(Node && "Invalid visited node");
+  assert(CurrentScope.size() && "Missing Lexical Scope");
+  
+  auto *LS = CurrentScope.back();
+  
 }
 
 void ResolveGlobalTypePassImpl::visit(AccessType *Node) {
@@ -100,9 +111,11 @@ void ResolveGlobalTypePassImpl::visit(ProgramDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(Node->getLexicalScope() && "Should have Lexical Scope");
 
+  CurrentScope.push_back(Node->getLexicalScope());
   for (auto *D : Node->getDecls()) {
     D->accept(*this);
   }
+  CurrentScope.pop_back();
 }
 
 void ResolveGlobalTypePassImpl::visit(VarDecl *Node) {
@@ -129,20 +142,27 @@ void ResolveGlobalTypePassImpl::visit(UseDecl *Node) {
 void ResolveGlobalTypePassImpl::visit(ImplDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(Node->getType() && "Impl must have a type");
+  assert(Node->getLexicalScope() && "should have Lexical Scope");
+  CurrentScope.push_back(Node->getLexicalScope());
 
   Node->getType()->accept(*this);
 
   for (auto *I : Node->getImpls()) {
     I->accept(*this);
   }
+
+  CurrentScope.pop_back();
 }
 
 void ResolveGlobalTypePassImpl::visit(FuncDecl *Node) {
   assert(Node && "Invalid visited node");
 
+  assert(Node->getLexicalScope() && "should have Lexical Scope");
+  CurrentScope.push_back(Node->getLexicalScope());
   for (auto *P : Node->getParams()) {
     P->accept(*this);
   }
+  CurrentScope.pop_back();
 }
 
 void ResolveGlobalTypePassImpl::visit(FuncParamDecl *Node) {
