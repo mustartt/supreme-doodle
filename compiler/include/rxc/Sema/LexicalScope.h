@@ -13,7 +13,7 @@ namespace rx::sema {
 
 class LexicalScope {
 public:
-  enum class Kind { Module, Function, Block, Impl };
+  enum class Kind { Global, Module, Function, Block, Impl };
 
   LexicalScope() = delete;
   LexicalScope(Kind Type) : Parent(nullptr), Type(Type), SymbolTable() {}
@@ -51,6 +51,8 @@ public:
 
   static std::string GetKindString(Kind Value) {
     switch (Value) {
+    case Kind::Global:
+      return "Global";
     case Kind::Module:
       return "Module";
     case Kind::Function:

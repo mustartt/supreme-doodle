@@ -15,6 +15,10 @@ public:
     return addToContext<DeclRefType>(Loc, std::move(Symbol));
   }
 
+  BuiltinType *createBuiltinType(NativeType Type) {
+    return addToContext<BuiltinType>(Type);
+  }
+
   AccessType *createAccessType(SrcRange Loc, std::string Symbol,
                                ASTType *ParentType) {
     return addToContext<AccessType>(Loc, std::move(Symbol), ParentType);

@@ -1,6 +1,6 @@
-#include "rxc/Sema/LexicalScope.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTVisitor.h"
+#include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 
 namespace rx::sema {
@@ -33,6 +33,7 @@ private:
   void visit(FuncParamDecl *Node) override;
 
   // visit types
+  void visit(BuiltinType *Node) override;
   void visit(DeclRefType *Node) override;
   void visit(AccessType *Node) override;
   void visit(MutableType *Node) override;
@@ -42,6 +43,12 @@ private:
   void visit(ObjectType *Node) override;
   void visit(EnumType *Node) override;
 };
+
+void ResolveGlobalType::run(ast::ProgramDecl *) {}
+
+void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
+  assert(Node && "Invalid visited node");
+}
 
 void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   assert(Node && "Invalid visited node");
@@ -138,4 +145,9 @@ void ResolveGlobalTypePassImpl::visit(FuncDecl *Node) {
   }
 }
 
+void ResolveGlobalTypePassImpl::visit(FuncParamDecl *Node) {
+  assert(Node && "Invalid visited node");
+  if (Node->getType())
+    Node->getType()->accept(*this);
+}
 } // namespace rx::sema

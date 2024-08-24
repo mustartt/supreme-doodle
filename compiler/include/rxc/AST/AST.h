@@ -9,6 +9,7 @@
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/Support/ErrorHandling.h>
 
 namespace rx::sema {
 class LexicalScope;
@@ -52,6 +53,44 @@ public:
 
   virtual void accept(BaseTypeVisitor &visitor) = 0;
   virtual std::string getTypeName() const = 0;
+};
+
+enum class NativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
+
+class BuiltinType : public ASTType {
+public:
+  BuiltinType(NativeType Builtin)
+      : ASTType(SrcRange::Builtin()), Builtin(Builtin) {}
+
+  std::string getTypeName() const override {
+    switch (Builtin) {
+    case NativeType::Void:
+      return "void";
+    case NativeType::i1:
+      return "i1";
+    case NativeType::i8:
+      return "i8";
+    case NativeType::i32:
+      return "i32";
+    case NativeType::i64:
+      return "i64";
+    case NativeType::f32:
+      return "f32";
+    case NativeType::f64:
+      return "f64";
+    case NativeType::String:
+      return "string";
+    case NativeType::Unknown:
+      return "unknown";
+    default:
+      llvm_unreachable("Invalid BuiltinType");
+    }
+  }
+
+  ACCEPT_VISITOR(BaseTypeVisitor);
+
+private:
+  NativeType Builtin;
 };
 
 class DeclRefType : public ASTType {

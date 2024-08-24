@@ -1,6 +1,9 @@
+#include "rxc/AST/AST.h"
+#include "rxc/AST/ASTContext.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Frontend/TranslationUnitContext.h"
+#include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/WithColor.h"
@@ -70,12 +73,49 @@ int main(int argc, char *argv[]) {
 
   auto *RootTU = TUC.setRootFile(*OpenResult);
   TUC.traverseFileImports(RootTU);
-  if (Debug) {
-    TUC.debug(llvm::errs());
-    for (auto *N : llvm::depth_first(&TUC)) {
-      llvm::outs() << "DFS: " << N->file()->getFilename() << "\n";
-    }
-  }
+
+  ASTContext GlobalASTContext;
+  LexicalScope GlobalScope(LexicalScope::Kind::Global);
+  GlobalScope.insert("void",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "void",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::Void)));
+  GlobalScope.insert("bool",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "bool",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::i1)));
+  GlobalScope.insert("char",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "i8",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::i8)));
+  GlobalScope.insert("i32",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "i32",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::i32)));
+  GlobalScope.insert("i64",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "i64",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::i64)));
+  GlobalScope.insert("f32",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "f32",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::f32)));
+  GlobalScope.insert("f64",
+                     GlobalASTContext.createTypeDecl(
+                         SrcRange::Builtin(), SrcRange::Builtin(), "f64",
+                         Visibility::Public,
+                         GlobalASTContext.createBuiltinType(NativeType::f64)));
+  GlobalScope.insert(
+      "string", GlobalASTContext.createTypeDecl(
+                    SrcRange::Builtin(), SrcRange::Builtin(), "string",
+                    Visibility::Public,
+                    GlobalASTContext.createBuiltinType(NativeType::String)));
 
   SemaPassManager SPM(CDC);
   SPM.registerPass(ForwardDeclarePass());
@@ -83,9 +123,11 @@ int main(int argc, char *argv[]) {
 
   SPM.run(RootTU->getProgramAST());
 
-  if (Debug)
+  if (Debug) {
+    TUC.debug(errs());
     dumpDotGraphToFile(&TUC, "TranslationUnitDependenceGraph.dot",
                        "Translation Unit Dependence Graph");
+  }
 
   return 0;
 }

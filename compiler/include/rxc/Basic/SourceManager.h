@@ -15,6 +15,7 @@ public:
   SrcRange();
   SrcRange(size_t LineStart, size_t ColStart, size_t LineEnd, size_t ColEnd);
 
+  static SrcRange Builtin();
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
                                        const SrcRange &loc);
   operator std::string() const;

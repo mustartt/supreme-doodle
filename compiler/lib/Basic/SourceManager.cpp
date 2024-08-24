@@ -1,5 +1,6 @@
 #include "rxc/Basic/SourceManager.h"
 
+#include <cstdint>
 #include <llvm/Support/Path.h>
 
 namespace rx {
@@ -11,10 +12,13 @@ SrcRange::SrcRange(size_t LineStart, size_t ColStart, size_t LineEnd,
     : LineStart(LineStart), ColStart(ColStart), LineEnd(LineEnd),
       ColEnd(ColEnd) {}
 
+SrcRange SrcRange::Builtin() { return SrcRange(SIZE_MAX, 0, 0, 0); }
+
 llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const SrcRange &loc) {
-  if (loc.LineStart == 0) {
+  if (loc.LineStart == SIZE_MAX)
+    return Os << "<builtin>";
+  if (loc.LineStart == 0)
     return Os << "<invalid loc>";
-  }
   return Os << "<" << loc.LineStart << ":" << loc.ColStart << "," << loc.LineEnd
             << ":" << loc.ColEnd << ">";
 }

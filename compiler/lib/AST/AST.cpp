@@ -3,6 +3,7 @@
 
 namespace rx::ast {
 
+void BuiltinType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void DeclRefType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void AccessType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 void MutableType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
