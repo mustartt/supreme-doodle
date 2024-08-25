@@ -6,9 +6,11 @@ namespace rx::sema {
 
 std::optional<LexicalScope *> LexicalScope::find(llvm::StringRef Symbol) {
   LexicalScope *Curr = this;
-  while (Curr)
+  while (Curr) {
     if (Curr->SymbolTable.contains(Symbol))
       return Curr;
+    Curr = Curr->parent();
+  }
   return std::nullopt;
 }
 

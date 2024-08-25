@@ -6,7 +6,17 @@ impl id {
     func increment(self: id) id {}
 }
 
-// CHECK: TypeDecl: [[ADDR:0x[0-9a-z]+]] Private id
-// CHECK: ImplDecl: [[ADDR:0x[0-9a-z]+]] Private id
-// CHECK: FuncDecl: [[ADDR:0x[0-9a-z]+]] Private increment
+// CHECK: TypeDecl: 
+// CHECK-SAME: decl(id) 
+// CHECK-SAME: declared_type(i64) 
+// CHECK-SAME: type(i64)
+// CHECK: ImplDecl: 
+// CHECK-SAME: decl(id) 
+// CHECK-SAME: declared_type(id)
+// CHECK: FuncDecl: 
+// CHECK-SAME: decl(increment) 
+// CHECK-SAME: declared_type(func(id) id)
+// CHECK: FuncParamDecl:
+// CHECK-SAME: decl(self)
+// CHECK-SAME: declared_type(id)
 

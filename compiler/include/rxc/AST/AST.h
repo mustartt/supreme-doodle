@@ -105,7 +105,7 @@ public:
   std::string getTypeName() const override { return Symbol; }
 
   void setReferencedType(ASTType *Type) { this->Type = Type; }
-  void setDeclNote(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
+  void setDeclNode(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 

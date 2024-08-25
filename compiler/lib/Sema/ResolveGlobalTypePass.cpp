@@ -22,9 +22,9 @@ public:
   operator=(const ResolveGlobalTypePassImpl &) = delete;
   ResolveGlobalTypePassImpl &operator=(ResolveGlobalTypePassImpl &&) = delete;
 
+  void visit(ProgramDecl *Node) override;
 private:
   // visit decls
-  void visit(ProgramDecl *Node) override;
   void visit(PackageDecl *Node) override {};
   void visit(ImportDecl *Node) override {};
   void visit(VarDecl *Node) override;
@@ -52,7 +52,10 @@ private:
 };
 
 void ResolveGlobalType::run(ProgramDecl *Program, DiagnosticConsumer &DC,
-                            LexicalContext &LC) {}
+                            LexicalContext &LC) {
+  ResolveGlobalTypePassImpl Impl(DC, LC);
+  Impl.visit(Program);
+}
 
 void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
   assert(Node && "Invalid visited node");
@@ -85,6 +88,7 @@ void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   }
 
   Node->setReferencedType(TypeDecl->getType());
+  Node->setDeclNode(TypeDecl);
 }
 
 void ResolveGlobalTypePassImpl::visit(AccessType *Node) {

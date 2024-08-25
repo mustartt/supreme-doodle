@@ -7,10 +7,15 @@ type tagged = enum {
 
 func test(e: tagged) { }
 
-// CHECK: ProgramDecl: [[NOCAP:0x[0-9a-fA-F]+]]
-// CHECK: TypeDecl: [[NOCAP:0x[0-9a-fA-F]+]] Private tagged
-// CHECK-SAME: enum { Tag1: { x: int, y: int }, Tag2: int }
-// CHECK: FuncDecl: [[NOCAP:0x[0-9a-fA-F]+]] Private test
-// CHECK: FuncParamDecl: [[NOCAP:0x[0-9a-fA-F]+]] e
-// CHECK: BlockStmt: [[NOCAP:0x[0-9a-fA-F]+]]
+// CHECK: ProgramDecl: 
+// CHECK: TypeDecl: 
+// CHECK-SAME: decl(tagged) 
+// CHECK-SAME: declared_type(enum { Tag1: { x: int, y: int }, Tag2: int })
+// CHECK: FuncDecl: 
+// CHECK-SAME: decl(test) 
+// CHECK-SAME: declared_type(func(tagged) void) 
+// CHECK: FuncParamDecl: 
+// CHECK-SAME: decl(e) 
+// CHECK-SAME: declared_type(tagged)
+// CHECK: BlockStmt: 
 
