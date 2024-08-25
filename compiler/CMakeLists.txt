@@ -16,6 +16,7 @@ llvm_map_components_to_libnames(llvm_libs support core option)
 include_directories(include)
 add_subdirectory(lib)
 
+# Project Targets
 add_executable(parse-tree parse-tree.cpp)
 target_compile_options(parse-tree PRIVATE -fno-rtti)
 target_link_libraries(parse-tree PRIVATE ${llvm_libs})
@@ -25,9 +26,17 @@ add_executable(rx-frontend rx-frontend.cpp)
 target_compile_options(rx-frontend PRIVATE -fno-rtti)
 target_link_libraries(rx-frontend PRIVATE ${llvm_libs} Basic parser ast sema Frontend)
 
+# Testing Infra
+add_subdirectory(third-party/googletest)
+enable_testing()
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+add_executable(unittest unittest/test.cpp)
+target_link_libraries(unittest gtest gtest_main)
+add_test(test unittest)
+
 add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 
         -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> 
         lit ${CMAKE_CURRENT_SOURCE_DIR}/test -vs
     DEPENDS parse-tree)
-

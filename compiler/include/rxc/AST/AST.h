@@ -93,6 +93,7 @@ private:
   NativeType Builtin;
 };
 
+class TypeDecl;
 class DeclRefType : public ASTType {
 public:
   DeclRefType(SrcRange Loc, std::string Symbol)
@@ -100,15 +101,18 @@ public:
     assert(this->Symbol.size() && "Empty Symbol");
   }
 
+  llvm::StringRef getSymbol() const { return Symbol; }
   std::string getTypeName() const override { return Symbol; }
 
   void setReferencedType(ASTType *Type) { this->Type = Type; }
+  void setDeclNote(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
   std::string Symbol;
   ASTType *Type;
+  TypeDecl *DeclNode;
 };
 
 class AccessType : public ASTType {

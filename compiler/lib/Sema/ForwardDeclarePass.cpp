@@ -4,7 +4,6 @@
 #include "rxc/Sema/LexicalContext.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
-#include <deque>
 #include <string>
 
 namespace rx::sema {
@@ -52,7 +51,7 @@ void ForwardDeclarePass::run(ProgramDecl *Program, DiagnosticConsumer &DC,
 void ForwardDeclarePassImpl::visit(ProgramDecl *Node) {
   assert(Node && "Invalid visited node");
 
-  auto *LS = LC.createNewScope(LexicalScope::Kind::File);
+  auto *LS = LC.createNewScope(LexicalScope::Kind::File, LC.getGlobalScope());
   CurrentScope.push_back(LS);
   Node->setLexicalScope(LS);
 

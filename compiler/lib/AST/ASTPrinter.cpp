@@ -49,6 +49,24 @@ public:
   void visit(StringLiteral *node) override;
 
 private:
+  static llvm::raw_ostream &PrintNodeDetails(llvm::raw_ostream &OS,
+                                             ASTNode *Node) {
+    OS << "id(" << Node << ")";
+    OS << " range(" << Node->Loc << ")";
+
+    if (auto *D = dynamic_cast<Decl *>(Node)) {
+      OS << " decl(" << D->getName() << ")";
+      OS << " loc(" << D->getDeclLoc() << ")";
+      auto *T = D->getType();
+      OS << " declared_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
+    }
+
+    if (auto *S = dynamic_cast<ScopedASTNode *>(Node)) {
+      OS << " scope(" << S->getLexicalScope() << ")";
+    }
+    return OS;
+  }
+
   void printTreePrefix() {
     for (size_t i = 1; i < Depth; ++i) {
       if (DepthFlag[i]) {
@@ -98,10 +116,9 @@ private:
 
 void ASTPrinterVisitor::visit(ProgramDecl *Node) {
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "ProgramDecl: " << Node << " " << Node->Loc;
-  Os << " scope(" << Node->getLexicalScope() << ")";
-
+  llvm::raw_string_ostream OS(Str);
+  OS << "ProgramDecl: ";
+  PrintNodeDetails(OS, Node);
   printNodePrefix(Str);
 
   if (Node->getPackage()) {
@@ -124,36 +141,36 @@ void ASTPrinterVisitor::visit(ProgramDecl *Node) {
   DepthFlag[Depth] = true;
 }
 
-void ASTPrinterVisitor::visit(PackageDecl *node) {
+void ASTPrinterVisitor::visit(PackageDecl *Node) {
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "PackageDecl: " << node << " " << node->getName() << " " << node->Loc;
-
+  llvm::raw_string_ostream OS(Str);
+  OS << "PackageDecl: ";
+  PrintNodeDetails(OS, Node);
   printNodePrefix(Str);
+
   DepthFlag[Depth] = true;
 }
 
 void ASTPrinterVisitor::visit(ImportDecl *Node) {
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "ImportDecl: " << Node << " ";
+  llvm::raw_string_ostream OS(Str);
+  OS << "ImportDecl: ";
+  PrintNodeDetails(OS, Node);
+
   switch (Node->getImportType()) {
   case ImportDecl::ImportType::File: {
-    Os << "File ";
+    OS << "File ";
     break;
   }
   case ImportDecl::ImportType::Module: {
-    Os << "Module ";
+    OS << "Module ";
     break;
   }
   }
-
-  auto Path = Node->getImportPath();
-  Os << Path;
+  OS << Node->getImportPath();
   if (Node->getAlias()) {
-    Os << " alias " << Node->getAlias();
+    OS << " alias " << Node->getAlias();
   }
-  Os << " " << Node->Loc;
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -161,17 +178,11 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
 
 void ASTPrinterVisitor::visit(VarDecl *Node) {
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "VarDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc;
-
-  if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
-  } else {
-    Os << " type(<unkown_type>)";
-  }
-
+  llvm::raw_string_ostream OS(Str);
+  OS << "VarDecl: ";
+  PrintNodeDetails(OS, Node);
   printNodePrefix(Str);
+
   if (Node->getInitializer()) {
     Scope _(*this, true);
     Node->getInitializer()->accept(*this);
@@ -182,17 +193,15 @@ void ASTPrinterVisitor::visit(VarDecl *Node) {
 
 void ASTPrinterVisitor::visit(TypeDecl *Node) {
   assert(Node->getType() && "TypeDecl missing declared type");
-
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-
-  Os << "TypeDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc;
+  llvm::raw_string_ostream OS(Str);
+  OS << "TypeDecl: ";
+  PrintNodeDetails(OS, Node);
 
   if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
+    OS << " type(" << Node->getType()->getTypeName() << ")";
   } else {
-    Os << " type(<unkown_type>)";
+    OS << " type(<unkown_type>)";
   }
 
   printNodePrefix(Str);
@@ -203,16 +212,9 @@ void ASTPrinterVisitor::visit(UseDecl *Node) {
   assert(Node->getType() && "UseDecl missing declared type");
 
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-
-  Os << "UseDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc;
-
-  if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
-  } else {
-    Os << " type(<unkown_type>)";
-  }
+  llvm::raw_string_ostream OS(Str);
+  OS << "UseDecl: ";
+  PrintNodeDetails(OS, Node);
 
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
@@ -221,18 +223,8 @@ void ASTPrinterVisitor::visit(UseDecl *Node) {
 void ASTPrinterVisitor::visit(ImplDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-
-  Os << "ImplDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc;
-
-  if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
-  } else {
-    Os << " type(<unkown_type>)";
-  }
-
-  Os << " scope(" << Node->getLexicalScope() << ")";
-
+  Os << "ImplDecl: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   for (const auto [Idx, Impl] : llvm::enumerate(Node->getImpls())) {
@@ -245,18 +237,9 @@ void ASTPrinterVisitor::visit(ImplDecl *Node) {
 
 void ASTPrinterVisitor::visit(FuncDecl *Node) {
   std::string Str;
-  llvm::raw_string_ostream Os(Str);
-  Os << "FuncDecl: " << Node << " " << Node->getVisibility() << " "
-     << Node->getName() << " " << Node->Loc;
-
-  if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
-  } else {
-    Os << " type(<unkown_type>)";
-  }
-
-  Os << " scope(" << Node->getLexicalScope() << ")";
-
+  llvm::raw_string_ostream OS(Str);
+  OS << "FuncDecl: ";
+  PrintNodeDetails(OS, Node);
   printNodePrefix(Str);
 
   for (const auto [Idx, Param] : llvm::enumerate(Node->getParams())) {
@@ -275,14 +258,8 @@ void ASTPrinterVisitor::visit(FuncDecl *Node) {
 void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "FuncParamDecl: " << Node << " " << Node->getName() << " " << Node->Loc;
-
-  if (Node->getType()) {
-    Os << " type(" << Node->getType()->getTypeName() << ")";
-  } else {
-    Os << " type(<unkown_type>)";
-  }
-
+  Os << "FuncParamDecl: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   if (Node->getDefaultValue()) {
@@ -296,8 +273,8 @@ void ASTPrinterVisitor::visit(FuncParamDecl *Node) {
 void ASTPrinterVisitor::visit(BlockStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BlockStmt: " << Node << " " << Node->Loc;
-
+  Os << "BlockStmt: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   for (auto [Idx, Stmt] : llvm::enumerate(Node->getStmts())) {
@@ -311,8 +288,8 @@ void ASTPrinterVisitor::visit(BlockStmt *Node) {
 void ASTPrinterVisitor::visit(ReturnStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "Return: " << Node << " " << Node->Loc;
-
+  Os << "Return: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   if (Node->getExpr()) {
@@ -326,11 +303,11 @@ void ASTPrinterVisitor::visit(ReturnStmt *Node) {
 void ASTPrinterVisitor::visit(DeclStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "DeclStmt: " << Node << " " << Node->Loc;
-
+  Os << "DeclStmt: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
-  assert(Node->getDecl());
+  assert(Node->getDecl() && "Must have actual decl");
   {
     Scope _(*this, true);
     Node->getDecl()->accept(*this);
@@ -342,8 +319,8 @@ void ASTPrinterVisitor::visit(DeclStmt *Node) {
 void ASTPrinterVisitor::visit(ExprStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ExprStmt: " << Node << " " << Node->Loc;
-
+  Os << "ExprStmt: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
   {
     Scope _(*this, true);
@@ -355,8 +332,8 @@ void ASTPrinterVisitor::visit(ExprStmt *Node) {
 void ASTPrinterVisitor::visit(IfExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "IfExpr: " << Node << " " << Node->Loc;
-
+  Os << "IfExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   {
@@ -380,8 +357,8 @@ void ASTPrinterVisitor::visit(IfExpr *Node) {
 void ASTPrinterVisitor::visit(ForStmt *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "ForStmt: " << Node << " " << Node->Loc;
-
+  Os << "ForStmt: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   if (Node->getPreHeader()) {
@@ -408,8 +385,8 @@ void ASTPrinterVisitor::visit(ForStmt *Node) {
 void ASTPrinterVisitor::visit(BinaryExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BinaryExpr: " << Node << " " << Node->Loc;
-
+  Os << "BinaryExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   {
@@ -428,8 +405,8 @@ void ASTPrinterVisitor::visit(BinaryExpr *Node) {
 void ASTPrinterVisitor::visit(UnaryExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "UnaryExpr: " << Node << " " << Node->Loc;
-
+  Os << "UnaryExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   {
@@ -443,8 +420,8 @@ void ASTPrinterVisitor::visit(UnaryExpr *Node) {
 void ASTPrinterVisitor::visit(CallExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "CallExpr: " << Node << " " << Node->Loc;
-
+  Os << "CallExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   if (Node->getCallee()) {
@@ -463,9 +440,8 @@ void ASTPrinterVisitor::visit(CallExpr *Node) {
 void ASTPrinterVisitor::visit(AccessExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "AccessExpr: " << Node << " " << Node->getAccessor() << " "
-     << Node->Loc;
-
+  Os << "AccessExpr: ";
+  PrintNodeDetails(Os, Node) << " " << Node->getAccessor();
   printNodePrefix(Str);
 
   if (Node->getExpr()) {
@@ -479,8 +455,8 @@ void ASTPrinterVisitor::visit(AccessExpr *Node) {
 void ASTPrinterVisitor::visit(IndexExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "IndexExpr: " << Node << " " << Node->Loc;
-
+  Os << "IndexExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   if (Node->getExpr()) {
@@ -499,8 +475,8 @@ void ASTPrinterVisitor::visit(IndexExpr *Node) {
 void ASTPrinterVisitor::visit(AssignExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "AssignExpr: " << Node << " " << Node->Loc;
-
+  Os << "AssignExpr: ";
+  PrintNodeDetails(Os, Node);
   printNodePrefix(Str);
 
   {
@@ -520,8 +496,8 @@ void ASTPrinterVisitor::visit(AssignExpr *Node) {
 void ASTPrinterVisitor::visit(DeclRefExpr *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "DeclRefExpr: " << Node << " " << Node->getSymbol() << " " << Node->Loc;
-
+  Os << "DeclRefExpr: ";
+  PrintNodeDetails(Os, Node) << " " << Node->getSymbol();
   printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
@@ -529,13 +505,12 @@ void ASTPrinterVisitor::visit(DeclRefExpr *Node) {
 void ASTPrinterVisitor::visit(BoolLiteral *Node) {
   std::string Str;
   llvm::raw_string_ostream Os(Str);
-  Os << "BoolLiteral: " << Node << " ";
+  Os << "BoolLiteral: ";
+  PrintNodeDetails(Os, Node);
   if (Node->getValue())
-    Os << "true";
+    Os << " true";
   else
-    Os << "false";
-  Os << " " << Node->Loc;
-
+    Os << "  false";
   printNodePrefix(Str);
 
   DepthFlag[Depth] = true;
@@ -543,38 +518,37 @@ void ASTPrinterVisitor::visit(BoolLiteral *Node) {
 
 void ASTPrinterVisitor::visit(CharLiteral *Node) {
   std::string str;
-  llvm::raw_string_ostream os(str);
-  os << "CharLiteral: '" << Node << " " << Node->getValue() << "' "
-     << Node->Loc;
-
+  llvm::raw_string_ostream OS(str);
+  OS << "CharLiteral: ";
+  PrintNodeDetails(OS, Node) << " '" << Node->getValue() << "'";
   printNodePrefix(str);
+
   DepthFlag[Depth] = true;
 }
 
 void ASTPrinterVisitor::visit(NumLiteral *Node) {
-  std::string str;
-  llvm::raw_string_ostream os(str);
-  os << "NumLiteral: " << Node << " ";
-  Node->getValue().print(os);
-  str.pop_back();
+  std::string Str;
+  llvm::raw_string_ostream OS(Str);
+  OS << "NumLiteral: ";
+  PrintNodeDetails(OS, Node) << " ";
+  Node->getValue().print(OS);
+  Str.pop_back();
   if (Node->isInteger()) {
-    os << " integer";
+    OS << " integer";
   } else {
-    os << " float";
+    OS << " float";
   }
-  os << " " << Node->Loc;
-
-  printNodePrefix(str);
+  printNodePrefix(Str);
   DepthFlag[Depth] = true;
 }
 
 void ASTPrinterVisitor::visit(StringLiteral *Node) {
   std::string str;
   llvm::raw_string_ostream os(str);
-  os << "StringLiteral: " << Node << " \"" << Node->getValue() << "\" "
-     << Node->Loc;
-
+  os << "StringLiteral: ";
+  PrintNodeDetails(os, Node) << " \"" << Node->getValue() << "\"";
   printNodePrefix(str);
+
   DepthFlag[Depth] = true;
 }
 

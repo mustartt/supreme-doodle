@@ -4,6 +4,7 @@
 
 #include "rxc/AST/AST.h"
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/Support/WithColor.h>
 #include <memory>
 
 namespace rx {
@@ -21,7 +22,7 @@ public:
   virtual void run(ast::ProgramDecl *, DiagnosticConsumer &,
                    LexicalContext &) = 0;
 
-private:
+public:
   std::string PassName;
 };
 
@@ -36,6 +37,8 @@ public:
 
   void run(ast::ProgramDecl *Root) {
     for (auto &Pass : Passes) {
+      llvm::WithColor::remark()
+          << "Running sema pass: " << Pass->PassName << "\n";
       Pass->run(Root, DC, LC);
     }
   }

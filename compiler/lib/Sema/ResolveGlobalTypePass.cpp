@@ -1,5 +1,6 @@
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTVisitor.h"
+#include "rxc/Basic/Diagnostic.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 
@@ -60,9 +61,30 @@ void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
 void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Missing Lexical Scope");
-  
+
   auto *LS = CurrentScope.back();
-  
+
+  auto Scope = LS->find(Node->getSymbol());
+  if (!Scope) {
+    Diagnostic Err(Diagnostic::Type::Error,
+                   "Undefined type reference to " + Node->getTypeName());
+    DC.emit(std::move(Err));
+    return;
+  }
+  auto Decls = (*Scope)->getDecls(Node->getSymbol());
+  assert(Decls.size() == 1 && "Ambiguous decl");
+  auto *TypeDecl = dynamic_cast<ast::TypeDecl *>(Decls[0]);
+
+  if (!TypeDecl) {
+    Diagnostic Err(Diagnostic::Type::Error,
+                   "Reference is not a type declaration " +
+                       Node->getTypeName());
+    Diagnostic Note(Diagnostic::Type::Note, "referenced declaration is <TODO>");
+    DC.emit(std::move(Err));
+    DC.emit(std::move(Note));
+  }
+
+  Node->setReferencedType(TypeDecl->getType());
 }
 
 void ResolveGlobalTypePassImpl::visit(AccessType *Node) {

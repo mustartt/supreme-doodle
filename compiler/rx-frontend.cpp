@@ -42,6 +42,50 @@ static cl::opt<bool> Debug("debug", cl::Optional, cl::init(false),
                            cl::desc("Enable debugging"),
                            cl::cat(FrontendCategory));
 
+static void populateBuiltins(ASTContext &GlobalASTContext,
+                             LexicalScope *GlobalScope) {
+  GlobalScope->insert(
+      "void",
+      GlobalASTContext.createTypeDecl(
+          SrcRange::Builtin(), SrcRange::Builtin(), "void", Visibility::Public,
+          GlobalASTContext.createBuiltinType(NativeType::Void)));
+  GlobalScope->insert("bool",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "bool",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::i1)));
+  GlobalScope->insert("char",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "i8",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::i8)));
+  GlobalScope->insert("i32",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "i32",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::i32)));
+  GlobalScope->insert("i64",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "i64",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::i64)));
+  GlobalScope->insert("f32",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "f32",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::f32)));
+  GlobalScope->insert("f64",
+                      GlobalASTContext.createTypeDecl(
+                          SrcRange::Builtin(), SrcRange::Builtin(), "f64",
+                          Visibility::Public,
+                          GlobalASTContext.createBuiltinType(NativeType::f64)));
+  GlobalScope->insert(
+      "string", GlobalASTContext.createTypeDecl(
+                    SrcRange::Builtin(), SrcRange::Builtin(), "string",
+                    Visibility::Public,
+                    GlobalASTContext.createBuiltinType(NativeType::String)));
+}
+
 int main(int argc, char *argv[]) {
   InitLLVM X(argc, argv);
 
@@ -76,50 +120,12 @@ int main(int argc, char *argv[]) {
   TUC.traverseFileImports(RootTU);
 
   ASTContext GlobalASTContext;
-  LexicalScope GlobalScope(LexicalScope::Kind::Global);
-  GlobalScope.insert("void",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "void",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::Void)));
-  GlobalScope.insert("bool",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "bool",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::i1)));
-  GlobalScope.insert("char",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "i8",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::i8)));
-  GlobalScope.insert("i32",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "i32",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::i32)));
-  GlobalScope.insert("i64",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "i64",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::i64)));
-  GlobalScope.insert("f32",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "f32",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::f32)));
-  GlobalScope.insert("f64",
-                     GlobalASTContext.createTypeDecl(
-                         SrcRange::Builtin(), SrcRange::Builtin(), "f64",
-                         Visibility::Public,
-                         GlobalASTContext.createBuiltinType(NativeType::f64)));
-  GlobalScope.insert(
-      "string", GlobalASTContext.createTypeDecl(
-                    SrcRange::Builtin(), SrcRange::Builtin(), "string",
-                    Visibility::Public,
-                    GlobalASTContext.createBuiltinType(NativeType::String)));
   LexicalContext LC;
+  auto *GlobalScope = LC.createNewScope(LexicalScope::Kind::Global);
+  populateBuiltins(GlobalASTContext, GlobalScope);
 
-  llvm::SmallVector<TranslationUnit *> BestEffortVisitOrder; // reverse topo order of sccs
+  llvm::SmallVector<TranslationUnit *>
+      BestEffortVisitOrder; // reverse topo order of sccs
 
   for (auto It = llvm::scc_begin(&TUC), End = llvm::scc_end(&TUC); It != End;
        ++It) {
@@ -142,13 +148,12 @@ int main(int argc, char *argv[]) {
   for (auto *TU : BestEffortVisitOrder) {
     llvm::WithColor::remark()
         << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
-    /*
+
     SemaPassManager SPM(CDC, LC);
     SPM.registerPass(ForwardDeclarePass());
     SPM.registerPass(ResolveGlobalType());
 
     SPM.run(TU->getProgramAST());
-    */
   }
 
   if (Debug) {

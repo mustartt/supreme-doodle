@@ -9,7 +9,7 @@ namespace rx::sema {
 
 class LexicalContext {
 public:
-  LexicalContext() = default;
+  LexicalContext() {}
 
   LexicalContext(const LexicalContext &) = delete;
   LexicalContext(LexicalContext &&) = default;
@@ -22,7 +22,12 @@ public:
     return &ScopeStorage.emplace_back(Parent, Type);
   }
 
-  void debug(llvm::raw_ostream& OS) const {
+  LexicalScope *getGlobalScope() {
+    assert(ScopeStorage.size() && "No Global Scope available");
+    return &ScopeStorage.front();
+  }
+
+  void debug(llvm::raw_ostream &OS) const {
     for (const auto &Scope : ScopeStorage) {
       Scope.debug(OS);
     }
