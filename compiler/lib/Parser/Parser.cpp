@@ -44,7 +44,7 @@ ast::ProgramDecl *Parser::parse(SourceFile *File, bool SkipAST) {
   Impl->RXParser.removeErrorListeners();
 
   if (!SkipAST) {
-    LangVisitor V(Impl->Tokens, Context);
+    LangVisitor V(Impl->Tokens, Context, File);
     std::any VisitResult = V.visit(ParseTreeRoot);
     Root = std::any_cast<ast::ProgramDecl *>(VisitResult);
   }

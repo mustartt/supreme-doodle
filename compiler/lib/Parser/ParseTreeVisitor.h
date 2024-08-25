@@ -4,6 +4,7 @@
 #include "LangParserBaseVisitor.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
+#include "rxc/Basic/SourceManager.h"
 #include "llvm/ADT/SmallVector.h"
 
 #include <any>
@@ -16,8 +17,9 @@ namespace rx::parser {
 
 class LangVisitor : public LangParserBaseVisitor {
 public:
-  LangVisitor(TokenStream &Stream, rx::ast::ASTContext &Context)
-      : Tokens(Stream), Context(Context) {}
+  LangVisitor(TokenStream &Stream, rx::ast::ASTContext &Context,
+              SourceFile *File)
+      : Tokens(Stream), Context(Context), File(File) {}
 
 public:
   // types
@@ -637,17 +639,21 @@ public:
   }
 
 private:
-  SrcRange getRange(misc::Interval Int) {
+  SourceLocation getRange(misc::Interval Int) {
+
     Token *StartToken = Tokens.get(Int.a);
     Token *StopToken = Tokens.get(Int.b);
-    return {StartToken->getLine(), StartToken->getCharPositionInLine() + 1,
-            StopToken->getLine(),
-            StopToken->getCharPositionInLine() + StopToken->getText().length()};
+    SrcRange Range(
+        StartToken->getLine(), StartToken->getCharPositionInLine() + 1,
+        StopToken->getLine(),
+        StopToken->getCharPositionInLine() + StopToken->getText().length());
+    return SourceLocation(File, std::move(Range));
   }
 
 private:
   TokenStream &Tokens;
   rx::ast::ASTContext &Context;
+  SourceFile *File;
 };
 
 } // namespace rx::parser

@@ -6,6 +6,7 @@ add_library(
     ForwardDeclarePass.cpp
     ResolveGlobalTypePass.cpp
     LexicalScope.cpp
+    Sema.cpp
 )
 
 llvm_map_components_to_libnames(llvm_libs core support)

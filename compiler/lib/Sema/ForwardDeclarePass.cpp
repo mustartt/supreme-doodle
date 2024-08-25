@@ -70,10 +70,14 @@ void ForwardDeclarePassImpl::visit(VarDecl *Node) {
   auto ExistingDecls = LS->getDecls(Node->getName());
   if (ExistingDecls.size()) {
     Diagnostic DupErr(Diagnostic::Type::Error,
-                      "redefinition of variable " + Node->getName().str());
-    Diagnostic Prev(Diagnostic::Type::Note, "previously declared at <TODO>");
+                      "redefinition of global variable declaration \'" +
+                          Node->getName().str() + "\'");
+    DupErr.setSourceLocation(Node->getDeclLoc());
+    Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+    Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
     DC.emit(std::move(DupErr));
     DC.emit(std::move(Prev));
+    return;
   }
 
   LS->insert(Node->getName(), Node);
@@ -83,6 +87,20 @@ void ForwardDeclarePassImpl::visit(TypeDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Scope stack cannot be empty");
   auto *LS = CurrentScope.back();
+
+  auto ExistingDecls = LS->getDecls(Node->getName());
+  if (ExistingDecls.size()) {
+    Diagnostic DupErr(Diagnostic::Type::Error,
+                      "redefinition of type declaration \'" +
+                          Node->getName().str() + "\'");
+    DupErr.setSourceLocation(Node->getDeclLoc());
+    Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+    Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
+
+    DC.emit(std::move(DupErr));
+    DC.emit(std::move(Prev));
+    return;
+  }
   LS->insert(Node->getName(), Node);
 }
 
@@ -106,6 +124,21 @@ void ForwardDeclarePassImpl::visit(UseDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Scope stack cannot be empty");
   auto *LS = CurrentScope.back();
+
+  auto ExistingDecls = LS->getDecls(Node->getName());
+  if (ExistingDecls.size()) {
+    Diagnostic DupErr(Diagnostic::Type::Error,
+                      "redefinition of type alias declaration \'" +
+                          Node->getName().str() + "\'");
+    DupErr.setSourceLocation(Node->getDeclLoc());
+    Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+    Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
+
+    DC.emit(std::move(DupErr));
+    DC.emit(std::move(Prev));
+    return;
+  }
+
   LS->insert(Node->getName(), Node);
 }
 
@@ -130,6 +163,21 @@ void ForwardDeclarePassImpl::visit(FuncParamDecl *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Scope stack cannot be empty");
   auto *LS = CurrentScope.back();
+
+  auto ExistingDecls = LS->getDecls(Node->getName());
+  if (ExistingDecls.size()) {
+    Diagnostic DupErr(Diagnostic::Type::Error,
+                      "redefinition of function parameter declaration \'" +
+                          Node->getName().str() + "\'");
+    DupErr.setSourceLocation(Node->getDeclLoc());
+    Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+    Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
+
+    DC.emit(std::move(DupErr));
+    DC.emit(std::move(Prev));
+    return;
+  }
+
   LS->insert(Node->getName(), Node);
 }
 

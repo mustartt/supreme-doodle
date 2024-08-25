@@ -28,25 +28,20 @@ public:
 
 class SemaPassManager {
 public:
-  SemaPassManager(DiagnosticConsumer &DC, LexicalContext &LC)
-      : DC(DC), LC(LC) {}
+  SemaPassManager(DiagnosticConsumer &DC, LexicalContext &LC, bool Debug = false)
+      : DC(DC), LC(LC), Debug(Debug) {}
 
   template <class PassType> void registerPass(PassType &&Pass) {
     Passes.push_back(std::make_unique<PassType>(std::move(Pass)));
   }
 
-  void run(ast::ProgramDecl *Root) {
-    for (auto &Pass : Passes) {
-      llvm::WithColor::remark()
-          << "Running sema pass: " << Pass->PassName << "\n";
-      Pass->run(Root, DC, LC);
-    }
-  }
+  void run(ast::ProgramDecl *Root);
 
 private:
   llvm::SmallVector<std::unique_ptr<SemaPass>, 8> Passes;
   DiagnosticConsumer &DC;
   LexicalContext &LC;
+  bool Debug;
 };
 
 class ForwardDeclarePass : public SemaPass {

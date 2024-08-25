@@ -3,6 +3,7 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/WithColor.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace rx {
 
@@ -13,16 +14,20 @@ Diagnostic::Diagnostic(Type Kind, std::string Message,
 void ConsoleDiagnosticConsumer::printMessageHeader(const Diagnostic &D) {
   if (D.loc()) {
     auto Loc = D.loc().value();
-    llvm::WithColor(llvm::errs(), llvm::raw_ostream::WHITE, true)
-        << Loc.file()->getAbsPath() << ": " << Loc.loc() << ": ";
+    auto OS = llvm::WithColor(llvm::errs(), llvm::raw_ostream::WHITE, true);
+    if (Loc.file()) {
+      OS << Loc.file()->getAbsPath() << ": " << Loc.loc() << ": ";
+    } else {
+      OS << "builtin: ";
+    }
   }
   PrintDiagnosticType(D.kind());
-  llvm::WithColor(llvm::errs(), llvm::raw_ostream::WHITE, false)
-      << D.message() << "\n";
+  llvm::errs() << D.message() << "\n";
   if (D.loc()) {
     printSourceLocation(D.loc().value());
   }
 }
+
 void ConsoleDiagnosticConsumer::printSourceLocation(const SourceLocation &Loc) {
   auto FileContent = Loc.file()->getBuffer().getBuffer();
 
@@ -57,7 +62,8 @@ ConsoleDiagnosticConsumer::PrintDiagnosticType(Diagnostic::Type Type) {
   case Diagnostic::Type::Warning:
     return llvm::WithColor::warning();
   case Diagnostic::Type::Note:
-    return llvm::WithColor::note();
+    return llvm::WithColor(llvm::errs(), llvm::raw_ostream::CYAN, true)
+           << "note: ";
   default:
     llvm_unreachable("Invalid diagnostic type");
   }

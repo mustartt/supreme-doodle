@@ -37,6 +37,6 @@ add_test(test unittest)
 
 add_custom_target(check-all
     COMMAND ${CMAKE_COMMAND} 
-        -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> 
+        -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> FRONT_END_BIN=$<TARGET_FILE:rx-frontend>
         lit ${CMAKE_CURRENT_SOURCE_DIR}/test -vs
     DEPENDS parse-tree)

@@ -81,7 +81,7 @@ void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   if (!TypeDecl) {
     Diagnostic Err(Diagnostic::Type::Error,
                    "Reference is not a type declaration " +
-                       Node->getTypeName());
+                       Node->getTypeName(), Node->Loc);
     Diagnostic Note(Diagnostic::Type::Note, "referenced declaration is <TODO>");
     DC.emit(std::move(Err));
     DC.emit(std::move(Note));

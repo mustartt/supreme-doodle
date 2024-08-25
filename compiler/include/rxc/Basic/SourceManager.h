@@ -32,6 +32,9 @@ public:
   SourceLocation(SourceFile *File, SrcRange Loc) : File(File), Loc(Loc) {}
 
 public:
+  static SourceLocation Builtin();
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
+                                       const SourceLocation &loc);
   SourceFile *file() const { return File; }
   SrcRange loc() const { return Loc; }
 

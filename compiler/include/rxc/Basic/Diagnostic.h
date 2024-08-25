@@ -23,6 +23,7 @@ public:
   Type kind() const { return Kind; }
   llvm::StringRef message() const { return Message; }
   std::optional<SourceLocation> loc() const { return SrcLoc; }
+  void setSourceLocation(SourceLocation Loc) { SrcLoc = Loc; }
 
 private:
   std::optional<SourceLocation> SrcLoc;

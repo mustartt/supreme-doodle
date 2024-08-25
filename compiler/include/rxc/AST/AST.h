@@ -26,9 +26,9 @@ class BaseTypeVisitor;
 
 class ASTNode {
 public:
-  ASTNode(SrcRange Loc) : Loc(Loc) {}
+  ASTNode(SourceLocation Loc) : Loc(Loc) {}
   virtual ~ASTNode() = default;
-  SrcRange Loc;
+  SourceLocation Loc;
 };
 
 // Baseclass to represent ast nodes that creates a lexical scope
@@ -49,7 +49,7 @@ private:
 
 class ASTType : public ASTNode {
 public:
-  ASTType(SrcRange Loc) : ASTNode(Loc) {}
+  ASTType(SourceLocation Loc) : ASTNode(Loc) {}
 
   virtual void accept(BaseTypeVisitor &visitor) = 0;
   virtual std::string getTypeName() const = 0;
@@ -60,7 +60,7 @@ enum class NativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
 class BuiltinType : public ASTType {
 public:
   BuiltinType(NativeType Builtin)
-      : ASTType(SrcRange::Builtin()), Builtin(Builtin) {}
+      : ASTType(SourceLocation::Builtin()), Builtin(Builtin) {}
 
   std::string getTypeName() const override {
     switch (Builtin) {
@@ -96,7 +96,7 @@ private:
 class TypeDecl;
 class DeclRefType : public ASTType {
 public:
-  DeclRefType(SrcRange Loc, std::string Symbol)
+  DeclRefType(SourceLocation Loc, std::string Symbol)
       : ASTType(Loc), Symbol(std::move(Symbol)) {
     assert(this->Symbol.size() && "Empty Symbol");
   }
@@ -117,7 +117,7 @@ private:
 
 class AccessType : public ASTType {
 public:
-  AccessType(SrcRange Loc, std::string Symbol, ASTType *ParentType)
+  AccessType(SourceLocation Loc, std::string Symbol, ASTType *ParentType)
       : ASTType(Loc), Symbol(std::move(Symbol)), ParentType(ParentType) {
     assert(this->Symbol.size() && "Empty Symbol");
     assert(this->ParentType && "Must have parent");
@@ -139,7 +139,7 @@ private:
 
 class MutableType : public ASTType {
 public:
-  MutableType(SrcRange Loc, ASTType *ElementType)
+  MutableType(SourceLocation Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
   std::string getTypeName() const override {
@@ -156,7 +156,7 @@ private:
 
 class PointerType : public ASTType {
 public:
-  PointerType(SrcRange Loc, ASTType *ElementType, bool Nullable)
+  PointerType(SourceLocation Loc, ASTType *ElementType, bool Nullable)
       : ASTType(Loc), ElementType(ElementType), Nullable(Nullable) {}
 
   std::string getTypeName() const override {
@@ -178,7 +178,7 @@ private:
 
 class ArrayType : public ASTType {
 public:
-  ArrayType(SrcRange Loc, ASTType *ElementType)
+  ArrayType(SourceLocation Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
   std::string getTypeName() const override {
@@ -198,7 +198,7 @@ private:
 
 class FunctionType : public ASTType {
 public:
-  FunctionType(SrcRange Loc, llvm::ArrayRef<ASTType *> ParamTypes,
+  FunctionType(SourceLocation Loc, llvm::ArrayRef<ASTType *> ParamTypes,
                ASTType *ReturnType)
       : ASTType(Loc), ParamTypes(ParamTypes), ReturnType(ReturnType) {}
 
@@ -229,7 +229,7 @@ public:
   using Field = std::pair<std::string, ASTType *>;
 
 public:
-  ObjectType(SrcRange Loc, llvm::ArrayRef<Field> Fields)
+  ObjectType(SourceLocation Loc, llvm::ArrayRef<Field> Fields)
       : ASTType(Loc), Fields(Fields) {}
 
   std::string getTypeName() const override {
@@ -259,7 +259,7 @@ public:
   using Member = std::pair<std::string, ASTType *>;
 
 public:
-  EnumType(SrcRange Loc, llvm::ArrayRef<Member> Members)
+  EnumType(SourceLocation Loc, llvm::ArrayRef<Member> Members)
       : ASTType(Loc), Members(Members) {}
 
   std::string getTypeName() const override {
@@ -288,7 +288,7 @@ private:
 
 class Decl : public ASTNode {
 public:
-  Decl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  Decl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
        ASTType *Type = nullptr)
       : ASTNode(Loc), Name(std::move(Name)), Type(Type), DeclLoc(DeclLoc) {}
 
@@ -297,19 +297,19 @@ public:
   llvm::StringRef getName() const { return Name; }
   ASTType *getType() const { return Type; }
   void setType(ASTType *Ty) { Type = Ty; }
-  const SrcRange &getDeclLoc() const { return DeclLoc; }
+  const SourceLocation &getDeclLoc() const { return DeclLoc; }
 
 protected:
   std::string Name;
   ASTType *Type;
-  SrcRange DeclLoc;
+  SourceLocation DeclLoc;
 };
 
 class PackageDecl;
 class ImportDecl;
 class ProgramDecl : public Decl, public ScopedASTNode {
 public:
-  ProgramDecl(SrcRange Loc, PackageDecl *Package,
+  ProgramDecl(SourceLocation Loc, PackageDecl *Package,
               llvm::ArrayRef<ImportDecl *> Imports,
               llvm::ArrayRef<Decl *> Decls)
       : Decl(Loc, Loc, "Program"), Package(Package), Imports(Imports),
@@ -329,7 +329,7 @@ private:
 
 class PackageDecl : public Decl {
 public:
-  PackageDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name)
+  PackageDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name)
       : Decl(Loc, DeclLoc, std::move(Name)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
@@ -340,7 +340,7 @@ public:
   enum class ImportType { File, Module };
 
 public:
-  ImportDecl(SrcRange Loc, SrcRange DeclLoc, ImportType Type, std::string Path,
+  ImportDecl(SourceLocation Loc, SourceLocation DeclLoc, ImportType Type, std::string Path,
              std::optional<std::string> Alias = std::nullopt)
       : Decl(Loc, DeclLoc, std::move(Path)), Type(Type),
         Alias(std::move(Alias)) {}
@@ -372,7 +372,7 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
 
 class TypeDecl : public Decl {
 public:
-  TypeDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+  TypeDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
            ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
@@ -386,7 +386,7 @@ private:
 
 class UseDecl : public Decl {
 public:
-  UseDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+  UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
           ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
@@ -402,7 +402,7 @@ class FuncDecl;
 
 class ImplDecl : public Decl, public ScopedASTNode {
 public:
-  ImplDecl(SrcRange Loc, SrcRange DeclLoc, ASTType *ImplType, Visibility Vis,
+  ImplDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType, Visibility Vis,
            llvm::ArrayRef<FuncDecl *> Impls)
       : Decl(Loc, DeclLoc, ImplType->getTypeName()), ImplType(ImplType),
         Impls(Impls), Vis(Vis) {
@@ -422,7 +422,7 @@ private:
 class Expression;
 class VarDecl : public Decl {
 public:
-  VarDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+  VarDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
           Expression *Initializer = nullptr)
       : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis),
         Initializer(Initializer) {}
@@ -441,7 +441,7 @@ class FuncParamDecl;
 class BlockStmt;
 class FuncDecl : public Decl, public ScopedASTNode {
 public:
-  FuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name, Visibility Vis,
+  FuncDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
            llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
       : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis), Params(Params),
         Body(Body) {}
@@ -461,7 +461,7 @@ private:
 
 class FuncParamDecl : public Decl {
 public:
-  FuncParamDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  FuncParamDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                 Expression *DefaultValue)
       : Decl(Loc, DeclLoc, std::move(Name)), DefaultValue(DefaultValue) {}
 
@@ -475,14 +475,14 @@ private:
 
 class Stmt : public ASTNode {
 public:
-  Stmt(SrcRange Loc) : ASTNode(Loc) {}
+  Stmt(SourceLocation Loc) : ASTNode(Loc) {}
 
   virtual void accept(BaseStmtVisitor &visitor) = 0;
 };
 
 class BlockStmt : public Stmt, public ScopedASTNode {
 public:
-  BlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts)
+  BlockStmt(SourceLocation Loc, llvm::ArrayRef<Stmt *> Stmts)
       : Stmt(Loc), Stmts(Stmts) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
@@ -495,7 +495,7 @@ private:
 
 class ReturnStmt : public Stmt {
 public:
-  ReturnStmt(SrcRange Loc, Expression *Expr = nullptr)
+  ReturnStmt(SourceLocation Loc, Expression *Expr = nullptr)
       : Stmt(Loc), Expr(Expr) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
@@ -508,7 +508,7 @@ private:
 
 class DeclStmt : public Stmt {
 public:
-  DeclStmt(SrcRange Loc, Decl *Var) : Stmt(Loc), Var(Var) {}
+  DeclStmt(SourceLocation Loc, Decl *Var) : Stmt(Loc), Var(Var) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
@@ -520,7 +520,7 @@ private:
 
 class ExprStmt : public Stmt {
 public:
-  ExprStmt(SrcRange Loc, Expression *Expr) : Stmt(Loc), Expr(Expr) {}
+  ExprStmt(SourceLocation Loc, Expression *Expr) : Stmt(Loc), Expr(Expr) {}
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
@@ -532,7 +532,7 @@ private:
 
 class ForStmt : public Stmt {
 public:
-  ForStmt(SrcRange Loc, DeclStmt *PreHeader, Expression *Condition,
+  ForStmt(SourceLocation Loc, DeclStmt *PreHeader, Expression *Condition,
           Expression *PostExpr, BlockStmt *Body)
       : Stmt(Loc), PreHeader(PreHeader), Condition(Condition),
         PostExpr(PostExpr), Body(Body) {}
@@ -553,14 +553,14 @@ private:
 
 class Expression : public ASTNode {
 public:
-  Expression(SrcRange Loc) : ASTNode(Loc) {}
+  Expression(SourceLocation Loc) : ASTNode(Loc) {}
 
   virtual void accept(BaseExprVisitor &) = 0;
 };
 
 class CallExpr : public Expression {
 public:
-  CallExpr(SrcRange Loc, Expression *Callee, llvm::ArrayRef<Expression *> Args)
+  CallExpr(SourceLocation Loc, Expression *Callee, llvm::ArrayRef<Expression *> Args)
       : Expression(Loc), Callee(Callee), Args(Args.begin(), Args.end()) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -575,7 +575,7 @@ private:
 
 class AccessExpr : public Expression {
 public:
-  AccessExpr(SrcRange Loc, Expression *Expr, std::string Accessor)
+  AccessExpr(SourceLocation Loc, Expression *Expr, std::string Accessor)
       : Expression(Loc), Expr(Expr), Accessor(std::move(Accessor)) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -590,7 +590,7 @@ private:
 
 class IndexExpr : public Expression {
 public:
-  IndexExpr(SrcRange Loc, Expression *Expr, Expression *Idx)
+  IndexExpr(SourceLocation Loc, Expression *Expr, Expression *Idx)
       : Expression(Loc), Expr(Expr), Idx(Idx) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -605,7 +605,7 @@ private:
 
 class AssignExpr : public Expression {
 public:
-  AssignExpr(SrcRange Loc, Expression *LHS, Expression *RHS)
+  AssignExpr(SourceLocation Loc, Expression *LHS, Expression *RHS)
       : Expression(Loc), LHS(LHS), RHS(RHS) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -620,7 +620,7 @@ private:
 
 class DeclRefExpr : public Expression {
 public:
-  DeclRefExpr(SrcRange Loc, std::string Symbol)
+  DeclRefExpr(SourceLocation Loc, std::string Symbol)
       : Expression(Loc), Symbol(std::move(Symbol)), Ref(nullptr) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -634,7 +634,7 @@ private:
 
 class IfExpr : public Expression {
 public:
-  IfExpr(SrcRange Loc, Expression *Condition, BlockStmt *Body,
+  IfExpr(SourceLocation Loc, Expression *Condition, BlockStmt *Body,
          BlockStmt *ElseBlock = nullptr)
       : Expression(Loc), Condition(Condition), Body(Body),
         ElseBlock(ElseBlock) {}
@@ -653,12 +653,12 @@ private:
 
 class LiteralExpr : public Expression {
 public:
-  LiteralExpr(SrcRange Loc) : Expression(Loc) {}
+  LiteralExpr(SourceLocation Loc) : Expression(Loc) {}
 };
 
 class BoolLiteral : public LiteralExpr {
 public:
-  BoolLiteral(SrcRange Loc, bool Value) : LiteralExpr(Loc), Value(Value) {}
+  BoolLiteral(SourceLocation Loc, bool Value) : LiteralExpr(Loc), Value(Value) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
@@ -670,7 +670,7 @@ private:
 
 class CharLiteral : public LiteralExpr {
 public:
-  CharLiteral(SrcRange Loc, char Value) : LiteralExpr(Loc), Value(Value) {}
+  CharLiteral(SourceLocation Loc, char Value) : LiteralExpr(Loc), Value(Value) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
@@ -682,7 +682,7 @@ private:
 
 class NumLiteral : public LiteralExpr {
 public:
-  NumLiteral(SrcRange Loc, llvm::APFloat Value)
+  NumLiteral(SourceLocation Loc, llvm::APFloat Value)
       : LiteralExpr(Loc), Value(Value) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -696,7 +696,7 @@ private:
 
 class StringLiteral : public LiteralExpr {
 public:
-  StringLiteral(SrcRange Loc, std::string Value)
+  StringLiteral(SourceLocation Loc, std::string Value)
       : LiteralExpr(Loc), Value(std::move(Value)) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -725,7 +725,7 @@ enum class UnaryOp { Negative, Not, Ref };
 
 class BinaryExpr : public Expression {
 public:
-  BinaryExpr(SrcRange Loc, BinaryOp Op, Expression *LHS, Expression *RHS)
+  BinaryExpr(SourceLocation Loc, BinaryOp Op, Expression *LHS, Expression *RHS)
       : Expression(Loc), Op(Op), LHS(LHS), RHS(RHS) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -742,7 +742,7 @@ private:
 
 class UnaryExpr : public Expression {
 public:
-  UnaryExpr(SrcRange Loc, UnaryOp Op, Expression *Expr)
+  UnaryExpr(SourceLocation Loc, UnaryOp Op, Expression *Expr)
       : Expression(Loc), Op(Op), Expr(Expr) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);

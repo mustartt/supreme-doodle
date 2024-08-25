@@ -26,62 +26,63 @@ using namespace rx;
 using namespace rx::sema;
 using namespace rx::ast;
 
-static llvm::cl::OptionCategory FrontendCategory("rx-frontend options");
-
 static cl::list<std::string>
     Pkgs("pkg", cl::ZeroOrMore, cl::value_desc("pkg:path"),
-         cl::desc("Where to find the location of the package source"),
-         cl::cat(FrontendCategory));
+         cl::desc("Where to find the location of the package source"));
 
 static cl::opt<std::string>
     InputFile("src", cl::Positional, cl::value_desc("input file"),
-              cl::desc("Source file to pass to the compiler frontend"),
-              cl::cat(FrontendCategory));
+              cl::desc("Source file to pass to the compiler frontend"));
 
 static cl::opt<bool> Debug("debug", cl::Optional, cl::init(false),
-                           cl::desc("Enable debugging"),
-                           cl::cat(FrontendCategory));
+                           cl::desc("Enable debugging"));
+static cl::opt<bool> DebugSemaManager("debug-sema-manager", cl::Optional,
+                                      cl::init(false),
+                                      cl::desc("Debug Sema Manager"));
+static cl::opt<bool> DumpLexicalContext("dump-lexical-context", cl::Optional,
+                                        cl::init(false),
+                                        cl::desc("Dump LexicalContext"));
 
 static void populateBuiltins(ASTContext &GlobalASTContext,
                              LexicalScope *GlobalScope) {
   GlobalScope->insert(
       "void",
       GlobalASTContext.createTypeDecl(
-          SrcRange::Builtin(), SrcRange::Builtin(), "void", Visibility::Public,
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "void", Visibility::Public,
           GlobalASTContext.createBuiltinType(NativeType::Void)));
   GlobalScope->insert("bool",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "bool",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "bool",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::i1)));
   GlobalScope->insert("char",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "i8",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "i8",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::i8)));
   GlobalScope->insert("i32",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "i32",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "i32",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::i32)));
   GlobalScope->insert("i64",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "i64",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "i64",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::i64)));
   GlobalScope->insert("f32",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "f32",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "f32",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::f32)));
   GlobalScope->insert("f64",
                       GlobalASTContext.createTypeDecl(
-                          SrcRange::Builtin(), SrcRange::Builtin(), "f64",
+                          SourceLocation::Builtin(), SourceLocation::Builtin(), "f64",
                           Visibility::Public,
                           GlobalASTContext.createBuiltinType(NativeType::f64)));
   GlobalScope->insert(
       "string", GlobalASTContext.createTypeDecl(
-                    SrcRange::Builtin(), SrcRange::Builtin(), "string",
+                    SourceLocation::Builtin(), SourceLocation::Builtin(), "string",
                     Visibility::Public,
                     GlobalASTContext.createBuiltinType(NativeType::String)));
 }
@@ -89,7 +90,6 @@ static void populateBuiltins(ASTContext &GlobalASTContext,
 int main(int argc, char *argv[]) {
   InitLLVM X(argc, argv);
 
-  cl::HideUnrelatedOptions(FrontendCategory);
   cl::ParseCommandLineOptions(argc, argv, "rx-frontend command line options");
 
   if (InputFile.empty()) {
@@ -146,14 +146,21 @@ int main(int argc, char *argv[]) {
   }
 
   for (auto *TU : BestEffortVisitOrder) {
-    llvm::WithColor::remark()
-        << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
+    if (Debug)
+      llvm::WithColor::remark()
+          << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
 
-    SemaPassManager SPM(CDC, LC);
+    SemaPassManager SPM(CDC, LC, DebugSemaManager);
     SPM.registerPass(ForwardDeclarePass());
     SPM.registerPass(ResolveGlobalType());
 
     SPM.run(TU->getProgramAST());
+  }
+
+  if (DumpLexicalContext) {
+    errs() << "*** Start of LexicalContext ***\n";
+    LC.debug(errs());
+    errs() << "*** End of LexicalContext ***\n";
   }
 
   if (Debug) {

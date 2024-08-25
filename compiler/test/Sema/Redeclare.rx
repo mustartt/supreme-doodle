@@ -1,0 +1,24 @@
+// RUN: %rx-frontend %s 2>&1 | FileCheck %s
+
+let a: i32 = 0
+let a: i32 = 1
+
+// CHECK: error: redefinition of global variable declaration 'a'
+// CHECK: note: previously declared here
+
+type b = i32
+type b = i64
+
+// CHECK: error: redefinition of type declaration 'b'
+// CHECK: note: previously declared here
+
+use c = i32
+use c = i64
+
+// CHECK: error: redefinition of type alias declaration 'c'
+// CHECK: note: previously declared here
+
+func duplicate(d: i32, d: i64) {}
+
+// CHECK: error: redefinition of function parameter declaration 'd'
+// CHECK: note: previously declared here

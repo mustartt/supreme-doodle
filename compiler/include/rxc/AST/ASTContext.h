@@ -11,7 +11,7 @@ namespace rx::ast {
 
 class ASTContext {
 public:
-  DeclRefType *createDeclRefType(SrcRange Loc, std::string Symbol) {
+  DeclRefType *createDeclRefType(SourceLocation Loc, std::string Symbol) {
     return addToContext<DeclRefType>(Loc, std::move(Symbol));
   }
 
@@ -19,81 +19,81 @@ public:
     return addToContext<BuiltinType>(Type);
   }
 
-  AccessType *createAccessType(SrcRange Loc, std::string Symbol,
+  AccessType *createAccessType(SourceLocation Loc, std::string Symbol,
                                ASTType *ParentType) {
     return addToContext<AccessType>(Loc, std::move(Symbol), ParentType);
   }
 
-  MutableType *createMutableType(SrcRange Loc, ASTType *ElementType) {
+  MutableType *createMutableType(SourceLocation Loc, ASTType *ElementType) {
     return addToContext<MutableType>(Loc, ElementType);
   }
 
-  PointerType *createPointerType(SrcRange Loc, ASTType *ElementType,
+  PointerType *createPointerType(SourceLocation Loc, ASTType *ElementType,
                                  bool Nullable) {
     return addToContext<PointerType>(Loc, ElementType, Nullable);
   }
 
-  ArrayType *createArrayType(SrcRange Loc, ASTType *ElementType) {
+  ArrayType *createArrayType(SourceLocation Loc, ASTType *ElementType) {
     return addToContext<ArrayType>(Loc, ElementType);
   }
 
-  FunctionType *createFunctionType(SrcRange Loc,
+  FunctionType *createFunctionType(SourceLocation Loc,
                                    llvm::ArrayRef<ASTType *> ParamTypes,
                                    ASTType *ReturnType) {
     return addToContext<FunctionType>(Loc, ParamTypes, ReturnType);
   }
 
-  ObjectType *createObjectType(SrcRange Loc,
+  ObjectType *createObjectType(SourceLocation Loc,
                                llvm::ArrayRef<ObjectType::Field> Fields) {
     return addToContext<ObjectType>(Loc, Fields);
   }
 
-  EnumType *createEnumType(SrcRange Loc,
+  EnumType *createEnumType(SourceLocation Loc,
                            llvm::ArrayRef<EnumType::Member> Members) {
     return addToContext<EnumType>(Loc, Members);
   }
 
-  ProgramDecl *createProgramDecl(SrcRange Loc, PackageDecl *Package,
+  ProgramDecl *createProgramDecl(SourceLocation Loc, PackageDecl *Package,
                                  llvm::ArrayRef<ImportDecl *> Imports,
                                  llvm::ArrayRef<Decl *> Decls) {
     return addToContext<ProgramDecl>(Loc, Package, Imports, Decls);
   }
 
-  PackageDecl *createPackageDecl(SrcRange Loc, SrcRange DeclLoc,
+  PackageDecl *createPackageDecl(SourceLocation Loc, SourceLocation DeclLoc,
                                  std::string Name) {
     return addToContext<PackageDecl>(Loc, DeclLoc, std::move(Name));
   }
 
   ImportDecl *
-  createImportDecl(SrcRange Loc, SrcRange DeclLoc, ImportDecl::ImportType Type,
+  createImportDecl(SourceLocation Loc, SourceLocation DeclLoc, ImportDecl::ImportType Type,
                    std::string Path,
                    std::optional<std::string> Alias = std::nullopt) {
     return addToContext<ImportDecl>(Loc, DeclLoc, Type, std::move(Path),
                                     std::move(Alias));
   }
 
-  VarDecl *createVarDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  VarDecl *createVarDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                          Visibility Vis, Expression *Initializer = nullptr) {
     return addToContext<VarDecl>(Loc, DeclLoc, std::move(Name), Vis,
                                  Initializer);
   }
 
-  TypeDecl *createTypeDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  TypeDecl *createTypeDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                            Visibility Vis, ASTType *Type) {
     return addToContext<TypeDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
   }
 
-  UseDecl *createUseDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  UseDecl *createUseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                          Visibility Vis, ASTType *Type) {
     return addToContext<UseDecl>(Loc, DeclLoc, std::move(Name), Vis, Type);
   }
 
-  ImplDecl *createImpleDecl(SrcRange Loc, SrcRange DeclLoc, ASTType *ImplType,
+  ImplDecl *createImpleDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType,
                             Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls) {
     return addToContext<ImplDecl>(Loc, DeclLoc, ImplType, Vis, Impls);
   }
 
-  FuncDecl *createFuncDecl(SrcRange Loc, SrcRange DeclLoc, std::string Name,
+  FuncDecl *createFuncDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                            Visibility Vis,
                            llvm::ArrayRef<FuncParamDecl *> Params,
                            BlockStmt *Body = nullptr) {
@@ -101,84 +101,84 @@ public:
                                   Body);
   }
 
-  FuncParamDecl *createFuncParamDecl(SrcRange Loc, SrcRange DeclLoc,
+  FuncParamDecl *createFuncParamDecl(SourceLocation Loc, SourceLocation DeclLoc,
                                      std::string Name,
                                      Expression *DefaultValue) {
     return addToContext<FuncParamDecl>(Loc, DeclLoc, std::move(Name),
                                        DefaultValue);
   }
 
-  BlockStmt *createBlockStmt(SrcRange Loc, llvm::ArrayRef<Stmt *> Stmts) {
+  BlockStmt *createBlockStmt(SourceLocation Loc, llvm::ArrayRef<Stmt *> Stmts) {
     return addToContext<BlockStmt>(Loc, Stmts);
   }
 
-  ReturnStmt *createReturnStmt(SrcRange Loc, Expression *Expr = nullptr) {
+  ReturnStmt *createReturnStmt(SourceLocation Loc, Expression *Expr = nullptr) {
     return addToContext<ReturnStmt>(Loc, Expr);
   }
 
-  DeclStmt *createDeclStmt(SrcRange Loc, Decl *D) {
+  DeclStmt *createDeclStmt(SourceLocation Loc, Decl *D) {
     return addToContext<DeclStmt>(Loc, D);
   }
 
-  ExprStmt *createExprStmt(SrcRange Loc, Expression *Expr) {
+  ExprStmt *createExprStmt(SourceLocation Loc, Expression *Expr) {
     return addToContext<ExprStmt>(Loc, Expr);
   }
 
-  IfExpr *createIfExpr(SrcRange Loc, Expression *Condition, BlockStmt *Body,
+  IfExpr *createIfExpr(SourceLocation Loc, Expression *Condition, BlockStmt *Body,
                        BlockStmt *ElseBlock = nullptr) {
     return addToContext<IfExpr>(Loc, Condition, Body, ElseBlock);
   }
 
-  ForStmt *createForStmt(SrcRange Loc, DeclStmt *PreHeader,
+  ForStmt *createForStmt(SourceLocation Loc, DeclStmt *PreHeader,
                          Expression *Condition, Expression *PostExpr,
                          BlockStmt *Body) {
     return addToContext<ForStmt>(Loc, PreHeader, Condition, PostExpr, Body);
   }
 
-  BinaryExpr *createBinaryExpr(SrcRange Loc, BinaryOp Op, Expression *LHS,
+  BinaryExpr *createBinaryExpr(SourceLocation Loc, BinaryOp Op, Expression *LHS,
                                Expression *RHS) {
     return addToContext<BinaryExpr>(Loc, Op, LHS, RHS);
   }
 
-  UnaryExpr *createUnaryExpr(SrcRange Loc, UnaryOp Op, Expression *Expr) {
+  UnaryExpr *createUnaryExpr(SourceLocation Loc, UnaryOp Op, Expression *Expr) {
     return addToContext<UnaryExpr>(Loc, Op, Expr);
   }
 
-  CallExpr *createCallExpr(SrcRange Loc, Expression *Callee,
+  CallExpr *createCallExpr(SourceLocation Loc, Expression *Callee,
                            llvm::ArrayRef<Expression *> Args) {
     return addToContext<CallExpr>(Loc, Callee, Args);
   }
 
-  AccessExpr *createAccessExpr(SrcRange Loc, Expression *Expr,
+  AccessExpr *createAccessExpr(SourceLocation Loc, Expression *Expr,
                                std::string Accessor) {
     return addToContext<AccessExpr>(Loc, Expr, std::move(Accessor));
   }
 
-  IndexExpr *createIndexExpr(SrcRange Loc, Expression *Expr, Expression *Idx) {
+  IndexExpr *createIndexExpr(SourceLocation Loc, Expression *Expr, Expression *Idx) {
     return addToContext<IndexExpr>(Loc, Expr, Idx);
   }
 
-  AssignExpr *createAssignExpr(SrcRange Loc, Expression *LHS, Expression *RHS) {
+  AssignExpr *createAssignExpr(SourceLocation Loc, Expression *LHS, Expression *RHS) {
     return addToContext<AssignExpr>(Loc, LHS, RHS);
   }
 
-  DeclRefExpr *createDeclRefExpr(SrcRange Loc, std::string Symbol) {
+  DeclRefExpr *createDeclRefExpr(SourceLocation Loc, std::string Symbol) {
     return addToContext<DeclRefExpr>(Loc, std::move(Symbol));
   }
 
-  BoolLiteral *createBoolLiteral(SrcRange Loc, bool Value) {
+  BoolLiteral *createBoolLiteral(SourceLocation Loc, bool Value) {
     return addToContext<BoolLiteral>(Loc, Value);
   }
 
-  CharLiteral *createCharLiteral(SrcRange Loc, char Value) {
+  CharLiteral *createCharLiteral(SourceLocation Loc, char Value) {
     return addToContext<CharLiteral>(Loc, Value);
   }
 
-  NumLiteral *createNumLiteral(SrcRange Loc, llvm::APFloat Value) {
+  NumLiteral *createNumLiteral(SourceLocation Loc, llvm::APFloat Value) {
     return addToContext<NumLiteral>(Loc, Value);
   }
 
-  StringLiteral *createStringLiteral(SrcRange Loc, std::string Value) {
+  StringLiteral *createStringLiteral(SourceLocation Loc, std::string Value) {
     return addToContext<StringLiteral>(Loc, std::move(Value));
   }
 

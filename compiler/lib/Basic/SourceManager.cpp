@@ -19,8 +19,8 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, const SrcRange &loc) {
     return Os << "<builtin>";
   if (loc.LineStart == 0)
     return Os << "<invalid loc>";
-  return Os << "<" << loc.LineStart << ":" << loc.ColStart << "," << loc.LineEnd
-            << ":" << loc.ColEnd << ">";
+  return Os << loc.LineStart << ":" << loc.ColStart << "," << loc.LineEnd << ":"
+            << loc.ColEnd;
 }
 
 SrcRange::operator std::string() const {
@@ -68,4 +68,12 @@ void SourceManager::debug(llvm::raw_ostream &OS) const {
   }
 }
 
+SourceLocation SourceLocation::Builtin() {
+  return SourceLocation(nullptr, SrcRange::Builtin());
+}
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &Os,
+                              const SourceLocation &Loc) {
+  return Os << Loc.loc();
+}
 } // namespace rx
