@@ -24,6 +24,7 @@ public:
   void visit(ProgramDecl *node) override;
   void visit(PackageDecl *node) override;
   void visit(ImportDecl *node) override;
+  void visit(ExportedDecl *node) override;
   void visit(VarDecl *node) override;
   void visit(TypeDecl *node) override;
   void visit(UseDecl *node) override;
@@ -61,7 +62,7 @@ private:
       OS << " declared_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
     }
 
-    if (auto *E = dynamic_cast<Expression*>(Node)) {
+    if (auto *E = dynamic_cast<Expression *>(Node)) {
       auto *T = E->getExprType();
       OS << " expr_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
     }
@@ -178,6 +179,22 @@ void ASTPrinterVisitor::visit(ImportDecl *Node) {
   }
 
   printNodePrefix(Str);
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(ExportedDecl *Node) {
+  std::string Str;
+  llvm::raw_string_ostream OS(Str);
+  OS << "ExportedDecl: ";
+  PrintNodeDetails(OS, Node) << " " << Node->getVisibility();
+  printNodePrefix(Str);
+
+  {
+    Scope _(*this, true);
+    assert(Node->getExportedDecl() && "Decl is missing");
+    Node->getExportedDecl()->accept(*this);
+  }
+
   DepthFlag[Depth] = true;
 }
 

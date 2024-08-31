@@ -15,6 +15,7 @@ void EnumType::accept(BaseTypeVisitor &visitor) { visitor.visit(this); }
 
 void ProgramDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void PackageDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
+void ExportedDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void ImportDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void TypeDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }
 void UseDecl::accept(BaseDeclVisitor &visitor) { visitor.visit(this); }

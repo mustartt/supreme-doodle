@@ -1,7 +1,7 @@
 parser grammar LangParser;
 options { tokenVocab=LangLexer; }
 
-program: package_decl? import_stmt* (global_decl SEMI?)* EOF ;
+program: package_decl? import_stmt* (global_export SEMI?)* EOF ;
 
 visibility: PUBLIC | PRIVATE ;
 
@@ -10,33 +10,16 @@ package_decl: PACKAGE IDENTIFIER ;
 import_stmt: IMPORT import_path (AS IDENTIFIER)? ;
 import_path: string_literal | IDENTIFIER (DOT IDENTIFIER)* ;
 
-global_decl
-    : type_decl
-    | use_decl
-    | impl_decl
-    | var_decl 
-    | func_decl
-    ;
+global_export : visibility? global_decl;
+global_decl : type_decl | use_decl | impl_decl | var_decl | func_decl ;
 
-impl_decl: 
-    visibility? IMPL type 
-    LCURLY func_decl* RCURLY
-    ;
-
-type_decl: visibility? TYPE IDENTIFIER EQ type 
-    ;
-
-use_decl: visibility? USE IDENTIFIER EQ type
-    ;
-
-var_decl
-    : visibility? LET IDENTIFIER (COLON type)? initializer?
-    ;
-
-func_decl
-    : visibility? FUNC IDENTIFIER
-        LPAREN func_param_list? RPAREN 
-        type? func_body? ;
+impl_decl: IMPL type LCURLY func_decl* RCURLY ;
+type_decl: TYPE IDENTIFIER EQ type ;
+use_decl:  USE IDENTIFIER EQ type ;
+var_decl:  LET IDENTIFIER (COLON type)? initializer? ;
+func_decl: FUNC IDENTIFIER
+           LPAREN func_param_list? RPAREN 
+           type? func_body? ;
 func_param_list: func_param_decl (COMMA func_param_decl)* ;
 func_param_decl: IDENTIFIER COLON type initializer? ;
 func_body: block_stmt ;

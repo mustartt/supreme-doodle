@@ -21,8 +21,8 @@ let c: f64 = 0.0001
 
 public let x = 10
 
+// CHECK: visibility public
 // CHECK: var_decl
-// CHECK-NEXT: visibility public
 // CHECK-SAME: let x
 // CHECK-NEXT: initializer 
 // CHECK: num_literal 10

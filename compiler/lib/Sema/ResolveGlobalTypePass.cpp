@@ -23,10 +23,12 @@ public:
   ResolveGlobalTypePassImpl &operator=(ResolveGlobalTypePassImpl &&) = delete;
 
   void visit(ProgramDecl *Node) override;
+
 private:
   // visit decls
   void visit(PackageDecl *Node) override {};
   void visit(ImportDecl *Node) override {};
+  void visit(ExportedDecl *Node) override;
   void visit(VarDecl *Node) override;
   void visit(TypeDecl *Node) override;
   void visit(ImplDecl *Node) override;
@@ -80,8 +82,8 @@ void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
 
   if (!TypeDecl) {
     Diagnostic Err(Diagnostic::Type::Error,
-                   "Reference is not a type declaration " +
-                       Node->getTypeName(), Node->Loc);
+                   "Reference is not a type declaration " + Node->getTypeName(),
+                   Node->Loc);
     Diagnostic Note(Diagnostic::Type::Note, "referenced declaration is <TODO>");
     DC.emit(std::move(Err));
     DC.emit(std::move(Note));
@@ -142,6 +144,12 @@ void ResolveGlobalTypePassImpl::visit(ProgramDecl *Node) {
     D->accept(*this);
   }
   CurrentScope.pop_back();
+}
+
+void ResolveGlobalTypePassImpl::visit(ExportedDecl *Node) {
+  assert(Node && "Invalid visited node");
+  assert(Node->getExportedDecl() && "Invalid visited node");
+  Node->getExportedDecl()->accept(*this);
 }
 
 void ResolveGlobalTypePassImpl::visit(VarDecl *Node) {

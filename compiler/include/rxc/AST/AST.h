@@ -9,6 +9,7 @@
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/Support/CommandLine.h>
 #include <llvm/Support/ErrorHandling.h>
 
 namespace rx::sema {
@@ -23,6 +24,20 @@ class BaseExprVisitor;
 class BaseTypeVisitor;
 
 #define ACCEPT_VISITOR(TYPE) virtual void accept(TYPE &visitor) override;
+
+enum class Visibility { Public, Private };
+
+inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
+  switch (Vis) {
+  case Visibility::Public:
+    Os << "Public";
+    break;
+  case Visibility::Private:
+    Os << "Private";
+    break;
+  }
+  return Os;
+}
 
 class ASTNode {
 public:
@@ -289,7 +304,7 @@ private:
 class Decl : public ASTNode {
 public:
   Decl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
-       ASTType *Type = nullptr)
+       ASTType *Type)
       : ASTNode(Loc), Name(std::move(Name)), Type(Type), DeclLoc(DeclLoc) {}
 
   virtual void accept(BaseDeclVisitor &visitor) = 0;
@@ -305,32 +320,48 @@ protected:
   SourceLocation DeclLoc;
 };
 
+class ExportedDecl : public Decl {
+public:
+  ExportedDecl(SourceLocation Loc, SourceLocation DeclLoc, Decl *Exported,
+               Visibility Vis)
+      : Decl(Loc, DeclLoc, "", nullptr), Exported(Exported), Vis(Vis) {}
+
+  Decl *getExportedDecl() const { return Exported; }
+  Visibility getVisibility() const { return Vis; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
+
+private:
+  Decl *Exported;
+  Visibility Vis;
+};
+
 class PackageDecl;
 class ImportDecl;
 class ProgramDecl : public Decl, public ScopedASTNode {
 public:
   ProgramDecl(SourceLocation Loc, PackageDecl *Package,
               llvm::ArrayRef<ImportDecl *> Imports,
-              llvm::ArrayRef<Decl *> Decls)
-      : Decl(Loc, Loc, "Program"), Package(Package), Imports(Imports),
+              llvm::ArrayRef<ExportedDecl *> Decls)
+      : Decl(Loc, Loc, "Program", nullptr), Package(Package), Imports(Imports),
         Decls(std::move(Decls)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
   PackageDecl *getPackage() const { return Package; }
   llvm::ArrayRef<ImportDecl *> getImports() const { return Imports; }
-  llvm::ArrayRef<Decl *> getDecls() const { return Decls; }
+  llvm::ArrayRef<ExportedDecl *> getDecls() const { return Decls; }
 
 private:
   PackageDecl *Package;
   llvm::SmallVector<ImportDecl *, 4> Imports;
-  llvm::SmallVector<Decl *> Decls;
+  llvm::SmallVector<ExportedDecl *> Decls;
 };
 
 class PackageDecl : public Decl {
 public:
   PackageDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name)
-      : Decl(Loc, DeclLoc, std::move(Name)) {}
+      : Decl(Loc, DeclLoc, std::move(Name), nullptr) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
@@ -342,7 +373,7 @@ public:
 public:
   ImportDecl(SourceLocation Loc, SourceLocation DeclLoc, ImportType Type,
              std::string Path, std::optional<std::string> Alias = std::nullopt)
-      : Decl(Loc, DeclLoc, std::move(Path)), Type(Type),
+      : Decl(Loc, DeclLoc, std::move(Path), nullptr), Type(Type),
         Alias(std::move(Alias)) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
@@ -356,46 +387,22 @@ private:
   std::optional<std::string> Alias;
 };
 
-enum class Visibility { Public, Private };
-
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
-  switch (Vis) {
-  case Visibility::Public:
-    Os << "Public";
-    break;
-  case Visibility::Private:
-    Os << "Private";
-    break;
-  }
-  return Os;
-}
-
 class TypeDecl : public Decl {
 public:
   TypeDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
-           Visibility Vis, ASTType *Type)
+           ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
-  Visibility getVisibility() const { return Vis; }
-
   ACCEPT_VISITOR(BaseDeclVisitor);
-
-private:
-  Visibility Vis = Visibility::Private;
 };
 
 class UseDecl : public Decl {
 public:
   UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
-          Visibility Vis, ASTType *Type)
+          ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
-  Visibility getVisibility() const { return Vis; }
-
   ACCEPT_VISITOR(BaseDeclVisitor);
-
-private:
-  Visibility Vis = Visibility::Private;
 };
 
 class FuncDecl;
@@ -403,13 +410,12 @@ class FuncDecl;
 class ImplDecl : public Decl, public ScopedASTNode {
 public:
   ImplDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType,
-           Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls)
-      : Decl(Loc, DeclLoc, ImplType->getTypeName()), ImplType(ImplType),
-        Impls(Impls), Vis(Vis) {
+           llvm::ArrayRef<FuncDecl *> Impls)
+      : Decl(Loc, DeclLoc, ImplType->getTypeName(), nullptr),
+        ImplType(ImplType), Impls(Impls) {
     assert(ImplType);
   }
 
-  Visibility getVisibility() const { return Vis; }
   llvm::ArrayRef<FuncDecl *> getImpls() const { return Impls; }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
@@ -417,23 +423,21 @@ public:
 private:
   ASTType *ImplType;
   llvm::SmallVector<FuncDecl *, 4> Impls;
-  Visibility Vis;
 };
+
 class Expression;
 class VarDecl : public Decl {
 public:
   VarDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
-          Visibility Vis, Expression *Initializer = nullptr)
-      : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis),
-        Initializer(Initializer) {}
+          Expression *Initializer = nullptr)
+      : Decl(Loc, DeclLoc, std::move(Name), nullptr), Initializer(Initializer) {
+  }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
-  Visibility getVisibility() const { return Vis; }
   Expression *getInitializer() const { return Initializer; }
 
 private:
-  Visibility Vis = Visibility::Private;
   Expression *Initializer;
 };
 
@@ -442,20 +446,17 @@ class BlockStmt;
 class FuncDecl : public Decl, public ScopedASTNode {
 public:
   FuncDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
-           Visibility Vis, llvm::ArrayRef<FuncParamDecl *> Params,
-           BlockStmt *Body)
-      : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis), Params(Params),
+           llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
+      : Decl(Loc, DeclLoc, std::move(Name), nullptr), Params(Params),
         Body(Body) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
   const llvm::StringRef getName() const { return Name; }
-  Visibility getVisibility() const { return Vis; }
   llvm::ArrayRef<FuncParamDecl *> getParams() const { return Params; }
   BlockStmt *getBody() const { return Body; }
 
 private:
-  Visibility Vis = Visibility::Private;
   llvm::SmallVector<FuncParamDecl *, 8> Params;
   BlockStmt *Body;
 };
@@ -464,7 +465,8 @@ class FuncParamDecl : public Decl {
 public:
   FuncParamDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
                 Expression *DefaultValue)
-      : Decl(Loc, DeclLoc, std::move(Name)), DefaultValue(DefaultValue) {}
+      : Decl(Loc, DeclLoc, std::move(Name), nullptr),
+        DefaultValue(DefaultValue) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 

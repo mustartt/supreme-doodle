@@ -1,7 +1,6 @@
 #ifndef AST_VISITOR_H
 #define AST_VISITOR_H
 
-#include "rxc/AST/AST.h"
 namespace rx::ast {
 
 class ProgramDecl;
@@ -13,19 +12,21 @@ class UseDecl;
 class ImplDecl;
 class FuncDecl;
 class FuncParamDecl;
+class ExportedDecl;
 class BaseDeclVisitor {
 public:
   virtual ~BaseDeclVisitor() {}
 
-  virtual void visit(ProgramDecl *node) = 0;
-  virtual void visit(PackageDecl *node) = 0;
-  virtual void visit(ImportDecl *node) = 0;
-  virtual void visit(VarDecl *node) = 0;
-  virtual void visit(TypeDecl *node) = 0;
-  virtual void visit(UseDecl *node) = 0;
-  virtual void visit(ImplDecl *node) = 0;
-  virtual void visit(FuncDecl *node) = 0;
-  virtual void visit(FuncParamDecl *node) = 0;
+  virtual void visit(ProgramDecl *) = 0;
+  virtual void visit(ExportedDecl *) = 0;
+  virtual void visit(PackageDecl *) = 0;
+  virtual void visit(ImportDecl *) = 0;
+  virtual void visit(VarDecl *) = 0;
+  virtual void visit(TypeDecl *) = 0;
+  virtual void visit(UseDecl *) = 0;
+  virtual void visit(ImplDecl *) = 0;
+  virtual void visit(FuncDecl *) = 0;
+  virtual void visit(FuncParamDecl *) = 0;
 };
 
 class BuiltinType;

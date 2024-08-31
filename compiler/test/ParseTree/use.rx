@@ -2,8 +2,8 @@
 
 public use alias = i32
 
-// CHECK: use_decl
 // CHECK: visibility public
+// CHECK: use_decl
 // CHECK-SAME: use alias = 
 // CHECK: type
 // CHECK: identifier i32

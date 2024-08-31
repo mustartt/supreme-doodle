@@ -25,6 +25,7 @@ public:
   void visit(ProgramDecl *Node) override;
   void visit(PackageDecl *Node) override {};
   void visit(ImportDecl *Node) override {};
+  void visit(ExportedDecl *Node) override;
   void visit(VarDecl *Node) override;
   void visit(TypeDecl *Node) override;
   void visit(ImplDecl *Node) override;
@@ -156,6 +157,12 @@ void MainSemaPassImpl::visit(ProgramDecl *Node) {
     D->accept(*this);
   }
   CurrentScope.pop_back();
+}
+
+void MainSemaPassImpl::visit(ExportedDecl *Node) {
+  assert(Node && "Invalid visited node");
+  assert(Node->getExportedDecl() && "Invalid visited node");
+  Node->getExportedDecl()->accept(*this);
 }
 
 void MainSemaPassImpl::visit(VarDecl *Node) {

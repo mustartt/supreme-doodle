@@ -4,6 +4,7 @@
 #include "rxc/Sema/LexicalContext.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
+#include <cassert>
 #include <string>
 
 namespace rx::sema {
@@ -29,6 +30,7 @@ private:
   void visit(ProgramDecl *Node) override;
   void visit(PackageDecl *Node) override {};
   void visit(ImportDecl *Node) override {};
+  void visit(ExportedDecl *Node) override;
   void visit(VarDecl *Node) override;
   void visit(TypeDecl *Node) override;
   void visit(ImplDecl *Node) override;
@@ -81,6 +83,12 @@ void ForwardDeclarePassImpl::visit(VarDecl *Node) {
   }
 
   LS->insert(Node->getName(), Node);
+}
+
+void ForwardDeclarePassImpl::visit(ExportedDecl *Node) {
+  assert(Node && "Invalid visited node");
+  assert(Node->getExportedDecl() && "Invalid visited node");
+  Node->getExportedDecl()->accept(*this);
 }
 
 void ForwardDeclarePassImpl::visit(TypeDecl *Node) {

@@ -5,11 +5,9 @@ public type Point = {
     y: i32
 }
 
-// CHECK: global_decl
-// CHECK: type_decl
 // CHECK: visibility public
+// CHECK: type_decl
 // CHECK-SAME: type Point =
-
 // CHECK: object_type
 
 // CHECK: object_field_type x :
@@ -21,15 +19,14 @@ public type Point = {
 // CHECK-NEXT: identifier i32
 
 impl Point {
-    public func swap(self: *Point) {}
+    func swap(self: *Point) {}
 }
 
 // CHECK: global_decl
-// CHECK-NEXT: impl_decl
+// CHECK: impl_decl
 // CHECK: identifier Point
 // CHECK: func_decl
-// CHECK: visibility public
-// CHECK-SAME: func swap
+// CHECK: func swap
 // CHECK: func_param_decl self :
 // CHECK: pointer_type *
 // CHECK: identifier Point

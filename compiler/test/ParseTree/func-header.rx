@@ -5,9 +5,9 @@ func a() {}
 // CHECK: func_body
 
 public func b() {}
+// CHECK: visibility public
 // CHECK: func_decl
-// CHECK-NEXT: visibility public
-// CHECK-SAME: func b
+// CHECK: func b
 // CHECK: func_body
 
 func c(x: i32) {}
