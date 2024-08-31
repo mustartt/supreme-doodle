@@ -61,6 +61,11 @@ private:
       OS << " declared_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
     }
 
+    if (auto *E = dynamic_cast<Expression*>(Node)) {
+      auto *T = E->getExprType();
+      OS << " expr_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
+    }
+
     if (auto *S = dynamic_cast<ScopedASTNode *>(Node)) {
       OS << " scope(" << S->getLexicalScope() << ")";
     }

@@ -70,6 +70,10 @@ struct StringType : public BuiltinType {
   StringType() : BuiltinType("string") {}
 };
 
+struct VoidType : public BuiltinType {
+  VoidType() : BuiltinType("void") {}
+};
+
 class TypeContext {
 public:
   TypeContext() {

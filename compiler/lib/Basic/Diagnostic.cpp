@@ -16,7 +16,7 @@ void ConsoleDiagnosticConsumer::printMessageHeader(const Diagnostic &D) {
     auto Loc = D.loc().value();
     auto OS = llvm::WithColor(llvm::errs(), llvm::raw_ostream::WHITE, true);
     if (Loc.file()) {
-      OS << Loc.file()->getAbsPath() << ": " << Loc.loc() << ": ";
+      OS << Loc.file()->getAbsPath() << ":" << Loc.loc() << ": ";
     } else {
       OS << "builtin: ";
     }

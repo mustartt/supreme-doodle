@@ -153,6 +153,7 @@ int main(int argc, char *argv[]) {
     SemaPassManager SPM(CDC, LC, DebugSemaManager);
     SPM.registerPass(ForwardDeclarePass());
     SPM.registerPass(ResolveGlobalType());
+    SPM.registerPass(MainSemaPass());
 
     SPM.run(TU->getProgramAST());
   }

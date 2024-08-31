@@ -10,6 +10,7 @@
 #include <any>
 #include <cassert>
 #include <llvm/ADT/STLExtras.h>
+#include <llvm/Support/ErrorHandling.h>
 
 using namespace antlr4;
 
@@ -386,10 +387,18 @@ public:
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
 
-    assert(ctx->var_decl() && "Must have valid VarDecl");
-    auto Decl = std::any_cast<ast::Decl *>(visit(ctx->var_decl()));
+    ast::Decl *D;
+    if (ctx->var_decl()) {
+      D = std::any_cast<ast::Decl *>(visit(ctx->var_decl()));
+    } else if (ctx->use_decl()) {
+      D = std::any_cast<ast::Decl *>(visit(ctx->use_decl()));
+    } else if (ctx->type_decl()) {
+      D = std::any_cast<ast::Decl *>(visit(ctx->type_decl()));
+    } else {
+      llvm_unreachable("Invalid parse");
+    }
 
-    return dynamic_cast<ast::Stmt *>(Context.createDeclStmt(Loc, Decl));
+    return dynamic_cast<ast::Stmt *>(Context.createDeclStmt(Loc, D));
   }
 
   std::any visitExpr_stmt(LangParser::Expr_stmtContext *ctx) override {

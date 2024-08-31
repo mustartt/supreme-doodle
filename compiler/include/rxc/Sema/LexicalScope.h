@@ -29,6 +29,7 @@ public:
 public:
   std::optional<LexicalScope *> find(llvm::StringRef Symbol);
   llvm::ArrayRef<ast::Decl *> getDecls(llvm::StringRef Symbol);
+  Kind getType() const { return Type; }
 
   LexicalScope *parent() const { return Parent; }
   void insert(llvm::StringRef Symbol, ast::Decl *D);

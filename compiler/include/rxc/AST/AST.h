@@ -340,8 +340,8 @@ public:
   enum class ImportType { File, Module };
 
 public:
-  ImportDecl(SourceLocation Loc, SourceLocation DeclLoc, ImportType Type, std::string Path,
-             std::optional<std::string> Alias = std::nullopt)
+  ImportDecl(SourceLocation Loc, SourceLocation DeclLoc, ImportType Type,
+             std::string Path, std::optional<std::string> Alias = std::nullopt)
       : Decl(Loc, DeclLoc, std::move(Path)), Type(Type),
         Alias(std::move(Alias)) {}
 
@@ -372,8 +372,8 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &Os, Visibility Vis) {
 
 class TypeDecl : public Decl {
 public:
-  TypeDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
-           ASTType *Type)
+  TypeDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
+           Visibility Vis, ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
   Visibility getVisibility() const { return Vis; }
@@ -386,8 +386,8 @@ private:
 
 class UseDecl : public Decl {
 public:
-  UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
-          ASTType *Type)
+  UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
+          Visibility Vis, ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
   Visibility getVisibility() const { return Vis; }
@@ -402,8 +402,8 @@ class FuncDecl;
 
 class ImplDecl : public Decl, public ScopedASTNode {
 public:
-  ImplDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType, Visibility Vis,
-           llvm::ArrayRef<FuncDecl *> Impls)
+  ImplDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType,
+           Visibility Vis, llvm::ArrayRef<FuncDecl *> Impls)
       : Decl(Loc, DeclLoc, ImplType->getTypeName()), ImplType(ImplType),
         Impls(Impls), Vis(Vis) {
     assert(ImplType);
@@ -422,8 +422,8 @@ private:
 class Expression;
 class VarDecl : public Decl {
 public:
-  VarDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
-          Expression *Initializer = nullptr)
+  VarDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
+          Visibility Vis, Expression *Initializer = nullptr)
       : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis),
         Initializer(Initializer) {}
 
@@ -441,8 +441,9 @@ class FuncParamDecl;
 class BlockStmt;
 class FuncDecl : public Decl, public ScopedASTNode {
 public:
-  FuncDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name, Visibility Vis,
-           llvm::ArrayRef<FuncParamDecl *> Params, BlockStmt *Body)
+  FuncDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
+           Visibility Vis, llvm::ArrayRef<FuncParamDecl *> Params,
+           BlockStmt *Body)
       : Decl(Loc, DeclLoc, std::move(Name)), Vis(Vis), Params(Params),
         Body(Body) {}
 
@@ -553,14 +554,21 @@ private:
 
 class Expression : public ASTNode {
 public:
-  Expression(SourceLocation Loc) : ASTNode(Loc) {}
+  Expression(SourceLocation Loc) : ASTNode(Loc), ExprType(nullptr) {}
 
   virtual void accept(BaseExprVisitor &) = 0;
+
+  ASTType *getExprType() const { return ExprType; }
+  void setExprType(ASTType *Ty) { ExprType = Ty; }
+
+private:
+  ASTType *ExprType;
 };
 
 class CallExpr : public Expression {
 public:
-  CallExpr(SourceLocation Loc, Expression *Callee, llvm::ArrayRef<Expression *> Args)
+  CallExpr(SourceLocation Loc, Expression *Callee,
+           llvm::ArrayRef<Expression *> Args)
       : Expression(Loc), Callee(Callee), Args(Args.begin(), Args.end()) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
@@ -627,6 +635,9 @@ public:
 
   llvm::StringRef getSymbol() const { return Symbol; }
 
+  Decl *getRefDecl() const { return Ref; }
+  void setRefDecl(Decl *D) { Ref = D; }
+
 private:
   std::string Symbol;
   Decl *Ref;
@@ -658,7 +669,8 @@ public:
 
 class BoolLiteral : public LiteralExpr {
 public:
-  BoolLiteral(SourceLocation Loc, bool Value) : LiteralExpr(Loc), Value(Value) {}
+  BoolLiteral(SourceLocation Loc, bool Value)
+      : LiteralExpr(Loc), Value(Value) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
@@ -670,7 +682,8 @@ private:
 
 class CharLiteral : public LiteralExpr {
 public:
-  CharLiteral(SourceLocation Loc, char Value) : LiteralExpr(Loc), Value(Value) {}
+  CharLiteral(SourceLocation Loc, char Value)
+      : LiteralExpr(Loc), Value(Value) {}
 
   ACCEPT_VISITOR(BaseExprVisitor);
 

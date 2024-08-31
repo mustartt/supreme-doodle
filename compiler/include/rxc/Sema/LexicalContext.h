@@ -2,8 +2,11 @@
 #define SEMA_LEXICAL_CONTEXT_H
 
 #include "LexicalScope.h"
+#include "rxc/AST/AST.h"
 #include <deque>
+#include <llvm/ADT/DenseMap.h>
 #include <llvm/Support/raw_ostream.h>
+#include <unordered_map>
 
 namespace rx::sema {
 
@@ -31,10 +34,14 @@ public:
     for (const auto &Scope : ScopeStorage) {
       Scope.debug(OS);
     }
+    for (const auto& [Key, Value] : TypeImpls) {
+      OS << "TypeImpl: " << Key << " " << Value << "\n";
+    }
   }
 
 private:
   std::deque<LexicalScope> ScopeStorage;
+  std::unordered_multimap<ast::TypeDecl *, ast::FuncDecl *> TypeImpls;
 };
 
 } // namespace rx::sema

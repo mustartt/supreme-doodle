@@ -5,6 +5,7 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/rxc/Sema/LexicalScope.h
     ForwardDeclarePass.cpp
     ResolveGlobalTypePass.cpp
+    MainSemaPass.cpp
     LexicalScope.cpp
     Sema.cpp
 )

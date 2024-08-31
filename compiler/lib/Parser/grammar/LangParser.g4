@@ -52,8 +52,8 @@ statement
     | block_stmt
     ;
 
-decl_stmt: var_decl;
-initializer: EQ expr;
+decl_stmt: var_decl | type_decl | use_decl ;
+initializer: EQ expr ;
 
 return_stmt: RETURN expr?;
 

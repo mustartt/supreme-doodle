@@ -28,7 +28,8 @@ public:
 
 class SemaPassManager {
 public:
-  SemaPassManager(DiagnosticConsumer &DC, LexicalContext &LC, bool Debug = false)
+  SemaPassManager(DiagnosticConsumer &DC, LexicalContext &LC,
+                  bool Debug = false)
       : DC(DC), LC(LC), Debug(Debug) {}
 
   template <class PassType> void registerPass(PassType &&Pass) {
@@ -54,6 +55,13 @@ public:
 class ResolveGlobalType : public SemaPass {
 public:
   ResolveGlobalType() : SemaPass("sema-resolve-global-type") {}
+
+  void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &) override;
+};
+
+class MainSemaPass : public SemaPass {
+public:
+  MainSemaPass() : SemaPass("sema-main") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &) override;
 };
