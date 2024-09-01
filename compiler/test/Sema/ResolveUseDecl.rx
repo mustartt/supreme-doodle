@@ -1,0 +1,12 @@
+// RUN: %rx-frontend -debug %s 2>&1 | FileCheck %s
+
+use BinFunc = func(i32, i32) i32;
+
+func add(x: i32, y: i32) i32 {
+    return x + y;
+}
+
+let f: BinFunc = add;
+
+// CHECK: `-DeclRefExpr: {{.*}} expr_type(func(i32, i32) i32) add
+

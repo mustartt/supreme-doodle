@@ -1,4 +1,5 @@
 #include "rxc/AST/AST.h"
+#include "rxc/AST/ASTContext.h"
 #include "rxc/AST/ASTVisitor.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Sema/LexicalContext.h"
@@ -45,7 +46,7 @@ private:
 };
 
 void ForwardDeclarePass::run(ProgramDecl *Program, DiagnosticConsumer &DC,
-                             LexicalContext &LC) {
+                             LexicalContext &LC, ASTContext& AC) {
   ForwardDeclarePassImpl Impl(DC, LC);
   Impl.visit(Program);
 }

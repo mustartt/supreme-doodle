@@ -46,36 +46,36 @@ static cl::opt<bool> DumpLexicalContext("dump-lexical-context", cl::Optional,
 static void populateBuiltins(ASTContext &GlobalASTContext,
                              LexicalScope *GlobalScope) {
   GlobalScope->insert(
-      "void", GlobalASTContext.createNode<TypeDecl>(
+      "void", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "void",
                   GlobalASTContext.createNode<BuiltinType>(NativeType::Void)));
   GlobalScope->insert(
-      "bool", GlobalASTContext.createNode<TypeDecl>(
+      "bool", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "bool",
                   GlobalASTContext.createNode<BuiltinType>(NativeType::i1)));
   GlobalScope->insert(
-      "char", GlobalASTContext.createNode<TypeDecl>(
+      "char", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "i8",
                   GlobalASTContext.createNode<BuiltinType>(NativeType::i8)));
   GlobalScope->insert(
-      "i32", GlobalASTContext.createNode<TypeDecl>(
+      "i32", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "i32",
                  GlobalASTContext.createNode<BuiltinType>(NativeType::i32)));
   GlobalScope->insert(
-      "i64", GlobalASTContext.createNode<TypeDecl>(
+      "i64", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "i64",
                  GlobalASTContext.createNode<BuiltinType>(NativeType::i64)));
   GlobalScope->insert(
-      "f32", GlobalASTContext.createNode<TypeDecl>(
+      "f32", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "f32",
                  GlobalASTContext.createNode<BuiltinType>(NativeType::f32)));
   GlobalScope->insert(
-      "f64", GlobalASTContext.createNode<TypeDecl>(
+      "f64", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "f64",
                  GlobalASTContext.createNode<BuiltinType>(NativeType::f64)));
   GlobalScope->insert(
       "string",
-      GlobalASTContext.createNode<TypeDecl>(
+      GlobalASTContext.createNode<UseDecl>(
           SourceLocation::Builtin(), SourceLocation::Builtin(), "string",
           GlobalASTContext.createNode<BuiltinType>(NativeType::String)));
 }
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
       llvm::WithColor::remark()
           << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
 
-    SemaPassManager SPM(CDC, LC, DebugSemaManager);
+    SemaPassManager SPM(CDC, LC, GlobalASTContext, DebugSemaManager);
     SPM.registerPass(ForwardDeclarePass());
     SPM.registerPass(ResolveGlobalType());
     SPM.registerPass(MainSemaPass());

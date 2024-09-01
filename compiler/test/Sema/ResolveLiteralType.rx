@@ -1,0 +1,6 @@
+
+let a: bool = true
+let b: char = 'a'
+let c: i32 = 123
+let d: f32 = 6.79
+let e: string = "some string"

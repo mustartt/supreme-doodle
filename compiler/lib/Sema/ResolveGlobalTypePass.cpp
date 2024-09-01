@@ -1,8 +1,10 @@
 #include "rxc/AST/AST.h"
+#include "rxc/AST/ASTContext.h"
 #include "rxc/AST/ASTVisitor.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
+#include <cassert>
 
 namespace rx::sema {
 
@@ -54,7 +56,7 @@ private:
 };
 
 void ResolveGlobalType::run(ProgramDecl *Program, DiagnosticConsumer &DC,
-                            LexicalContext &LC) {
+                            LexicalContext &LC, ASTContext &AC) {
   ResolveGlobalTypePassImpl Impl(DC, LC);
   Impl.visit(Program);
 }
@@ -79,15 +81,25 @@ void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   auto Decls = (*Scope)->getDecls(Node->getSymbol());
   assert(Decls.size() == 1 && "Ambiguous decl");
   auto *TypeDecl = dynamic_cast<ast::TypeDecl *>(Decls[0]);
+  auto *UseDecl = dynamic_cast<ast::UseDecl *>(Decls[0]);
 
-  if (!TypeDecl) {
+  if (!TypeDecl && !UseDecl) {
     Diagnostic Err(Diagnostic::Type::Error,
-                   "Reference is not a type declaration " + Node->getTypeName(),
-                   Node->Loc);
-    Diagnostic Note(Diagnostic::Type::Note, "referenced declaration is <TODO>");
+                   "Reference is not a type or alias declaration " +
+                       Node->getTypeName());
+    Err.setSourceLocation(Node->Loc);
+    Diagnostic Note(Diagnostic::Type::Note,
+                    "referenced symbol is declared here");
+    Err.setSourceLocation(Decls[0]->getDeclLoc());
+
     DC.emit(std::move(Err));
     DC.emit(std::move(Note));
+    return;
   }
+
+  if (!TypeDecl)
+    TypeDecl = UseDecl;
+  assert(TypeDecl && "No TypeDecl");
 
   Node->setReferencedType(TypeDecl->getType());
   Node->setDeclNode(TypeDecl);

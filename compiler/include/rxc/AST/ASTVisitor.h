@@ -74,6 +74,7 @@ class AccessExpr;
 class IndexExpr;
 class AssignExpr;
 class DeclRefExpr;
+class ObjectLiteral;
 class BoolLiteral;
 class CharLiteral;
 class NumLiteral;
@@ -94,6 +95,7 @@ public:
   virtual void visit(IndexExpr *node) = 0;
   virtual void visit(AssignExpr *node) = 0;
   virtual void visit(DeclRefExpr *node) = 0;
+  virtual void visit(ObjectLiteral *node) = 0;
   virtual void visit(BoolLiteral *node) = 0;
   virtual void visit(CharLiteral *node) = 0;
   virtual void visit(NumLiteral *node) = 0;

@@ -5,6 +5,8 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/ErrorHandling.h"
 #include <cassert>
+#include <llvm/Support/WithColor.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace rx::ast {
 
@@ -44,6 +46,7 @@ public:
   void visit(IndexExpr *node) override;
   void visit(AssignExpr *node) override;
   void visit(DeclRefExpr *node) override;
+  void visit(ObjectLiteral *node) override;
   void visit(BoolLiteral *node) override;
   void visit(CharLiteral *node) override;
   void visit(NumLiteral *node) override;
@@ -521,6 +524,28 @@ void ASTPrinterVisitor::visit(DeclRefExpr *Node) {
   Os << "DeclRefExpr: ";
   PrintNodeDetails(Os, Node) << " " << Node->getSymbol();
   printNodePrefix(Str);
+  DepthFlag[Depth] = true;
+}
+
+void ASTPrinterVisitor::visit(ObjectLiteral *Node) {
+  std::string Str;
+  llvm::raw_string_ostream Os(Str);
+  Os << "ObjectLiteral: ";
+  PrintNodeDetails(Os, Node) << " {";
+  for (auto [Idx, KV] : llvm::enumerate(Node->getFields())) {
+    Os << KV.first();
+    if (Idx + 1 != Node->getFields().size()) {
+      Os << ", ";
+    }
+  }
+  Os << "}";
+  printNodePrefix(Str);
+
+  for (auto [Idx, KV] : llvm::enumerate(Node->getFields())) {
+    Scope _(*this, Idx + 1 == Node->getFields().size());
+    KV.second->accept(*this);
+  }
+
   DepthFlag[Depth] = true;
 }
 

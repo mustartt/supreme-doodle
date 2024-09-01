@@ -1,0 +1,22 @@
+type Rectangle = {
+    width: f32,
+    height: f32
+}
+
+impl Rectangle {
+    func area(self: *Rectangle) f32 {
+        return self.width * self.height;
+    }
+
+    func scale(self: mut *Rectangle, factor: f32) {
+        self.width = self.width * factor;
+        self.height = self.height * factor;
+    }
+}
+
+func main() {
+    let rect: mut Rectangle = { width: 10.0, height: 5.0 };
+    io.print("Area before scaling: ", rect.area());
+    rect.scale(2.0);
+    io.print("Area after scaling: ", rect.area());
+}

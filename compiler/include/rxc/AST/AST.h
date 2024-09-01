@@ -117,7 +117,7 @@ public:
   }
 
   llvm::StringRef getSymbol() const { return Symbol; }
-  std::string getTypeName() const override { return Symbol; }
+  std::string getTypeName() const override { return "@" + Symbol; }
 
   void setReferencedType(ASTType *Type) { this->Type = Type; }
   void setDeclNode(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
@@ -310,6 +310,7 @@ public:
   virtual void accept(BaseDeclVisitor &visitor) = 0;
 
   llvm::StringRef getName() const { return Name; }
+  void setName(std::string Name) { this->Name = std::move(Name); }
   ASTType *getType() const { return Type; }
   void setType(ASTType *Ty) { Type = Ty; }
   const SourceLocation &getDeclLoc() const { return DeclLoc; }
@@ -396,11 +397,11 @@ public:
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
 
-class UseDecl : public Decl {
+class UseDecl : public TypeDecl {
 public:
   UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
           ASTType *Type)
-      : Decl(Loc, DeclLoc, std::move(Name), Type) {}
+      : TypeDecl(Loc, DeclLoc, std::move(Name), Type) {}
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
@@ -667,6 +668,19 @@ private:
 class LiteralExpr : public Expression {
 public:
   LiteralExpr(SourceLocation Loc) : Expression(Loc) {}
+};
+
+class ObjectLiteral : public LiteralExpr {
+public:
+  ObjectLiteral(SourceLocation Loc, llvm::StringMap<Expression *> Fields)
+      : LiteralExpr(Loc), Fields(Fields) {}
+
+  ACCEPT_VISITOR(BaseExprVisitor);
+
+  llvm::StringMap<Expression *> &getFields() { return Fields; }
+
+private:
+  llvm::StringMap<Expression *> Fields;
 };
 
 class BoolLiteral : public LiteralExpr {

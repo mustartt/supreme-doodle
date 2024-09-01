@@ -1,10 +1,13 @@
 #include "rxc/AST/AST.h"
+#include "rxc/AST/ASTContext.h"
 #include "rxc/AST/ASTVisitor.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Sema/LexicalContext.h"
 #include "rxc/Sema/LexicalScope.h"
 #include "rxc/Sema/Sema.h"
 #include <cassert>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace rx::sema {
 
@@ -17,8 +20,8 @@ class MainSemaPassImpl final : public ast::BaseDeclVisitor,
                                public ast::BaseExprVisitor,
                                public ast::BaseTypeVisitor {
 public:
-  MainSemaPassImpl(DiagnosticConsumer &DC, LexicalContext &LC)
-      : DC(DC), LC(LC), ResMode(ResolutionMode::Expr) {}
+  MainSemaPassImpl(DiagnosticConsumer &DC, LexicalContext &LC, ASTContext &AC)
+      : DC(DC), LC(LC), AC(AC), ResMode(ResolutionMode::Expr) {}
 
 public:
   // visit decls
@@ -53,9 +56,10 @@ public:
   void visit(AccessExpr *Node) override {}
   void visit(IndexExpr *Node) override {}
   void visit(AssignExpr *Node) override {}
-  void visit(BoolLiteral *Node) override {}
-  void visit(CharLiteral *Node) override {}
-  void visit(NumLiteral *Node) override {}
+  void visit(ObjectLiteral *Node) override {}
+  void visit(BoolLiteral *Node) override;
+  void visit(CharLiteral *Node) override;
+  void visit(NumLiteral *Node) override;
   void visit(StringLiteral *Node) override {}
 
   // visit stmts
@@ -69,12 +73,14 @@ private:
   llvm::SmallVector<LexicalScope *> CurrentScope;
   DiagnosticConsumer &DC;
   LexicalContext &LC;
+  ASTContext &AC;
   ResolutionMode ResMode;
+  llvm::SmallVector<ASTType *, 16> TypeHintStack;
 };
 
 void MainSemaPass::run(ast::ProgramDecl *Program, DiagnosticConsumer &DC,
-                       LexicalContext &LC) {
-  MainSemaPassImpl Impl(DC, LC);
+                       LexicalContext &LC, ASTContext &AC) {
+  MainSemaPassImpl Impl(DC, LC, AC);
   Impl.visit(Program);
 }
 
@@ -84,6 +90,8 @@ void MainSemaPassImpl::visit(DeclRefExpr *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Scope stack cannot be empty");
   auto *LS = CurrentScope.back();
+
+  llvm::errs() << "here\n";
 
   auto Scope = LS->find(Node->getSymbol());
   if (!Scope) {
@@ -170,6 +178,11 @@ void MainSemaPassImpl::visit(VarDecl *Node) {
 
   if (Node->getType())
     Node->getType()->accept(*this);
+
+  TypeHintStack.push_back(Node->getType());
+  if (Node->getInitializer())
+    Node->getInitializer()->accept(*this);
+  TypeHintStack.clear();
 
   auto *LS = CurrentScope.back();
   if (LS->getType() == LexicalScope::Kind::File)
@@ -270,6 +283,29 @@ void MainSemaPassImpl::visit(FuncParamDecl *Node) {
   assert(Node && "Invalid visited node");
   if (Node->getType())
     Node->getType()->accept(*this);
+}
+
+// Literals
+
+void MainSemaPassImpl::visit(BoolLiteral *Node) {
+  assert(Node && "Invalid visited node");
+  assert(LC.getGlobalScope()->getDecls("bool").size() == 1 &&
+         "Found multiple BuiltinType bool");
+  Node->setExprType(LC.getGlobalScope()->getDecls("bool")[0]->getType());
+  assert(Node->getExprType() && "Did not set type");
+}
+
+void MainSemaPassImpl::visit(CharLiteral *Node) {
+  assert(Node && "Invalid visited node");
+  assert(LC.getGlobalScope()->getDecls("char").size() == 1 &&
+         "Found multiple BuiltinType char");
+  Node->setExprType(LC.getGlobalScope()->getDecls("char")[0]->getType());
+  assert(Node->getExprType() && "Did not set type");
+}
+
+void MainSemaPassImpl::visit(NumLiteral *Node) {
+  assert(Node && "Invalid visited node");
+  Node->getValue();
 }
 
 } // namespace rx::sema

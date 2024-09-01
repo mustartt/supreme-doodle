@@ -11,7 +11,7 @@ void SemaPassManager::run(ast::ProgramDecl *Root) {
     if (Debug)
       llvm::WithColor::remark()
           << "Running sema pass: " << Pass->PassName << "\n";
-    Pass->run(Root, DC, LC);
+    Pass->run(Root, DC, LC, AC);
   }
 }
 

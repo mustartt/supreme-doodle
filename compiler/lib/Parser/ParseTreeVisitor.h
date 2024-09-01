@@ -4,6 +4,7 @@
 #include "LangParserBaseVisitor.h"
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
+#include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -19,8 +20,8 @@ namespace rx::parser {
 class LangVisitor : public LangParserBaseVisitor {
 public:
   LangVisitor(TokenStream &Stream, rx::ast::ASTContext &Context,
-              SourceFile *File)
-      : Tokens(Stream), Context(Context), File(File) {}
+              SourceFile *File, DiagnosticConsumer &DC)
+      : Tokens(Stream), Context(Context), File(File), DC(DC) {}
 
 public:
   // types
@@ -600,6 +601,31 @@ public:
         Context.createNode<ast::IndexExpr>(Loc, Expr, Idx));
   }
 
+  std::any visitObjectExpr(LangParser::ObjectExprContext *ctx) override {
+    assert(ctx && "Invalid Node");
+    auto Loc = getRange(ctx->getSourceInterval());
+
+    auto *Object = ctx->object_expr();
+    llvm::StringMap<ast::Expression *> Fields;
+
+    for (auto *Field : Object->object_field()) {
+      auto Name = Field->IDENTIFIER()->getText();
+      auto FieldExpr = std::any_cast<ast::Expression *>(visit(Field->expr()));
+      if (Fields.contains(Name)) {
+        Diagnostic Err(Diagnostic::Type::Error,
+                       "Duplicate object literal field '" + Name + "'");
+        Err.setSourceLocation(
+            getRange(Field->IDENTIFIER()->getSourceInterval()));
+        DC.emit(std::move(Err));
+        continue;
+      }
+      Fields[Name] = FieldExpr;
+    }
+
+    return static_cast<ast::Expression *>(
+        Context.createNode<ast::ObjectLiteral>(Loc, std::move(Fields)));
+  }
+
   std::any visitBool_literal(LangParser::Bool_literalContext *ctx) override {
     assert(ctx && "Invalid Node");
     auto Loc = getRange(ctx->getSourceInterval());
@@ -667,6 +693,7 @@ private:
   TokenStream &Tokens;
   rx::ast::ASTContext &Context;
   SourceFile *File;
+  DiagnosticConsumer &DC;
 };
 
 } // namespace rx::parser
