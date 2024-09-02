@@ -32,7 +32,7 @@ enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 add_executable(unittest unittest/test.cpp unittest/TypesTest.cpp)
-target_link_libraries(unittest gtest gtest_main ${llvm_libs})
+target_link_libraries(unittest gtest gtest_main ${llvm_libs} ast)
 add_test(test unittest)
 
 add_custom_target(check-all
