@@ -1,6 +1,5 @@
 #include "rxc/AST/QualType.h"
 #include "rxc/AST/Type.h"
-#include "rxc/AST/TypeContext.h"
 
 namespace rx {
 
@@ -22,6 +21,9 @@ llvm::hash_code hash_value(const rx::QualType &Val) {
   return llvm::hash_combine(llvm::hash_value(Val.getType()),
                             llvm::hash_value(Val.isMutable()));
 }
+
+bool QualType::isMutable() const { return Mutable; }
+std::string QualType::getTypeName() const { return Ty->getTypeName(); }
 
 } // namespace rx
 

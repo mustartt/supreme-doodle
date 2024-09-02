@@ -1,8 +1,8 @@
 #ifndef RXC_AST_QUALTYPE_H
 #define RXC_AST_QUALTYPE_H
 
-#include <llvm/ADT/Hashing.h>
 #include <llvm/ADT/DenseMapInfo.h>
+#include <llvm/ADT/Hashing.h>
 
 namespace rx {
 
@@ -11,6 +11,7 @@ public:
   virtual ~Type() = default;
 
   virtual bool isLeafType() const = 0;
+  virtual std::string getTypeName() const = 0;
 };
 
 class QualType {
@@ -24,7 +25,8 @@ public:
 public:
   const Type *getType() const;
   QualType mut(bool Mutable) const;
-  bool isMutable() const { return Mutable; }
+  bool isMutable() const;
+  std::string getTypeName() const;
 
   bool operator==(const QualType &Other) const;
 
@@ -49,5 +51,5 @@ template <> struct DenseMapInfo<rx::QualType> {
   static bool isEqual(const Type &LHS, const Type &RHS);
 };
 
-}
+} // namespace llvm
 #endif

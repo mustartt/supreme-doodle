@@ -84,3 +84,45 @@ TEST(TypeContextTest, PointerIdentityFunc) {
   auto F5 = Context.getFuncType(Params, Unit);
   EXPECT_EQ(F4, F5);
 }
+
+TEST(TypeContextTest, PointerIdentityObject) {
+  TypeContext Context;
+  auto T1 = Context.getBuiltinType(NativeType::i32);
+
+  llvm::StringMap<QualType> Fields1;
+  Fields1.insert({"x", T1});
+  llvm::StringMap<QualType> Fields2;
+  Fields2.insert({"x", T1});
+
+  auto O1 = Context.getObjectType(std::move(Fields1));
+  auto O2 = Context.getObjectType(std::move(Fields2));
+
+  EXPECT_EQ(O1, O2);
+
+  llvm::StringMap<QualType> Fields3;
+  Fields3.insert({"y", T1});
+  auto O3 = Context.getObjectType(std::move(Fields3));
+
+  EXPECT_NE(O1, O3);
+}
+
+TEST(TypeContextTest, PointerIdentityEnum) {
+  TypeContext Context;
+  auto T1 = Context.getBuiltinType(NativeType::i32);
+
+  llvm::StringMap<QualType> Fields1;
+  Fields1.insert({"x", T1});
+  llvm::StringMap<QualType> Fields2;
+  Fields2.insert({"x", T1});
+
+  auto E1 = Context.getEnumType(std::move(Fields1));
+  auto E2 = Context.getEnumType(std::move(Fields2));
+
+  EXPECT_EQ(E1, E2);
+
+  llvm::StringMap<QualType> Fields3;
+  Fields3.insert({"y", T1});
+  auto E3 = Context.getEnumType(std::move(Fields3));
+
+  EXPECT_NE(E1, E3);
+}
