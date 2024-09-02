@@ -37,15 +37,15 @@ public:
   void visit(FuncParamDecl *Node) override;
 
   // visit types
-  void visit(BuiltinType *Node) override {}
-  void visit(DeclRefType *Node) override {}
-  void visit(AccessType *Node) override {}
-  void visit(MutableType *Node) override {}
-  void visit(PointerType *Node) override {}
-  void visit(ArrayType *Node) override {}
-  void visit(FunctionType *Node) override {}
-  void visit(ObjectType *Node) override {}
-  void visit(EnumType *Node) override {}
+  void visit(ASTBuiltinType *Node) override {}
+  void visit(ASTDeclTypeRef *Node) override {}
+  void visit(ASTAccessType *Node) override {}
+  void visit(ASTQualType *Node) override {}
+  void visit(ASTPointerType *Node) override {}
+  void visit(ASTArrayType *Node) override {}
+  void visit(ASTFunctionType *Node) override {}
+  void visit(ASTObjectType *Node) override {}
+  void visit(ASTEnumType *Node) override {}
 
   // visit expr
   void visit(DeclRefExpr *Node) override;

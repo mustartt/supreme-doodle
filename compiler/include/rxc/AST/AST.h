@@ -72,9 +72,9 @@ public:
 
 enum class ASTNativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
 
-class BuiltinType : public ASTType {
+class ASTBuiltinType : public ASTType {
 public:
-  BuiltinType(ASTNativeType Builtin)
+  ASTBuiltinType(ASTNativeType Builtin)
       : ASTType(SourceLocation::Builtin()), Builtin(Builtin) {}
 
   std::string getTypeName() const override {
@@ -109,9 +109,9 @@ private:
 };
 
 class TypeDecl;
-class DeclRefType : public ASTType {
+class ASTDeclTypeRef : public ASTType {
 public:
-  DeclRefType(SourceLocation Loc, std::string Symbol)
+  ASTDeclTypeRef(SourceLocation Loc, std::string Symbol)
       : ASTType(Loc), Symbol(std::move(Symbol)) {
     assert(this->Symbol.size() && "Empty Symbol");
   }
@@ -130,9 +130,9 @@ private:
   TypeDecl *DeclNode;
 };
 
-class AccessType : public ASTType {
+class ASTAccessType : public ASTType {
 public:
-  AccessType(SourceLocation Loc, std::string Symbol, ASTType *ParentType)
+  ASTAccessType(SourceLocation Loc, std::string Symbol, ASTType *ParentType)
       : ASTType(Loc), Symbol(std::move(Symbol)), ParentType(ParentType) {
     assert(this->Symbol.size() && "Empty Symbol");
     assert(this->ParentType && "Must have parent");
@@ -152,9 +152,9 @@ private:
   ASTType *ParentType;
 };
 
-class MutableType : public ASTType {
+class ASTQualType : public ASTType {
 public:
-  MutableType(SourceLocation Loc, ASTType *ElementType)
+  ASTQualType(SourceLocation Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
   std::string getTypeName() const override {
@@ -169,9 +169,9 @@ private:
   ASTType *ElementType;
 };
 
-class PointerType : public ASTType {
+class ASTPointerType : public ASTType {
 public:
-  PointerType(SourceLocation Loc, ASTType *ElementType, bool Nullable)
+  ASTPointerType(SourceLocation Loc, ASTType *ElementType, bool Nullable)
       : ASTType(Loc), ElementType(ElementType), Nullable(Nullable) {}
 
   std::string getTypeName() const override {
@@ -191,9 +191,9 @@ private:
   bool Nullable;
 };
 
-class ArrayType : public ASTType {
+class ASTArrayType : public ASTType {
 public:
-  ArrayType(SourceLocation Loc, ASTType *ElementType)
+  ASTArrayType(SourceLocation Loc, ASTType *ElementType)
       : ASTType(Loc), ElementType(ElementType) {}
 
   std::string getTypeName() const override {
@@ -211,9 +211,9 @@ private:
   ASTType *ElementType;
 };
 
-class FunctionType : public ASTType {
+class ASTFunctionType : public ASTType {
 public:
-  FunctionType(SourceLocation Loc, llvm::ArrayRef<ASTType *> ParamTypes,
+  ASTFunctionType(SourceLocation Loc, llvm::ArrayRef<ASTType *> ParamTypes,
                ASTType *ReturnType)
       : ASTType(Loc), ParamTypes(ParamTypes), ReturnType(ReturnType) {}
 
@@ -239,12 +239,12 @@ private:
   ASTType *ReturnType;
 };
 
-class ObjectType : public ASTType {
+class ASTObjectType : public ASTType {
 public:
   using Field = std::pair<std::string, ASTType *>;
 
 public:
-  ObjectType(SourceLocation Loc, llvm::ArrayRef<Field> Fields)
+  ASTObjectType(SourceLocation Loc, llvm::ArrayRef<Field> Fields)
       : ASTType(Loc), Fields(Fields) {}
 
   std::string getTypeName() const override {
@@ -269,12 +269,12 @@ private:
   llvm::SmallVector<Field> Fields;
 };
 
-class EnumType : public ASTType {
+class ASTEnumType : public ASTType {
 public:
   using Member = std::pair<std::string, ASTType *>;
 
 public:
-  EnumType(SourceLocation Loc, llvm::ArrayRef<Member> Members)
+  ASTEnumType(SourceLocation Loc, llvm::ArrayRef<Member> Members)
       : ASTType(Loc), Members(Members) {}
 
   std::string getTypeName() const override {

@@ -39,15 +39,15 @@ private:
   void visit(FuncParamDecl *Node) override;
 
   // visit types
-  void visit(BuiltinType *Node) override;
-  void visit(DeclRefType *Node) override;
-  void visit(AccessType *Node) override;
-  void visit(MutableType *Node) override;
-  void visit(PointerType *Node) override;
-  void visit(ArrayType *Node) override;
-  void visit(FunctionType *Node) override;
-  void visit(ObjectType *Node) override;
-  void visit(EnumType *Node) override;
+  void visit(ASTBuiltinType *Node) override;
+  void visit(ASTDeclTypeRef *Node) override;
+  void visit(ASTAccessType *Node) override;
+  void visit(ASTQualType *Node) override;
+  void visit(ASTPointerType *Node) override;
+  void visit(ASTArrayType *Node) override;
+  void visit(ASTFunctionType *Node) override;
+  void visit(ASTObjectType *Node) override;
+  void visit(ASTEnumType *Node) override;
 
 private:
   llvm::SmallVector<LexicalScope *> CurrentScope;
@@ -61,11 +61,11 @@ void ResolveGlobalType::run(ProgramDecl *Program, DiagnosticConsumer &DC,
   Impl.visit(Program);
 }
 
-void ResolveGlobalTypePassImpl::visit(BuiltinType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTBuiltinType *Node) {
   assert(Node && "Invalid visited node");
 }
 
-void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTDeclTypeRef *Node) {
   assert(Node && "Invalid visited node");
   assert(CurrentScope.size() && "Missing Lexical Scope");
 
@@ -105,27 +105,27 @@ void ResolveGlobalTypePassImpl::visit(DeclRefType *Node) {
   Node->setDeclNode(TypeDecl);
 }
 
-void ResolveGlobalTypePassImpl::visit(AccessType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTAccessType *Node) {
   assert(Node && "Invalid visited node");
   Node->getParentType()->accept(*this);
 }
 
-void ResolveGlobalTypePassImpl::visit(MutableType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTQualType *Node) {
   assert(Node && "Invalid visited node");
   Node->getElementType()->accept(*this);
 }
 
-void ResolveGlobalTypePassImpl::visit(PointerType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTPointerType *Node) {
   assert(Node && "Invalid visited node");
   Node->getElementType()->accept(*this);
 }
 
-void ResolveGlobalTypePassImpl::visit(ArrayType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTArrayType *Node) {
   assert(Node && "Invalid visited node");
   Node->getElementType()->accept(*this);
 }
 
-void ResolveGlobalTypePassImpl::visit(FunctionType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTFunctionType *Node) {
   assert(Node && "Invalid visited node");
   for (auto *P : Node->getParamTypes()) {
     P->accept(*this);
@@ -133,14 +133,14 @@ void ResolveGlobalTypePassImpl::visit(FunctionType *Node) {
   Node->getReturnType()->accept(*this);
 }
 
-void ResolveGlobalTypePassImpl::visit(ObjectType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTObjectType *Node) {
   assert(Node && "Invalid visited node");
   for (auto &[_, FieldType] : Node->getFields()) {
     FieldType->accept(*this);
   }
 }
 
-void ResolveGlobalTypePassImpl::visit(EnumType *Node) {
+void ResolveGlobalTypePassImpl::visit(ASTEnumType *Node) {
   assert(Node && "Invalid visited node");
   for (auto &[_, MemberType] : Node->getMembers()) {
     MemberType->accept(*this);

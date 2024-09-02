@@ -32,7 +32,7 @@ public:
     auto Symbol = ctx->identifier()->getText();
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::DeclRefType>(Loc, std::move(Symbol)));
+        Context.createNode<ast::ASTDeclTypeRef>(Loc, std::move(Symbol)));
   }
 
   std::any visitAccessType(LangParser::AccessTypeContext *ctx) override {
@@ -43,7 +43,7 @@ public:
 
     auto *ParentType = std::any_cast<ast::ASTType *>(visit(ctx->type()));
 
-    return static_cast<ast::ASTType *>(Context.createNode<ast::AccessType>(
+    return static_cast<ast::ASTType *>(Context.createNode<ast::ASTAccessType>(
         Loc, std::move(Symbol), ParentType));
   }
 
@@ -54,7 +54,7 @@ public:
     auto Result = std::any_cast<ast::ASTType *>(visit(ctx->type()));
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::MutableType>(Loc, Result));
+        Context.createNode<ast::ASTQualType>(Loc, Result));
   }
 
   std::any visitPointerType(LangParser::PointerTypeContext *ctx) override {
@@ -66,7 +66,7 @@ public:
     auto Result = std::any_cast<ast::ASTType *>(visit(node->type()));
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::PointerType>(Loc, Result, node->NULLABLE()));
+        Context.createNode<ast::ASTPointerType>(Loc, Result, node->NULLABLE()));
   }
 
   std::any visitArrayType(LangParser::ArrayTypeContext *ctx) override {
@@ -78,7 +78,7 @@ public:
     auto Result = std::any_cast<ast::ASTType *>(visit(node->type()));
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::ArrayType>(Loc, Result));
+        Context.createNode<ast::ASTArrayType>(Loc, Result));
   }
 
   std::any visitFunctionType(LangParser::FunctionTypeContext *ctx) override {
@@ -96,7 +96,7 @@ public:
     auto ReturnType = std::any_cast<ast::ASTType *>(visit(node->type()));
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::FunctionType>(Loc, ParamTys, ReturnType));
+        Context.createNode<ast::ASTFunctionType>(Loc, ParamTys, ReturnType));
   }
 
   std::any visitObjectType(LangParser::ObjectTypeContext *ctx) override {
@@ -105,7 +105,7 @@ public:
     auto *node = ctx->object_type();
     auto Loc = getRange(ctx->getSourceInterval());
 
-    llvm::SmallVector<ast::ObjectType::Field> Fields;
+    llvm::SmallVector<ast::ASTObjectType::Field> Fields;
     for (auto *FT : node->object_field_type()) {
       auto FieldName = FT->IDENTIFIER()->getText();
       auto *FieldType = std::any_cast<ast::ASTType *>(visit(FT->type()));
@@ -113,7 +113,7 @@ public:
     }
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::ObjectType>(Loc, Fields));
+        Context.createNode<ast::ASTObjectType>(Loc, Fields));
   }
 
   std::any visitEnumType(LangParser::EnumTypeContext *ctx) override {
@@ -122,7 +122,7 @@ public:
     auto *node = ctx->enum_type();
     auto Loc = getRange(ctx->getSourceInterval());
 
-    llvm::SmallVector<ast::EnumType::Member> Members;
+    llvm::SmallVector<ast::ASTEnumType::Member> Members;
     for (auto *M : node->enum_member()) {
       auto MemberName = M->IDENTIFIER()->getText();
 
@@ -134,7 +134,7 @@ public:
     }
 
     return static_cast<ast::ASTType *>(
-        Context.createNode<ast::EnumType>(Loc, Members));
+        Context.createNode<ast::ASTEnumType>(Loc, Members));
   }
 
   // decls
@@ -325,7 +325,7 @@ public:
       RetTy = std::any_cast<ast::ASTType *>(visit(ctx->type()));
     } else {
       auto ImplicitRetLoc = getRange(ctx->RPAREN()->getSourceInterval());
-      RetTy = Context.createNode<ast::DeclRefType>(ImplicitRetLoc, "void");
+      RetTy = Context.createNode<ast::ASTDeclTypeRef>(ImplicitRetLoc, "void");
     }
 
     auto StartInt = ctx->FUNC()->getSourceInterval();
@@ -333,7 +333,7 @@ public:
                               : ctx->RPAREN()->getSourceInterval();
     auto TypeDeclLoc = getRange(StartInt.Union(EndInt));
     auto *FuncType =
-        Context.createNode<ast::FunctionType>(TypeDeclLoc, ParamTys, RetTy);
+        Context.createNode<ast::ASTFunctionType>(TypeDeclLoc, ParamTys, RetTy);
 
     auto Body = dynamic_cast<ast::BlockStmt *>(
         std::any_cast<ast::Stmt *>(visit(ctx->func_body())));

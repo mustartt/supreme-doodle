@@ -29,28 +29,28 @@ public:
   virtual void visit(FuncParamDecl *) = 0;
 };
 
-class BuiltinType;
-class DeclRefType;
-class AccessType;
-class MutableType;
-class PointerType;
-class ArrayType;
-class FunctionType;
-class ObjectType;
-class EnumType;
+class ASTBuiltinType;
+class ASTDeclTypeRef;
+class ASTAccessType;
+class ASTQualType;
+class ASTPointerType;
+class ASTArrayType;
+class ASTFunctionType;
+class ASTObjectType;
+class ASTEnumType;
 class BaseTypeVisitor {
 public:
   virtual ~BaseTypeVisitor() {}
 
-  virtual void visit(BuiltinType *Node) = 0;
-  virtual void visit(DeclRefType *Node) = 0;
-  virtual void visit(AccessType *Node) = 0;
-  virtual void visit(MutableType *Node) = 0;
-  virtual void visit(PointerType *Node) = 0;
-  virtual void visit(ArrayType *Node) = 0;
-  virtual void visit(FunctionType *Node) = 0;
-  virtual void visit(ObjectType *Node) = 0;
-  virtual void visit(EnumType *Node) = 0;
+  virtual void visit(ASTBuiltinType *Node) = 0;
+  virtual void visit(ASTDeclTypeRef *Node) = 0;
+  virtual void visit(ASTAccessType *Node) = 0;
+  virtual void visit(ASTQualType *Node) = 0;
+  virtual void visit(ASTPointerType *Node) = 0;
+  virtual void visit(ASTArrayType *Node) = 0;
+  virtual void visit(ASTFunctionType *Node) = 0;
+  virtual void visit(ASTObjectType *Node) = 0;
+  virtual void visit(ASTEnumType *Node) = 0;
 };
 
 class BlockStmt;
