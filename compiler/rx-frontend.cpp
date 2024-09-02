@@ -48,36 +48,36 @@ static void populateBuiltins(ASTContext &GlobalASTContext,
   GlobalScope->insert(
       "void", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "void",
-                  GlobalASTContext.createNode<BuiltinType>(NativeType::Void)));
+                  GlobalASTContext.createNode<BuiltinType>(ASTNativeType::Void)));
   GlobalScope->insert(
       "bool", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "bool",
-                  GlobalASTContext.createNode<BuiltinType>(NativeType::i1)));
+                  GlobalASTContext.createNode<BuiltinType>(ASTNativeType::i1)));
   GlobalScope->insert(
       "char", GlobalASTContext.createNode<UseDecl>(
                   SourceLocation::Builtin(), SourceLocation::Builtin(), "i8",
-                  GlobalASTContext.createNode<BuiltinType>(NativeType::i8)));
+                  GlobalASTContext.createNode<BuiltinType>(ASTNativeType::i8)));
   GlobalScope->insert(
       "i32", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "i32",
-                 GlobalASTContext.createNode<BuiltinType>(NativeType::i32)));
+                 GlobalASTContext.createNode<BuiltinType>(ASTNativeType::i32)));
   GlobalScope->insert(
       "i64", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "i64",
-                 GlobalASTContext.createNode<BuiltinType>(NativeType::i64)));
+                 GlobalASTContext.createNode<BuiltinType>(ASTNativeType::i64)));
   GlobalScope->insert(
       "f32", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "f32",
-                 GlobalASTContext.createNode<BuiltinType>(NativeType::f32)));
+                 GlobalASTContext.createNode<BuiltinType>(ASTNativeType::f32)));
   GlobalScope->insert(
       "f64", GlobalASTContext.createNode<UseDecl>(
                  SourceLocation::Builtin(), SourceLocation::Builtin(), "f64",
-                 GlobalASTContext.createNode<BuiltinType>(NativeType::f64)));
+                 GlobalASTContext.createNode<BuiltinType>(ASTNativeType::f64)));
   GlobalScope->insert(
       "string",
       GlobalASTContext.createNode<UseDecl>(
           SourceLocation::Builtin(), SourceLocation::Builtin(), "string",
-          GlobalASTContext.createNode<BuiltinType>(NativeType::String)));
+          GlobalASTContext.createNode<BuiltinType>(ASTNativeType::String)));
 }
 
 int main(int argc, char *argv[]) {

@@ -4,6 +4,7 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/rxc/AST/ASTContext.h
     ${PROJECT_SOURCE_DIR}/include/rxc/AST/ASTPrinter.h
     ${PROJECT_SOURCE_DIR}/include/rxc/AST/ASTVisitor.h
+    ${PROJECT_SOURCE_DIR}/include/rxc/AST/Type.h
     AST.cpp
     ASTPrinter.cpp
 )

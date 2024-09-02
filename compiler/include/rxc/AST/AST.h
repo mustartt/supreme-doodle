@@ -70,32 +70,32 @@ public:
   virtual std::string getTypeName() const = 0;
 };
 
-enum class NativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
+enum class ASTNativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
 
 class BuiltinType : public ASTType {
 public:
-  BuiltinType(NativeType Builtin)
+  BuiltinType(ASTNativeType Builtin)
       : ASTType(SourceLocation::Builtin()), Builtin(Builtin) {}
 
   std::string getTypeName() const override {
     switch (Builtin) {
-    case NativeType::Void:
+    case ASTNativeType::Void:
       return "void";
-    case NativeType::i1:
+    case ASTNativeType::i1:
       return "i1";
-    case NativeType::i8:
+    case ASTNativeType::i8:
       return "i8";
-    case NativeType::i32:
+    case ASTNativeType::i32:
       return "i32";
-    case NativeType::i64:
+    case ASTNativeType::i64:
       return "i64";
-    case NativeType::f32:
+    case ASTNativeType::f32:
       return "f32";
-    case NativeType::f64:
+    case ASTNativeType::f64:
       return "f64";
-    case NativeType::String:
+    case ASTNativeType::String:
       return "string";
-    case NativeType::Unknown:
+    case ASTNativeType::Unknown:
       return "unknown";
     default:
       llvm_unreachable("Invalid BuiltinType");
@@ -105,7 +105,7 @@ public:
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
-  NativeType Builtin;
+  ASTNativeType Builtin;
 };
 
 class TypeDecl;
