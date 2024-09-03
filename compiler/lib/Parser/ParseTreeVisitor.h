@@ -249,7 +249,7 @@ public:
     if (ctx->type()) {
       auto Result = visit(ctx->type());
       auto Ty = std::any_cast<ast::ASTType *>(Result);
-      Node->setType(Ty);
+      Node->setDeclaredType(Ty);
     }
 
     return Node;
@@ -298,7 +298,7 @@ public:
 
     auto *ImplNode =
         Context.createNode<ast::ImplDecl>(Loc, DeclLoc, ImplType, Impls);
-    ImplNode->setType(ImplType);
+    ImplNode->setDeclaredType(ImplType);
 
     return static_cast<ast::Decl *>(ImplNode);
   }
@@ -316,7 +316,7 @@ public:
       for (const auto Param : ParamList->func_param_decl()) {
         auto *PD = std::any_cast<ast::FuncParamDecl *>(visit(Param));
         Params.push_back(PD);
-        ParamTys.push_back(PD->getType());
+        ParamTys.push_back(PD->getDeclaredType());
       }
     }
 
@@ -339,7 +339,7 @@ public:
         std::any_cast<ast::Stmt *>(visit(ctx->func_body())));
     auto *FuncNode = Context.createNode<ast::FuncDecl>(
         Loc, DeclLoc, std::move(Name), Params, Body);
-    FuncNode->setType(FuncType);
+    FuncNode->setDeclaredType(FuncType);
 
     return dynamic_cast<ast::Decl *>(FuncNode);
   }
@@ -361,7 +361,7 @@ public:
     auto *Type = std::any_cast<ast::ASTType *>(visit(ctx->type()));
     auto *Node = Context.createNode<ast::FuncParamDecl>(
         Loc, DeclLoc, std::move(Name), DefaultValue);
-    Node->setType(Type);
+    Node->setDeclaredType(Type);
 
     return Node;
   }

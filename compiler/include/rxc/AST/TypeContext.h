@@ -9,7 +9,10 @@
 
 namespace rx {
 
+namespace ast {
 class TypeDecl;
+}
+
 class TypeContext {
 public:
   TypeContext();
@@ -18,7 +21,7 @@ public:
   QualType getUnknownType();
   QualType getUnitType();
   QualType getBuiltinType(NativeType Ty);
-  QualType getNamedType(TypeDecl *TD);
+  QualType getNamedType(ast::TypeDecl *TD);
   QualType getPointerType(QualType Ty);
   QualType getArrayType(QualType Ty);
   QualType getFuncType(llvm::ArrayRef<QualType> ParamTys, QualType ReturnTy);
@@ -28,7 +31,7 @@ public:
 private:
   // leaf types
   std::deque<BuiltinType> BuiltinCtx;
-  llvm::DenseMap<TypeDecl *, std::unique_ptr<NamedType>> NamedCtx;
+  llvm::DenseMap<ast::TypeDecl *, std::unique_ptr<NamedType>> NamedCtx;
 
   // composite types
   llvm::DenseMap<QualType, std::unique_ptr<PointerType>> PointerCtx;

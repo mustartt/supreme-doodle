@@ -38,8 +38,13 @@ private:
 };
 
 class NamedType : public LeafType {
-public: 
+public:
+  NamedType(QualType Definition) : Definition(Definition) {}
+
   std::string getTypeName() const override { return "<named todo>"; }
+
+private:
+  QualType Definition;
 };
 
 // Composite Types

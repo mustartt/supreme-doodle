@@ -144,9 +144,9 @@ int main(int argc, char *argv[]) {
           << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
 
     SemaPassManager SPM(CDC, LC, GlobalASTContext, DebugSemaManager);
-    SPM.registerPass(ForwardDeclarePass());
     SPM.registerPass(ResolveGlobalType());
-    SPM.registerPass(MainSemaPass());
+    // SPM.registerPass(ForwardDeclarePass());
+    // SPM.registerPass(MainSemaPass());
 
     SPM.run(TU->getProgramAST());
   }

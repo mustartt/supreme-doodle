@@ -1,6 +1,9 @@
 #ifndef AST_NODE_H
 #define AST_NODE_H
 
+#include "QualType.h"
+#include "rxc/AST/Type.h"
+#include "rxc/AST/TypeContext.h"
 #include "rxc/Basic/SourceManager.h"
 
 #include "llvm/ADT/APFloat.h"
@@ -119,14 +122,12 @@ public:
   llvm::StringRef getSymbol() const { return Symbol; }
   std::string getTypeName() const override { return "@" + Symbol; }
 
-  void setReferencedType(ASTType *Type) { this->Type = Type; }
   void setDeclNode(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
 private:
   std::string Symbol;
-  ASTType *Type;
   TypeDecl *DeclNode;
 };
 
@@ -214,7 +215,7 @@ private:
 class ASTFunctionType : public ASTType {
 public:
   ASTFunctionType(SourceLocation Loc, llvm::ArrayRef<ASTType *> ParamTypes,
-               ASTType *ReturnType)
+                  ASTType *ReturnType)
       : ASTType(Loc), ParamTypes(ParamTypes), ReturnType(ReturnType) {}
 
   std::string getTypeName() const override {
@@ -311,8 +312,8 @@ public:
 
   llvm::StringRef getName() const { return Name; }
   void setName(std::string Name) { this->Name = std::move(Name); }
-  ASTType *getType() const { return Type; }
-  void setType(ASTType *Ty) { Type = Ty; }
+  ASTType *getDeclaredType() const { return Type; }
+  void setDeclaredType(ASTType *Ty) { Type = Ty; }
   const SourceLocation &getDeclLoc() const { return DeclLoc; }
 
 protected:
@@ -412,8 +413,7 @@ class ImplDecl : public Decl, public ScopedASTNode {
 public:
   ImplDecl(SourceLocation Loc, SourceLocation DeclLoc, ASTType *ImplType,
            llvm::ArrayRef<FuncDecl *> Impls)
-      : Decl(Loc, DeclLoc, ImplType->getTypeName(), nullptr),
-        ImplType(ImplType), Impls(Impls) {
+      : Decl(Loc, DeclLoc, ImplType->getTypeName(), ImplType), Impls(Impls) {
     assert(ImplType);
   }
 
@@ -422,7 +422,6 @@ public:
   ACCEPT_VISITOR(BaseDeclVisitor);
 
 private:
-  ASTType *ImplType;
   llvm::SmallVector<FuncDecl *, 4> Impls;
 };
 

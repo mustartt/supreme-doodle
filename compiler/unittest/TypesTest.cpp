@@ -46,10 +46,10 @@ TEST(TypeContextTest, PointerIdentityLeaf) {
 
   // Named Type
   int D1, D2;
-  EXPECT_EQ(Context.getNamedType(reinterpret_cast<TypeDecl *>(&D1)),
-            Context.getNamedType(reinterpret_cast<TypeDecl *>(&D1)));
-  EXPECT_NE(Context.getNamedType(reinterpret_cast<TypeDecl *>(&D1)),
-            Context.getNamedType(reinterpret_cast<TypeDecl *>(&D2)));
+  EXPECT_EQ(Context.getNamedType(reinterpret_cast<rx::ast::TypeDecl *>(&D1)),
+            Context.getNamedType(reinterpret_cast<rx::ast::TypeDecl *>(&D1)));
+  EXPECT_NE(Context.getNamedType(reinterpret_cast<rx::ast::TypeDecl *>(&D1)),
+            Context.getNamedType(reinterpret_cast<rx::ast::TypeDecl *>(&D2)));
 }
 
 TEST(TypeContextTest, PointerIdentityComposite) {

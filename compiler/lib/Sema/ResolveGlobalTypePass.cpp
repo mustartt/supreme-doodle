@@ -3,217 +3,125 @@
 #include "rxc/AST/ASTVisitor.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Sema/LexicalScope.h"
+#include "rxc/Sema/RecursiveASTVisitor.h"
 #include "rxc/Sema/Sema.h"
 #include <cassert>
+#include <llvm/Support/WithColor.h>
 
 namespace rx::sema {
 
 using namespace ast;
 using namespace llvm;
 
-class ResolveGlobalTypePassImpl final : public ast::BaseDeclVisitor,
-                                        ast::BaseTypeVisitor {
+class ForwardDeclareType final : public RecursiveASTVisitor<> {
 public:
-  ResolveGlobalTypePassImpl(DiagnosticConsumer &DC, LexicalContext &LC)
-      : DC(DC), LC(LC) {}
-  ~ResolveGlobalTypePassImpl() = default;
+  ForwardDeclareType(DiagnosticConsumer &DC, LexicalContext &LC)
+      : RecursiveASTVisitor<>(LC), DC(DC) {}
 
-  ResolveGlobalTypePassImpl(const ResolveGlobalTypePassImpl &) = delete;
-  ResolveGlobalTypePassImpl(ResolveGlobalTypePassImpl &&) = default;
-  ResolveGlobalTypePassImpl &
-  operator=(const ResolveGlobalTypePassImpl &) = delete;
-  ResolveGlobalTypePassImpl &operator=(ResolveGlobalTypePassImpl &&) = delete;
-
-  void visit(ProgramDecl *Node) override;
+  void start(ProgramDecl *P) { Visit(P); }
 
 private:
-  // visit decls
-  void visit(PackageDecl *Node) override {};
-  void visit(ImportDecl *Node) override {};
-  void visit(ExportedDecl *Node) override;
-  void visit(VarDecl *Node) override;
-  void visit(TypeDecl *Node) override;
-  void visit(ImplDecl *Node) override;
-  void visit(UseDecl *Node) override;
-  void visit(FuncDecl *Node) override;
-  void visit(FuncParamDecl *Node) override;
+  ResultType visit(ast::TypeDecl *Node, sema::LexicalScope *LS) override {
+    auto ExistingDecls = LS->getDecls(Node->getName());
+    if (ExistingDecls.size()) {
+      Diagnostic DupErr(Diagnostic::Type::Error,
+                        "redefinition of type declaration \'" +
+                            Node->getName().str() + "\'");
+      DupErr.setSourceLocation(Node->getDeclLoc());
+      Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+      Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
 
-  // visit types
-  void visit(ASTBuiltinType *Node) override;
-  void visit(ASTDeclTypeRef *Node) override;
-  void visit(ASTAccessType *Node) override;
-  void visit(ASTQualType *Node) override;
-  void visit(ASTPointerType *Node) override;
-  void visit(ASTArrayType *Node) override;
-  void visit(ASTFunctionType *Node) override;
-  void visit(ASTObjectType *Node) override;
-  void visit(ASTEnumType *Node) override;
+      DC.emit(std::move(DupErr));
+      DC.emit(std::move(Prev));
+      return {};
+    }
+
+    LS->insert(Node->getName(), Node);
+    return {};
+  }
+
+  ResultType visit(ast::UseDecl *Node, sema::LexicalScope *LS) override {
+    auto ExistingDecls = LS->getDecls(Node->getName());
+    if (ExistingDecls.size()) {
+      Diagnostic DupErr(Diagnostic::Type::Error,
+                        "redefinition of type alias declaration \'" +
+                            Node->getName().str() + "\'");
+      DupErr.setSourceLocation(Node->getDeclLoc());
+      Diagnostic Prev(Diagnostic::Type::Note, "previously declared here");
+      Prev.setSourceLocation(ExistingDecls[0]->getDeclLoc());
+
+      DC.emit(std::move(DupErr));
+      DC.emit(std::move(Prev));
+      return {};
+    }
+
+    LS->insert(Node->getName(), Node);
+    return {};
+  }
+
+  ResultType visit(ast::BlockStmt *Node, sema::LexicalScope *LS) override {
+    return {};
+  }
 
 private:
-  llvm::SmallVector<LexicalScope *> CurrentScope;
   DiagnosticConsumer &DC;
-  LexicalContext &LC;
+};
+
+class ResolveTypeSymbol final : public RecursiveASTVisitor<> {
+public:
+  ResolveTypeSymbol(DiagnosticConsumer &DC, LexicalContext &LC)
+      : RecursiveASTVisitor<>(LC), DC(DC) {}
+
+  void start(ProgramDecl *P) { Visit(P); }
+
+private:
+  ResultType visit(ast::ASTDeclTypeRef *Node, LexicalScope *LS) override {
+    auto Scope = LS->find(Node->getSymbol());
+    if (!Scope) {
+      Diagnostic Err(Diagnostic::Type::Error,
+                     "Undefined type reference to " + Node->getTypeName());
+      DC.emit(std::move(Err));
+      return {};
+    }
+    auto Decls = (*Scope)->getDecls(Node->getSymbol());
+    assert(Decls.size() == 1 && "Ambiguous decl");
+    auto *TypeDecl = dynamic_cast<ast::TypeDecl *>(Decls[0]);
+    auto *UseDecl = dynamic_cast<ast::UseDecl *>(Decls[0]);
+
+    if (!TypeDecl && !UseDecl) {
+      Diagnostic Err(Diagnostic::Type::Error,
+                     "Reference is not a type or alias declaration " +
+                         Node->getTypeName());
+      Err.setSourceLocation(Node->Loc);
+      Diagnostic Note(Diagnostic::Type::Note,
+                      "referenced symbol is declared here");
+      Err.setSourceLocation(Decls[0]->getDeclLoc());
+
+      DC.emit(std::move(Err));
+      DC.emit(std::move(Note));
+      return {};
+    }
+    if (!TypeDecl)
+      TypeDecl = UseDecl;
+    assert(TypeDecl && "No TypeDecl");
+    Node->setDeclNode(TypeDecl);
+    return {};
+  }
+
+  ResultType visit(ast::BlockStmt *Node, sema::LexicalScope *LS) override {
+    return {};
+  }
+
+private:
+  DiagnosticConsumer &DC;
 };
 
 void ResolveGlobalType::run(ProgramDecl *Program, DiagnosticConsumer &DC,
                             LexicalContext &LC, ASTContext &AC) {
-  ResolveGlobalTypePassImpl Impl(DC, LC);
-  Impl.visit(Program);
+  ForwardDeclareType I1(DC, LC);
+  ResolveTypeSymbol I2(DC, LC);
+  I1.start(Program);
+  I2.start(Program);
 }
 
-void ResolveGlobalTypePassImpl::visit(ASTBuiltinType *Node) {
-  assert(Node && "Invalid visited node");
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTDeclTypeRef *Node) {
-  assert(Node && "Invalid visited node");
-  assert(CurrentScope.size() && "Missing Lexical Scope");
-
-  auto *LS = CurrentScope.back();
-
-  auto Scope = LS->find(Node->getSymbol());
-  if (!Scope) {
-    Diagnostic Err(Diagnostic::Type::Error,
-                   "Undefined type reference to " + Node->getTypeName());
-    DC.emit(std::move(Err));
-    return;
-  }
-  auto Decls = (*Scope)->getDecls(Node->getSymbol());
-  assert(Decls.size() == 1 && "Ambiguous decl");
-  auto *TypeDecl = dynamic_cast<ast::TypeDecl *>(Decls[0]);
-  auto *UseDecl = dynamic_cast<ast::UseDecl *>(Decls[0]);
-
-  if (!TypeDecl && !UseDecl) {
-    Diagnostic Err(Diagnostic::Type::Error,
-                   "Reference is not a type or alias declaration " +
-                       Node->getTypeName());
-    Err.setSourceLocation(Node->Loc);
-    Diagnostic Note(Diagnostic::Type::Note,
-                    "referenced symbol is declared here");
-    Err.setSourceLocation(Decls[0]->getDeclLoc());
-
-    DC.emit(std::move(Err));
-    DC.emit(std::move(Note));
-    return;
-  }
-
-  if (!TypeDecl)
-    TypeDecl = UseDecl;
-  assert(TypeDecl && "No TypeDecl");
-
-  Node->setReferencedType(TypeDecl->getType());
-  Node->setDeclNode(TypeDecl);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTAccessType *Node) {
-  assert(Node && "Invalid visited node");
-  Node->getParentType()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTQualType *Node) {
-  assert(Node && "Invalid visited node");
-  Node->getElementType()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTPointerType *Node) {
-  assert(Node && "Invalid visited node");
-  Node->getElementType()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTArrayType *Node) {
-  assert(Node && "Invalid visited node");
-  Node->getElementType()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTFunctionType *Node) {
-  assert(Node && "Invalid visited node");
-  for (auto *P : Node->getParamTypes()) {
-    P->accept(*this);
-  }
-  Node->getReturnType()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTObjectType *Node) {
-  assert(Node && "Invalid visited node");
-  for (auto &[_, FieldType] : Node->getFields()) {
-    FieldType->accept(*this);
-  }
-}
-
-void ResolveGlobalTypePassImpl::visit(ASTEnumType *Node) {
-  assert(Node && "Invalid visited node");
-  for (auto &[_, MemberType] : Node->getMembers()) {
-    MemberType->accept(*this);
-  }
-}
-
-void ResolveGlobalTypePassImpl::visit(ProgramDecl *Node) {
-  assert(Node && "Invalid visited node");
-  assert(Node->getLexicalScope() && "Should have Lexical Scope");
-
-  CurrentScope.push_back(Node->getLexicalScope());
-  for (auto *D : Node->getDecls()) {
-    D->accept(*this);
-  }
-  CurrentScope.pop_back();
-}
-
-void ResolveGlobalTypePassImpl::visit(ExportedDecl *Node) {
-  assert(Node && "Invalid visited node");
-  assert(Node->getExportedDecl() && "Invalid visited node");
-  Node->getExportedDecl()->accept(*this);
-}
-
-void ResolveGlobalTypePassImpl::visit(VarDecl *Node) {
-  assert(Node && "Invalid visited node");
-  if (Node->getType()) {
-    Node->getType()->accept(*this);
-  }
-}
-
-void ResolveGlobalTypePassImpl::visit(TypeDecl *Node) {
-  assert(Node && "Invalid visited node");
-  if (Node->getType()) {
-    Node->getType()->accept(*this);
-  }
-}
-
-void ResolveGlobalTypePassImpl::visit(UseDecl *Node) {
-  assert(Node && "Invalid visited node");
-  if (Node->getType()) {
-    Node->getType()->accept(*this);
-  }
-}
-
-void ResolveGlobalTypePassImpl::visit(ImplDecl *Node) {
-  assert(Node && "Invalid visited node");
-  assert(Node->getType() && "Impl must have a type");
-  assert(Node->getLexicalScope() && "should have Lexical Scope");
-  CurrentScope.push_back(Node->getLexicalScope());
-
-  Node->getType()->accept(*this);
-
-  for (auto *I : Node->getImpls()) {
-    I->accept(*this);
-  }
-
-  CurrentScope.pop_back();
-}
-
-void ResolveGlobalTypePassImpl::visit(FuncDecl *Node) {
-  assert(Node && "Invalid visited node");
-
-  assert(Node->getLexicalScope() && "should have Lexical Scope");
-  CurrentScope.push_back(Node->getLexicalScope());
-  for (auto *P : Node->getParams()) {
-    P->accept(*this);
-  }
-  CurrentScope.pop_back();
-}
-
-void ResolveGlobalTypePassImpl::visit(FuncParamDecl *Node) {
-  assert(Node && "Invalid visited node");
-  if (Node->getType())
-    Node->getType()->accept(*this);
-}
 } // namespace rx::sema

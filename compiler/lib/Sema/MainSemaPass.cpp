@@ -106,11 +106,11 @@ void MainSemaPassImpl::visit(DeclRefExpr *Node) {
     auto Decls = (*Scope)->getDecls(Node->getSymbol());
     assert(Decls.size() == 1 && "Ambiguous decl");
     Node->setRefDecl(Decls[0]);
-    Node->setExprType(Decls[0]->getType());
+    Node->setExprType(Decls[0]->getDeclaredType());
   } else {
     auto Decls = (*Scope)->getDecls(Node->getSymbol());
     Node->setRefDecl(Decls[0]);
-    Node->setExprType(Decls[0]->getType());
+    Node->setExprType(Decls[0]->getDeclaredType());
 
     if (Decls.size() > 1) {
       Diagnostic Warning(Diagnostic::Type::Warning,
@@ -176,10 +176,10 @@ void MainSemaPassImpl::visit(ExportedDecl *Node) {
 void MainSemaPassImpl::visit(VarDecl *Node) {
   assert(Node && "Invalid visited node");
 
-  if (Node->getType())
-    Node->getType()->accept(*this);
+  if (Node->getDeclaredType())
+    Node->getDeclaredType()->accept(*this);
 
-  TypeHintStack.push_back(Node->getType());
+  TypeHintStack.push_back(Node->getDeclaredType());
   if (Node->getInitializer())
     Node->getInitializer()->accept(*this);
   TypeHintStack.clear();
@@ -206,8 +206,8 @@ void MainSemaPassImpl::visit(VarDecl *Node) {
 
 void MainSemaPassImpl::visit(TypeDecl *Node) {
   assert(Node && "Invalid visited node");
-  if (Node->getType())
-    Node->getType()->accept(*this);
+  if (Node->getDeclaredType())
+    Node->getDeclaredType()->accept(*this);
 
   auto *LS = CurrentScope.back();
   if (LS->getType() == LexicalScope::Kind::File)
@@ -231,8 +231,8 @@ void MainSemaPassImpl::visit(TypeDecl *Node) {
 
 void MainSemaPassImpl::visit(UseDecl *Node) {
   assert(Node && "Invalid visited node");
-  if (Node->getType())
-    Node->getType()->accept(*this);
+  if (Node->getDeclaredType())
+    Node->getDeclaredType()->accept(*this);
 
   auto *LS = CurrentScope.back();
   if (LS->getType() == LexicalScope::Kind::File)
@@ -256,7 +256,7 @@ void MainSemaPassImpl::visit(UseDecl *Node) {
 
 void MainSemaPassImpl::visit(ImplDecl *Node) {
   assert(Node && "Invalid visited node");
-  assert(Node->getType() && "Impl must have a type");
+  assert(Node->getDeclaredType() && "Impl must have a type");
   assert(Node->getLexicalScope() && "should have Lexical Scope");
 
   CurrentScope.push_back(Node->getLexicalScope());
@@ -281,8 +281,8 @@ void MainSemaPassImpl::visit(FuncDecl *Node) {
 
 void MainSemaPassImpl::visit(FuncParamDecl *Node) {
   assert(Node && "Invalid visited node");
-  if (Node->getType())
-    Node->getType()->accept(*this);
+  if (Node->getDeclaredType())
+    Node->getDeclaredType()->accept(*this);
 }
 
 // Literals
@@ -291,7 +291,7 @@ void MainSemaPassImpl::visit(BoolLiteral *Node) {
   assert(Node && "Invalid visited node");
   assert(LC.getGlobalScope()->getDecls("bool").size() == 1 &&
          "Found multiple BuiltinType bool");
-  Node->setExprType(LC.getGlobalScope()->getDecls("bool")[0]->getType());
+  Node->setExprType(LC.getGlobalScope()->getDecls("bool")[0]->getDeclaredType());
   assert(Node->getExprType() && "Did not set type");
 }
 
@@ -299,7 +299,7 @@ void MainSemaPassImpl::visit(CharLiteral *Node) {
   assert(Node && "Invalid visited node");
   assert(LC.getGlobalScope()->getDecls("char").size() == 1 &&
          "Found multiple BuiltinType char");
-  Node->setExprType(LC.getGlobalScope()->getDecls("char")[0]->getType());
+  Node->setExprType(LC.getGlobalScope()->getDecls("char")[0]->getDeclaredType());
   assert(Node->getExprType() && "Did not set type");
 }
 

@@ -1,0 +1,10 @@
+type T1 = i32
+
+func main() {
+    type T1 = f64
+}
+
+impl i32 {
+    func foo() {}
+}
+

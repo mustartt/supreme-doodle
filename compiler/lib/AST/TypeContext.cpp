@@ -32,10 +32,10 @@ QualType TypeContext::getBuiltinType(NativeType Ty) {
   return &BuiltinCtx[static_cast<size_t>(Ty)];
 }
 
-QualType TypeContext::getNamedType(TypeDecl *TD) {
+QualType TypeContext::getNamedType(rx::ast::TypeDecl *TD) {
   if (NamedCtx.contains(TD))
     return NamedCtx[TD].get();
-  auto NewType = std::make_unique<NamedType>();
+  auto NewType = std::make_unique<NamedType>(getUnknownType());
   auto *NewTypePtr = NewType.get();
   NamedCtx[TD] = std::move(NewType);
   return NewTypePtr;

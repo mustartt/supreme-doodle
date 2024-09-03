@@ -13,6 +13,8 @@ namespace rx::sema {
 using namespace ast;
 using namespace llvm;
 
+/// Forward Declares all global variables, functions, and types
+/// Not including impls
 class ForwardDeclarePassImpl final : public ast::BaseDeclVisitor {
 public:
   ForwardDeclarePassImpl(DiagnosticConsumer &DC, LexicalContext &LC)
@@ -34,7 +36,7 @@ private:
   void visit(ExportedDecl *Node) override;
   void visit(VarDecl *Node) override;
   void visit(TypeDecl *Node) override;
-  void visit(ImplDecl *Node) override;
+  void visit(ImplDecl *Node) override {}
   void visit(UseDecl *Node) override;
   void visit(FuncDecl *Node) override;
   void visit(FuncParamDecl *Node) override;
@@ -111,22 +113,6 @@ void ForwardDeclarePassImpl::visit(TypeDecl *Node) {
     return;
   }
   LS->insert(Node->getName(), Node);
-}
-
-void ForwardDeclarePassImpl::visit(ImplDecl *Node) {
-  assert(Node && "Invalid visited node");
-  assert(CurrentScope.size() && "Scope stack cannot be empty");
-
-  auto *LS = CurrentScope.back();
-  auto *ImplLS = LC.createNewScope(LexicalScope::Kind::Impl, LS);
-  CurrentScope.push_back(ImplLS);
-  Node->setLexicalScope(ImplLS);
-
-  for (auto *I : Node->getImpls()) {
-    I->accept(*this);
-  }
-
-  CurrentScope.pop_back();
 }
 
 void ForwardDeclarePassImpl::visit(UseDecl *Node) {

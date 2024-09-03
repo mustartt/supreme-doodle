@@ -61,7 +61,7 @@ private:
     if (auto *D = dynamic_cast<Decl *>(Node)) {
       OS << " decl(" << D->getName() << ")";
       OS << " loc(" << D->getDeclLoc() << ")";
-      auto *T = D->getType();
+      auto *T = D->getDeclaredType();
       OS << " declared_type(" << (T ? T->getTypeName() : "<unknown>") << ")";
     }
 
@@ -217,14 +217,14 @@ void ASTPrinterVisitor::visit(VarDecl *Node) {
 }
 
 void ASTPrinterVisitor::visit(TypeDecl *Node) {
-  assert(Node->getType() && "TypeDecl missing declared type");
+  assert(Node->getDeclaredType() && "TypeDecl missing declared type");
   std::string Str;
   llvm::raw_string_ostream OS(Str);
   OS << "TypeDecl: ";
   PrintNodeDetails(OS, Node);
 
-  if (Node->getType()) {
-    OS << " type(" << Node->getType()->getTypeName() << ")";
+  if (Node->getDeclaredType()) {
+    OS << " type(" << Node->getDeclaredType()->getTypeName() << ")";
   } else {
     OS << " type(<unkown_type>)";
   }
@@ -234,7 +234,7 @@ void ASTPrinterVisitor::visit(TypeDecl *Node) {
 }
 
 void ASTPrinterVisitor::visit(UseDecl *Node) {
-  assert(Node->getType() && "UseDecl missing declared type");
+  assert(Node->getDeclaredType() && "UseDecl missing declared type");
 
   std::string Str;
   llvm::raw_string_ostream OS(Str);
