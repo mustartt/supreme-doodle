@@ -46,6 +46,11 @@ class ASTNode {
 public:
   ASTNode(SourceLocation Loc) : Loc(Loc) {}
   virtual ~ASTNode() = default;
+
+public:
+  virtual std::string name() const = 0;
+
+public:
   SourceLocation Loc;
 };
 
@@ -69,8 +74,16 @@ class ASTType : public ASTNode {
 public:
   ASTType(SourceLocation Loc) : ASTNode(Loc) {}
 
+  std::string name() const override { return "type"; }
+
   virtual void accept(BaseTypeVisitor &visitor) = 0;
   virtual std::string getTypeName() const = 0;
+
+  QualType getType() const { return Type; }
+  void setType(QualType Ty) { Type = Ty; }
+
+private:
+  QualType Type;
 };
 
 enum class ASTNativeType { Void, i1, i8, i32, i64, f32, f64, String, Unknown };
@@ -328,6 +341,7 @@ public:
                Visibility Vis)
       : Decl(Loc, DeclLoc, "", nullptr), Exported(Exported), Vis(Vis) {}
 
+  std::string name() const override { return "ExportedDecl"; }
   Decl *getExportedDecl() const { return Exported; }
   Visibility getVisibility() const { return Vis; }
 
@@ -348,11 +362,12 @@ public:
       : Decl(Loc, Loc, "Program", nullptr), Package(Package), Imports(Imports),
         Decls(std::move(Decls)) {}
 
-  ACCEPT_VISITOR(BaseDeclVisitor);
-
+  std::string name() const override { return "ProgramDecl"; }
   PackageDecl *getPackage() const { return Package; }
   llvm::ArrayRef<ImportDecl *> getImports() const { return Imports; }
   llvm::ArrayRef<ExportedDecl *> getDecls() const { return Decls; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
 
 private:
   PackageDecl *Package;
@@ -364,6 +379,8 @@ class PackageDecl : public Decl {
 public:
   PackageDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name)
       : Decl(Loc, DeclLoc, std::move(Name), nullptr) {}
+
+  std::string name() const override { return "PackageDecl"; }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
@@ -378,11 +395,12 @@ public:
       : Decl(Loc, DeclLoc, std::move(Path), nullptr), Type(Type),
         Alias(std::move(Alias)) {}
 
-  ACCEPT_VISITOR(BaseDeclVisitor);
-
+  std::string name() const override { return "ImportDecl"; }
   llvm::StringRef getImportPath() const { return Name; }
   ImportType getImportType() const { return Type; }
   std::optional<std::string> getAlias() const { return Alias; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
 
 private:
   ImportType Type;
@@ -395,6 +413,8 @@ public:
            ASTType *Type)
       : Decl(Loc, DeclLoc, std::move(Name), Type) {}
 
+  std::string name() const override { return "TypeDecl"; }
+
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
 
@@ -403,6 +423,8 @@ public:
   UseDecl(SourceLocation Loc, SourceLocation DeclLoc, std::string Name,
           ASTType *Type)
       : TypeDecl(Loc, DeclLoc, std::move(Name), Type) {}
+
+  std::string name() const override { return "UseDecl"; }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 };
@@ -417,6 +439,7 @@ public:
     assert(ImplType);
   }
 
+  std::string name() const override { return "ImplDecl"; }
   llvm::ArrayRef<FuncDecl *> getImpls() const { return Impls; }
 
   ACCEPT_VISITOR(BaseDeclVisitor);
@@ -433,9 +456,10 @@ public:
       : Decl(Loc, DeclLoc, std::move(Name), nullptr), Initializer(Initializer) {
   }
 
-  ACCEPT_VISITOR(BaseDeclVisitor);
-
+  std::string name() const override { return "VarDecl"; }
   Expression *getInitializer() const { return Initializer; }
+
+  ACCEPT_VISITOR(BaseDeclVisitor);
 
 private:
   Expression *Initializer;
@@ -452,6 +476,7 @@ public:
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
+  std::string name() const override { return "FuncDecl"; }
   const llvm::StringRef getName() const { return Name; }
   llvm::ArrayRef<FuncParamDecl *> getParams() const { return Params; }
   BlockStmt *getBody() const { return Body; }
@@ -470,6 +495,7 @@ public:
 
   ACCEPT_VISITOR(BaseDeclVisitor);
 
+  std::string name() const override { return "FuncParamDecl"; }
   Expression *getDefaultValue() const { return DefaultValue; }
 
 private:
@@ -490,6 +516,7 @@ public:
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
+  std::string name() const override { return "BlockStmt"; }
   llvm::ArrayRef<Stmt *> getStmts() const { return Stmts; }
 
 private:
@@ -503,6 +530,7 @@ public:
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
+  std::string name() const override { return "ReturnStmt"; }
   Expression *getExpr() const { return Expr; }
 
 private:
@@ -515,6 +543,7 @@ public:
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
+  std::string name() const override { return "DeclStmt"; }
   Decl *getDecl() const { return Var; }
 
 private:
@@ -527,6 +556,7 @@ public:
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
+  std::string name() const override { return "ExprStmt"; }
   Expression *getExpr() const { return Expr; }
 
 private:
@@ -542,6 +572,7 @@ public:
 
   ACCEPT_VISITOR(BaseStmtVisitor);
 
+  std::string name() const override { return "ForStmt"; }
   DeclStmt *getPreHeader() const { return PreHeader; }
   Expression *getCondition() const { return Condition; }
   Expression *getPostExpr() const { return PostExpr; }
@@ -560,11 +591,11 @@ public:
 
   virtual void accept(BaseExprVisitor &) = 0;
 
-  ASTType *getExprType() const { return ExprType; }
-  void setExprType(ASTType *Ty) { ExprType = Ty; }
+  QualType getExprType() const { return ExprType; }
+  void setExprType(QualType Ty) { ExprType = Ty; }
 
 private:
-  ASTType *ExprType;
+  QualType ExprType;
 };
 
 class CallExpr : public Expression {
@@ -575,6 +606,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "CallExpr"; }
   Expression *getCallee() const { return Callee; }
   llvm::ArrayRef<Expression *> getArgs() const { return Args; }
 
@@ -590,6 +622,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "AccessExpr"; }
   Expression *getExpr() const { return Expr; }
   llvm::StringRef getAccessor() const { return Accessor; }
 
@@ -605,6 +638,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "IndexExpr"; }
   Expression *getExpr() const { return Expr; }
   Expression *getIdx() const { return Idx; }
 
@@ -620,6 +654,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "AssignExpr"; }
   Expression *getLHS() const { return LHS; }
   Expression *getRHS() const { return RHS; }
 
@@ -635,8 +670,8 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "DeclRefExpr"; }
   llvm::StringRef getSymbol() const { return Symbol; }
-
   Decl *getRefDecl() const { return Ref; }
   void setRefDecl(Decl *D) { Ref = D; }
 
@@ -654,6 +689,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "IfExpr"; }
   Expression *getCondition() const { return Condition; }
   BlockStmt *getBody() const { return Body; }
   BlockStmt *getElseBlock() const { return ElseBlock; }
@@ -676,6 +712,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "ObjectLiteral"; }
   llvm::StringMap<Expression *> &getFields() { return Fields; }
 
 private:
@@ -689,6 +726,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "BoolLiteral"; }
   bool getValue() const { return Value; }
 
 private:
@@ -702,6 +740,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "CharLiteral"; }
   char getValue() const { return Value; }
 
 private:
@@ -715,6 +754,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "NumLiteral"; }
   llvm::APFloat getValue() const { return Value; }
   bool isInteger() const { return Value.isInteger(); }
 
@@ -729,6 +769,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "StringLiteral"; }
   llvm::StringRef getValue() const { return Value; }
 
 private:
@@ -758,6 +799,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "BinaryExpr"; }
   BinaryOp getOp() const { return Op; }
   Expression *getLHS() const { return LHS; }
   Expression *getRHS() const { return RHS; }
@@ -775,6 +817,7 @@ public:
 
   ACCEPT_VISITOR(BaseExprVisitor);
 
+  std::string name() const override { return "UnaryExpr"; }
   UnaryOp getOp() const { return Op; }
   Expression *getExpr() const { return Expr; }
 

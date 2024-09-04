@@ -101,10 +101,11 @@ private:
       DC.emit(std::move(Note));
       return {};
     }
-    if (!TypeDecl)
-      TypeDecl = UseDecl;
-    assert(TypeDecl && "No TypeDecl");
-    Node->setDeclNode(TypeDecl);
+    if (TypeDecl) {
+      Node->setDeclNode(TypeDecl);
+    } else {
+      Node->setDeclNode(UseDecl);
+    }
     return {};
   }
 

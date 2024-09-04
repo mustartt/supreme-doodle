@@ -16,7 +16,7 @@ public:
 
 class QualType {
 public:
-  QualType(const Type *Ty) : Ty(Ty) {}
+  QualType(const Type *Ty = nullptr) : Ty(Ty) {}
   QualType(const QualType &) = default;
   QualType(QualType &&) = default;
   QualType &operator=(const QualType &) = default;

@@ -1,10 +1,11 @@
-type T1 = i32
 
-func main() {
-    type T1 = f64
+type A = i32;
+use B = A;
+
+type List = {
+    value: i32,
+    next: *List
 }
 
-impl i32 {
-    func foo() {}
-}
-
+type RA = *RB;
+type RB = *RA; 

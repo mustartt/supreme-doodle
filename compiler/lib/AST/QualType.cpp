@@ -23,7 +23,15 @@ llvm::hash_code hash_value(const rx::QualType &Val) {
 }
 
 bool QualType::isMutable() const { return Mutable; }
-std::string QualType::getTypeName() const { return Ty->getTypeName(); }
+
+std::string QualType::getTypeName() const {
+  if (!Ty)
+    return "<unknown>";
+  std::string Prefix;
+  if (Mutable)
+    Prefix += "mut ";
+  return Prefix + Ty->getTypeName();
+}
 
 } // namespace rx
 
@@ -34,11 +42,12 @@ hash_code hash_value(const rx::QualType &Val) {
 }
 
 DenseMapInfo<rx::QualType>::Type DenseMapInfo<rx::QualType>::getEmptyKey() {
-  return &rx::GlobalUnknownType;
+  return nullptr;
 }
 
 DenseMapInfo<rx::QualType>::Type DenseMapInfo<rx::QualType>::getTombstoneKey() {
-  return nullptr;
+  static int Tombstone;
+  return reinterpret_cast<rx::Type *>(&Tombstone);
 }
 
 unsigned DenseMapInfo<rx::QualType>::getHashValue(const Type &Val) {

@@ -80,11 +80,13 @@ private:
 
 void MainSemaPass::run(ast::ProgramDecl *Program, DiagnosticConsumer &DC,
                        LexicalContext &LC, ASTContext &AC) {
-  MainSemaPassImpl Impl(DC, LC, AC);
-  Impl.visit(Program);
+//  MainSemaPassImpl Impl(DC, LC, AC);
+//  Impl.visit(Program);
 }
 
 // =========== Impls =============
+
+/*
 
 void MainSemaPassImpl::visit(DeclRefExpr *Node) {
   assert(Node && "Invalid visited node");
@@ -307,5 +309,7 @@ void MainSemaPassImpl::visit(NumLiteral *Node) {
   assert(Node && "Invalid visited node");
   Node->getValue();
 }
+
+*/
 
 } // namespace rx::sema

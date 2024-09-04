@@ -3,7 +3,6 @@
 
 namespace rx {
 
-UnknownType GlobalUnknownType;
 UnitType GlobalUnitType;
 
 TypeContext::TypeContext() {
@@ -24,7 +23,7 @@ TypeContext::TypeContext() {
       BuiltinType(NativeType::string);
 }
 
-QualType TypeContext::getUnknownType() { return &GlobalUnknownType; }
+QualType TypeContext::getUnknownType() { return nullptr; }
 
 QualType TypeContext::getUnitType() { return &GlobalUnitType; }
 
