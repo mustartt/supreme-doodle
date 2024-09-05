@@ -1,7 +1,4 @@
 // RUN: %parse-tree %s 
-// XFAIL: *
-
-import math
 
 // type alias
 

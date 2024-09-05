@@ -11,7 +11,8 @@ namespace rx {
 
 namespace ast {
 class TypeDecl;
-}
+class FuncDecl;
+} // namespace ast
 
 class TypeContext {
 public:
@@ -27,6 +28,8 @@ public:
   QualType getFuncType(llvm::ArrayRef<QualType> ParamTys, QualType ReturnTy);
   QualType getObjectType(llvm::StringMap<QualType> &&Fields);
   QualType getEnumType(llvm::StringMap<QualType> &&Members);
+
+  void addImpl(ast::TypeDecl *Decl, ast::FuncDecl *Func);
 
 private:
   // leaf types

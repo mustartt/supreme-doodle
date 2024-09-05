@@ -17,7 +17,7 @@ impl Rectangle {
 }
 
 func main() {
-    let mut rect: Rectangle = { width: 10.0, height: 5.0 };
+    let rect: mut Rectangle = { width: 10.0, height: 5.0 };
     io.print("Area before scaling: ", rect.area());
     rect.scale(2.0);
     io.print("Area after scaling: ", rect.area());

@@ -1,3 +1,12 @@
+// RUN: %rx-frontend %s 2>&1 | FileCheck %s
+
+// CHECK: error: Overloaded function
+// CHECK: func area
+// CHECK: error: Overloaded function
+// CHECK: func main
+
+
+
 type Rectangle = {
     width: f32,
     height: f32
@@ -6,6 +15,9 @@ type Rectangle = {
 impl Rectangle {
     func area(self: *Rectangle) f32 {
         return self.width * self.height;
+    }
+
+    func area(self: *Rectangle) f32 {
     }
 
     func scale(self: mut *Rectangle, factor: f32) {
@@ -19,4 +31,8 @@ func main() {
     io.print("Area before scaling: ", rect.area());
     rect.scale(2.0);
     io.print("Area after scaling: ", rect.area());
+}
+
+
+func main() {
 }

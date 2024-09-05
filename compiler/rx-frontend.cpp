@@ -43,37 +43,48 @@ static cl::opt<bool> DebugSemaManager("debug-sema-manager", cl::Optional,
 static cl::opt<bool> DumpLexicalContext("dump-lexical-context", cl::Optional,
                                         cl::init(false),
                                         cl::desc("Dump LexicalContext"));
+static cl::opt<bool>
+    DumpTUDependenceGraph("dump-tu-dependence-graph", cl::Optional,
+                          cl::init(false),
+                          cl::desc("Dump Translation Unit Dependence Graph"));
 
 static void populateBuiltins(ASTContext &GlobalASTContext,
                              LexicalScope *GlobalScope) {
   GlobalScope->insert(
-      "void", GlobalASTContext.createNode<UseDecl>(
-                  SourceLocation::Builtin(), SourceLocation::Builtin(), "void",
-                  GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::Void)));
+      "void",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "void",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::Void)));
   GlobalScope->insert(
-      "bool", GlobalASTContext.createNode<UseDecl>(
-                  SourceLocation::Builtin(), SourceLocation::Builtin(), "bool",
-                  GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i1)));
+      "bool",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "bool",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i1)));
   GlobalScope->insert(
-      "char", GlobalASTContext.createNode<UseDecl>(
-                  SourceLocation::Builtin(), SourceLocation::Builtin(), "i8",
-                  GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i8)));
+      "char",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "i8",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i8)));
   GlobalScope->insert(
-      "i32", GlobalASTContext.createNode<UseDecl>(
-                 SourceLocation::Builtin(), SourceLocation::Builtin(), "i32",
-                 GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i32)));
+      "i32",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "i32",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i32)));
   GlobalScope->insert(
-      "i64", GlobalASTContext.createNode<UseDecl>(
-                 SourceLocation::Builtin(), SourceLocation::Builtin(), "i64",
-                 GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i64)));
+      "i64",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "i64",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::i64)));
   GlobalScope->insert(
-      "f32", GlobalASTContext.createNode<UseDecl>(
-                 SourceLocation::Builtin(), SourceLocation::Builtin(), "f32",
-                 GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::f32)));
+      "f32",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "f32",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::f32)));
   GlobalScope->insert(
-      "f64", GlobalASTContext.createNode<UseDecl>(
-                 SourceLocation::Builtin(), SourceLocation::Builtin(), "f64",
-                 GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::f64)));
+      "f64",
+      GlobalASTContext.createNode<UseDecl>(
+          SourceLocation::Builtin(), SourceLocation::Builtin(), "f64",
+          GlobalASTContext.createNode<ASTBuiltinType>(ASTNativeType::f64)));
   GlobalScope->insert(
       "string",
       GlobalASTContext.createNode<UseDecl>(
@@ -148,10 +159,12 @@ int main(int argc, char *argv[]) {
 
     SemaPassManager SPM(CDC, LC, GlobalASTContext, TC, DebugSemaManager);
     SPM.registerPass(ResolveGlobalType());
-    // SPM.registerPass(ForwardDeclarePass());
-    // SPM.registerPass(MainSemaPass());
-
+    SPM.registerPass(ForwardDeclareFunctions());
     SPM.run(TU->getProgramAST());
+  }
+
+  if (Debug) {
+    TUC.debug(errs());
   }
 
   if (DumpLexicalContext) {
@@ -160,8 +173,7 @@ int main(int argc, char *argv[]) {
     errs() << "*** End of LexicalContext ***\n";
   }
 
-  if (Debug) {
-    TUC.debug(errs());
+  if (DumpTUDependenceGraph) {
     dumpDotGraphToFile(&TUC, "TranslationUnitDependenceGraph.dot",
                        "Translation Unit Dependence Graph");
   }

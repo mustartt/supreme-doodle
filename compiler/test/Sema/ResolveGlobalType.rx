@@ -1,0 +1,14 @@
+
+type A = i32
+use B = A
+
+let a: A
+let b: B
+
+func add(x: A, y: B) {}
+
+impl A {
+}
+
+public let exported: A
+

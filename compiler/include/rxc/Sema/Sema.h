@@ -22,7 +22,7 @@ public:
   SemaPass(std::string PassName) : PassName(std::move(PassName)) {}
   virtual ~SemaPass() = default;
   virtual void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-                   ast::ASTContext &, TypeContext&) = 0;
+                   ast::ASTContext &, TypeContext &) = 0;
 
 public:
   std::string PassName;
@@ -49,28 +49,20 @@ private:
   bool Debug;
 };
 
-class ForwardDeclarePass : public SemaPass {
-public:
-  ForwardDeclarePass() : SemaPass("sema-forward-declare") {}
-
-  void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &, TypeContext&) override;
-};
-
 class ResolveGlobalType : public SemaPass {
 public:
-  ResolveGlobalType() : SemaPass("sema-resolve-global-type") {}
+  ResolveGlobalType() : SemaPass("sema::resolve-global-type") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &, TypeContext&) override;
+           ast::ASTContext &, TypeContext &) override;
 };
 
-class MainSemaPass : public SemaPass {
+class ForwardDeclareFunctions : public SemaPass {
 public:
-  MainSemaPass() : SemaPass("sema-main") {}
+  ForwardDeclareFunctions() : SemaPass("sema::forward-declare-functions") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &, TypeContext&) override;
+           ast::ASTContext &, TypeContext &) override;
 };
 
 } // namespace sema

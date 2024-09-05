@@ -5,9 +5,15 @@
 
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/STLExtras.h>
+#include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringMap.h>
 
 namespace rx {
+
+namespace ast {
+class TypeDecl;
+class FuncDecl;
+} // namespace ast
 
 // Leaf Nodes
 class LeafType : public Type {
@@ -37,10 +43,6 @@ private:
   NativeType Ty;
 };
 
-namespace ast {
-class TypeDecl;
-}
-
 class NamedType : public LeafType {
 public:
   NamedType(ast::TypeDecl *Decl, QualType Definition)
@@ -48,10 +50,13 @@ public:
 
   ast::TypeDecl *getDecl() const { return Decl; };
   std::string getTypeName() const override;
+  llvm::ArrayRef<ast::FuncDecl *> getImpls() const { return Impls; }
+  void addImpl(ast::FuncDecl* Func) {Impls.push_back(Func); }
 
 private:
   ast::TypeDecl *Decl;
   QualType Definition;
+  llvm::SmallVector<ast::FuncDecl *, 8> Impls;
 };
 
 // Composite Types

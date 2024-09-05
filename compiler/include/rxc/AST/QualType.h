@@ -28,6 +28,7 @@ public:
   QualType mut(bool Mutable) const;
   bool isMutable() const;
   std::string getTypeName() const;
+  bool hasQualifier() const { return Mutable; }
 
   bool operator==(const QualType &Other) const;
 

@@ -13,10 +13,10 @@
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/WithColor.h>
 
-namespace rx::sema {
-
-using namespace ast;
+using namespace rx::ast;
 using namespace llvm;
+
+namespace rx::sema {
 
 class ForwardDeclareType final : public RecursiveASTVisitor<> {
 public:

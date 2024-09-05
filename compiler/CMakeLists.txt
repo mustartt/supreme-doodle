@@ -31,17 +31,13 @@ add_subdirectory(third-party/googletest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-add_executable(unittest unittest/test.cpp unittest/TypesTest.cpp)
-target_link_libraries(unittest gtest gtest_main ${llvm_libs} ast)
-add_test(test unittest)
+add_subdirectory(unittest)
 
 add_custom_target(check-lit
     COMMAND ${CMAKE_COMMAND} 
         -E env PARSE_TREE_BIN=$<TARGET_FILE:parse-tree> FRONT_END_BIN=$<TARGET_FILE:rx-frontend>
         lit ${CMAKE_CURRENT_SOURCE_DIR}/test -vs
     DEPENDS parse-tree)
-
-add_custom_target(check-unit COMMAND $<TARGET_FILE:unittest> DEPENDS unittest)
 
 add_custom_target(check-all DEPENDS check-unit check-lit)
 

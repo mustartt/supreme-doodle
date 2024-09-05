@@ -78,4 +78,9 @@ QualType TypeContext::getEnumType(llvm::StringMap<QualType> &&Members) {
   return &*It;
 }
 
+void TypeContext::addImpl(ast::TypeDecl *Decl, ast::FuncDecl *Func) {
+  assert(NamedCtx.contains(Decl));
+  NamedCtx[Decl]->addImpl(Func);
+}
+
 } // namespace rx
