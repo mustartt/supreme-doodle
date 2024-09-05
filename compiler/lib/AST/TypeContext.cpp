@@ -32,9 +32,10 @@ QualType TypeContext::getBuiltinType(NativeType Ty) {
 }
 
 QualType TypeContext::getNamedType(rx::ast::TypeDecl *TD) {
+  assert(TD && "Invalid Type Decl");
   if (NamedCtx.contains(TD))
     return NamedCtx[TD].get();
-  auto NewType = std::make_unique<NamedType>(getUnknownType());
+  auto NewType = std::make_unique<NamedType>(TD, getUnknownType());
   auto *NewTypePtr = NewType.get();
   NamedCtx[TD] = std::move(NewType);
   return NewTypePtr;

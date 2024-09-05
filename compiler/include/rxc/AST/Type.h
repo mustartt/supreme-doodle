@@ -31,19 +31,26 @@ class BuiltinType : public LeafType {
 public:
   BuiltinType(NativeType Ty = NativeType::i1) : Ty(Ty) {}
 
-  std::string getTypeName() const override { return "builtin"; }
+  std::string getTypeName() const override;
 
 private:
   NativeType Ty;
 };
 
+namespace ast {
+class TypeDecl;
+}
+
 class NamedType : public LeafType {
 public:
-  NamedType(QualType Definition) : Definition(Definition) {}
+  NamedType(ast::TypeDecl *Decl, QualType Definition)
+      : Decl(Decl), Definition(Definition) {}
 
-  std::string getTypeName() const override { return "<named todo>"; }
+  ast::TypeDecl *getDecl() const { return Decl; };
+  std::string getTypeName() const override;
 
 private:
+  ast::TypeDecl *Decl;
   QualType Definition;
 };
 

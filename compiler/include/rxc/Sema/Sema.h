@@ -4,6 +4,7 @@
 
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
+#include "rxc/AST/TypeContext.h"
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/WithColor.h>
 #include <memory>
@@ -21,7 +22,7 @@ public:
   SemaPass(std::string PassName) : PassName(std::move(PassName)) {}
   virtual ~SemaPass() = default;
   virtual void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-                   ast::ASTContext &) = 0;
+                   ast::ASTContext &, TypeContext&) = 0;
 
 public:
   std::string PassName;
@@ -30,8 +31,8 @@ public:
 class SemaPassManager {
 public:
   SemaPassManager(DiagnosticConsumer &DC, LexicalContext &LC,
-                  ast::ASTContext &AC, bool Debug = false)
-      : DC(DC), LC(LC), AC(AC), Debug(Debug) {}
+                  ast::ASTContext &AC, TypeContext &TC, bool Debug = false)
+      : DC(DC), LC(LC), AC(AC), TC(TC), Debug(Debug) {}
 
   template <class PassType> void registerPass(PassType &&Pass) {
     Passes.push_back(std::make_unique<PassType>(std::move(Pass)));
@@ -44,6 +45,7 @@ private:
   DiagnosticConsumer &DC;
   LexicalContext &LC;
   ast::ASTContext &AC;
+  TypeContext &TC;
   bool Debug;
 };
 
@@ -52,7 +54,7 @@ public:
   ForwardDeclarePass() : SemaPass("sema-forward-declare") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &) override;
+           ast::ASTContext &, TypeContext&) override;
 };
 
 class ResolveGlobalType : public SemaPass {
@@ -60,7 +62,7 @@ public:
   ResolveGlobalType() : SemaPass("sema-resolve-global-type") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &) override;
+           ast::ASTContext &, TypeContext&) override;
 };
 
 class MainSemaPass : public SemaPass {
@@ -68,7 +70,7 @@ public:
   MainSemaPass() : SemaPass("sema-main") {}
 
   void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
-           ast::ASTContext &) override;
+           ast::ASTContext &, TypeContext&) override;
 };
 
 } // namespace sema

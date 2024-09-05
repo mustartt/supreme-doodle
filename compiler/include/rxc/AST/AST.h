@@ -2,7 +2,6 @@
 #define AST_NODE_H
 
 #include "QualType.h"
-#include "rxc/AST/Type.h"
 #include "rxc/AST/TypeContext.h"
 #include "rxc/Basic/SourceManager.h"
 
@@ -117,6 +116,7 @@ public:
       llvm_unreachable("Invalid BuiltinType");
     }
   }
+  ASTNativeType getNativeType() const { return Builtin; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
 
@@ -135,6 +135,7 @@ public:
   llvm::StringRef getSymbol() const { return Symbol; }
   std::string getTypeName() const override { return "@" + Symbol; }
 
+  TypeDecl *getDeclNode() const { return DeclNode; }
   void setDeclNode(TypeDecl *DeclNode) { this->DeclNode = DeclNode; }
 
   ACCEPT_VISITOR(BaseTypeVisitor);
@@ -172,7 +173,7 @@ public:
       : ASTType(Loc), ElementType(ElementType) {}
 
   std::string getTypeName() const override {
-    return "mut " + ElementType->getTypeName();
+    return "<qual> " + ElementType->getTypeName();
   }
 
   ASTType *getElementType() const { return ElementType; }

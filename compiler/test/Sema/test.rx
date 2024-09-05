@@ -1,11 +1,9 @@
 
-type A = i32;
-use B = A;
+type A = i32
+use B = A
 
-type List = {
-    value: i32,
-    next: *List
-}
+let a: A
+let b: B
 
-type RA = *RB;
-type RB = *RA; 
+func add(x: A) {}
+

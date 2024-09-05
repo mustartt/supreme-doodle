@@ -1,6 +1,36 @@
 #include "rxc/AST/Type.h"
+#include "rxc/AST/AST.h"
 #include "rxc/AST/QualType.h"
 #include <llvm/ADT/Hashing.h>
+
+namespace rx {
+
+std::string rx::NamedType::getTypeName() const { return Decl->getName().str(); }
+
+std::string BuiltinType::getTypeName() const {
+  switch (Ty) {
+  case NativeType::i1:
+    return "i1";
+  case NativeType::i8:
+    return "i8";
+  case NativeType::i16:
+    return "i16";
+  case NativeType::i32:
+    return "i32";
+  case NativeType::i64:
+    return "i64";
+  case NativeType::f32:
+    return "f32";
+  case NativeType::f64:
+    return "f64";
+  case NativeType::string:
+    return "string";
+  default:
+    llvm_unreachable("Unaccounted for NativeType");
+  }
+}
+
+} // namespace rx
 
 namespace llvm {
 

@@ -48,7 +48,8 @@ private:
 };
 
 void ForwardDeclarePass::run(ProgramDecl *Program, DiagnosticConsumer &DC,
-                             LexicalContext &LC, ASTContext& AC) {
+                             LexicalContext &LC, ASTContext &AC,
+                             TypeContext &TC) {
   ForwardDeclarePassImpl Impl(DC, LC);
   Impl.visit(Program);
 }

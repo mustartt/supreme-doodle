@@ -79,9 +79,9 @@ private:
 };
 
 void MainSemaPass::run(ast::ProgramDecl *Program, DiagnosticConsumer &DC,
-                       LexicalContext &LC, ASTContext &AC) {
-//  MainSemaPassImpl Impl(DC, LC, AC);
-//  Impl.visit(Program);
+                       LexicalContext &LC, ASTContext &AC, TypeContext &TC) {
+  //  MainSemaPassImpl Impl(DC, LC, AC);
+  //  Impl.visit(Program);
 }
 
 // =========== Impls =============

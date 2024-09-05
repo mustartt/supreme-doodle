@@ -74,6 +74,10 @@ private:
     if (auto *D = dynamic_cast<Decl *>(Node)) {
       OS << " decl(" << D->getName() << ")";
       OS << " loc(" << D->getDeclLoc() << ")";
+      if (D->getDeclaredType()) {
+        OS << " decl_type(" << D->getDeclaredType()->getType().getTypeName()
+           << ")";
+      }
     }
 
     if (auto *E = dynamic_cast<Expression *>(Node)) {
@@ -448,7 +452,7 @@ void ASTPrinterVisitor::visit(ObjectLiteral *Node) {
 }
 
 void ASTPrinterVisitor::visit(BoolLiteral *Node) {
-  PrintNodeDetails(Node);
+  PrintNodeDetails(Node) << (Node->getValue() ? "True" : "False") << "\n";
   DepthFlag[Depth] = true;
 }
 

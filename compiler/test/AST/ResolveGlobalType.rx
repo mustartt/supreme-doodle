@@ -1,11 +1,11 @@
 // RUN:
 
-public let a: i32
+let a: i32
 
-public type b = i32
-public type c = b 
-public use d = i32 
+type b = i32
+type c = b 
+use d = i32 
 
-public func test(x: b, y: c) d {
+func test(x: b, y: c) d {
     io.println(a)
 }

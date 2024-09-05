@@ -24,6 +24,7 @@ public:
 
 public:
   const Type *getType() const;
+  bool isUnknown() const { return Ty == nullptr; }
   QualType mut(bool Mutable) const;
   bool isMutable() const;
   std::string getTypeName() const;

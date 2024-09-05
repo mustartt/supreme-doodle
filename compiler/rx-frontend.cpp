@@ -1,5 +1,6 @@
 #include "rxc/AST/AST.h"
 #include "rxc/AST/ASTContext.h"
+#include "rxc/AST/TypeContext.h"
 #include "rxc/Basic/Diagnostic.h"
 #include "rxc/Basic/SourceManager.h"
 #include "rxc/Frontend/TranslationUnitContext.h"
@@ -117,6 +118,8 @@ int main(int argc, char *argv[]) {
   auto *GlobalScope = LC.createNewScope(LexicalScope::Kind::Global);
   populateBuiltins(GlobalASTContext, GlobalScope);
 
+  TypeContext TC;
+
   llvm::SmallVector<TranslationUnit *>
       BestEffortVisitOrder; // reverse topo order of sccs
 
@@ -143,7 +146,7 @@ int main(int argc, char *argv[]) {
       llvm::WithColor::remark()
           << "TopoOrder: " << TU->file()->getAbsPath() << "\n";
 
-    SemaPassManager SPM(CDC, LC, GlobalASTContext, DebugSemaManager);
+    SemaPassManager SPM(CDC, LC, GlobalASTContext, TC, DebugSemaManager);
     SPM.registerPass(ResolveGlobalType());
     // SPM.registerPass(ForwardDeclarePass());
     // SPM.registerPass(MainSemaPass());

@@ -270,8 +270,9 @@ private:
   }
   void visit(ast::ImplDecl *Node) override {
     if (!Node->getLexicalScope()) {
+      assert(CurrentScope.size() && "There must exists an parent scope");
       Node->setLexicalScope(LC.createNewScope(sema::LexicalScope::Kind::Impl,
-                                              LC.getGlobalScope()));
+                                              CurrentScope.back()));
     }
     CurrentScope.push_back(Node->getLexicalScope());
     ResultStack.push_back(visit(Node, CurrentScope.back()));
@@ -282,8 +283,9 @@ private:
   }
   void visit(ast::FuncDecl *Node) override {
     if (!Node->getLexicalScope()) {
+      assert(CurrentScope.size() && "There must exists an parent scope");
       Node->setLexicalScope(LC.createNewScope(
-          sema::LexicalScope::Kind::Function, LC.getGlobalScope()));
+          sema::LexicalScope::Kind::Function, CurrentScope.back()));
     }
     CurrentScope.push_back(Node->getLexicalScope());
     ResultStack.push_back(visit(Node, CurrentScope.back()));
@@ -366,8 +368,9 @@ private:
   // visit stmts
   void visit(ast::BlockStmt *Node) override {
     if (!Node->getLexicalScope()) {
+      assert(CurrentScope.size() && "There must exists an parent scope");
       Node->setLexicalScope(LC.createNewScope(sema::LexicalScope::Kind::Block,
-                                              LC.getGlobalScope()));
+                                              CurrentScope.back()));
     }
     CurrentScope.push_back(Node->getLexicalScope());
     ResultStack.push_back(visit(Node, CurrentScope.back()));
@@ -386,8 +389,10 @@ private:
     ResultStack.push_back(visit(Node, CurrentScope.back()));
   }
 
-private:
+protected:
   sema::LexicalContext &LC;
+
+private:
   T DefaultResult;
   llvm::SmallVector<T, 32> ResultStack;
   llvm::SmallVector<sema::LexicalScope *, 32> CurrentScope;
