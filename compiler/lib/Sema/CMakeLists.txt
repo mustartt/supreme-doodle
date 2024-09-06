@@ -6,6 +6,7 @@ add_library(
     ${PROJECT_SOURCE_DIR}/include/rxc/Sema/RecursiveASTVisitor.h
     ResolveGlobalTypePass.cpp
     ForwardDeclareFunctions.cpp
+    TypeCheck.cpp
     LexicalScope.cpp
     Sema.cpp
 )

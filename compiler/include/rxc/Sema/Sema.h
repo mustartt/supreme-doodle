@@ -65,6 +65,14 @@ public:
            ast::ASTContext &, TypeContext &) override;
 };
 
+class TypeCheck : public SemaPass {
+public:
+  TypeCheck() : SemaPass("sema::typecheck") {}
+
+  void run(ast::ProgramDecl *, DiagnosticConsumer &, LexicalContext &,
+           ast::ASTContext &, TypeContext &) override;
+};
+
 } // namespace sema
 } // namespace rx
 

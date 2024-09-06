@@ -38,6 +38,7 @@ public:
   BuiltinType(NativeType Ty = NativeType::i1) : Ty(Ty) {}
 
   std::string getTypeName() const override;
+  NativeType getNativeType() const { return Ty; }
 
 private:
   NativeType Ty;
@@ -51,7 +52,7 @@ public:
   ast::TypeDecl *getDecl() const { return Decl; };
   std::string getTypeName() const override;
   llvm::ArrayRef<ast::FuncDecl *> getImpls() const { return Impls; }
-  void addImpl(ast::FuncDecl* Func) {Impls.push_back(Func); }
+  void addImpl(ast::FuncDecl *Func) { Impls.push_back(Func); }
 
 private:
   ast::TypeDecl *Decl;

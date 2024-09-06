@@ -1,0 +1,8 @@
+
+let a = true 
+let b = 'c'
+let c = 123
+let d = 123.456
+let e: i32 = 789
+let f: f32 = 10.12
+let g = "some string" 
